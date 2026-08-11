@@ -1,0 +1,9 @@
+{
+  "name": "jarvis-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Jarvis dashboards (ONG Command Center + Mis Gustos & Aprendizajes) backed by live Notion data via Vercel serverless functions.",
+  "engines": {
+    "node": ">=18"
+  }
+}
