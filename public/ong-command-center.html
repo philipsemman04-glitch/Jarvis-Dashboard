@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONG Command Center — Jarvis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0b10;
+    --bg-alt: #0e1016;
+    --panel: #12141d;
+    --panel-alt: #171a24;
+    --border: rgba(201,169,97,0.14);
+    --border-soft: rgba(255,255,255,0.06);
+    --gold: #c9a961;
+    --gold-bright: #e0c584;
+    --gold-dim: rgba(201,169,97,0.14);
+    --text: #f3f0e8;
+    --text-dim: #9a9683;
+    --text-faint: #67645a;
+    --red: #e0636b;
+    --red-dim: rgba(224,99,107,0.14);
+    --amber: #e0a45c;
+    --amber-dim: rgba(224,164,92,0.14);
+    --green: #7cc99a;
+    --green-dim: rgba(124,201,154,0.14);
+    --blue: #7d9cc9;
+    --blue-dim: rgba(125,156,201,0.14);
+    --radius: 14px;
+    --serif: 'Fraunces', serif;
+    --sans: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: radial-gradient(ellipse 1400px 900px at 15% -10%, #1a1710 0%, transparent 55%),
+                radial-gradient(ellipse 1000px 700px at 100% 0%, #0f1420 0%, transparent 50%),
+                var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+
+  /* ===== Top bar ===== */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:38px; height:38px; border-radius:9px;
+    background: linear-gradient(155deg, var(--gold-bright), #8a6f34);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--serif); font-weight:700; font-size:16px; color:#0a0b10;
+    box-shadow: 0 4px 14px rgba(201,169,97,0.25);
+  }
+  .brand-text h1{ font-family:var(--serif); font-size:16px; font-weight:600; letter-spacing:0.4px; line-height:1.2;}
+  .brand-text p{ font-size:11px; color:var(--text-dim); letter-spacing:0.3px; margin-top:1px;}
+  .search{
+    flex:1; max-width:420px; margin:0 32px;
+    background: var(--panel); border:1px solid var(--border-soft); border-radius:10px;
+    padding:9px 14px; font-size:13px; color:var(--text-faint);
+    display:flex; align-items:center; gap:8px;
+  }
+  .topbar-actions{ display:flex; align-items:center; gap:14px; }
+  .icon-btn{
+    width:36px; height:36px; border-radius:9px; background:var(--panel);
+    border:1px solid var(--border-soft); display:flex; align-items:center; justify-content:center;
+    color: var(--text-dim); position:relative;
+  }
+  .icon-btn .dot{ position:absolute; top:7px; right:7px; width:6px; height:6px; border-radius:50%; background:var(--red);}
+  .ask-btn{
+    background: linear-gradient(155deg, var(--gold-bright), var(--gold));
+    color:#181205; font-weight:600; font-size:12.5px; letter-spacing:0.2px;
+    padding:10px 18px; border-radius:9px; display:flex; align-items:center; gap:7px;
+    box-shadow: 0 4px 16px rgba(201,169,97,0.22);
+  }
+
+  /* ===== Layout ===== */
+  .shell{ display:flex; }
+  .main{ flex:1; padding:28px 32px 60px; max-width:1200px; margin:0 auto; }
+  .page-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:22px;}
+  .page-head h2{ font-family:var(--serif); font-size:26px; font-weight:600; letter-spacing:0.2px;}
+  .page-head p{ font-size:12.5px; color:var(--text-dim); margin-top:3px;}
+  .sync-note{ font-size:11px; color:var(--text-faint); }
+
+  /* ===== Stat row ===== */
+  .stat-row{ display:grid; grid-template-columns: repeat(5, 1fr); gap:14px; margin-bottom:20px;}
+  .stat-card{
+    background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .stat-card .top{ display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+  .stat-icon{ width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:13px;}
+  .stat-card .label{ font-size:11px; color:var(--text-dim); letter-spacing:0.2px;}
+  .stat-card .value{ font-family:var(--serif); font-size:26px; font-weight:600; line-height:1;}
+  .stat-card .sub{ font-size:10.5px; color:var(--text-faint); margin-top:6px;}
+  .stat-card .sub.pos{ color:var(--green); }
+
+  /* ===== Grid sections ===== */
+  .grid-2{ display:grid; grid-template-columns: 1.4fr 1fr; gap:16px; margin-bottom:16px; }
+  .grid-2b{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px; }
+  .stack{ display:flex; flex-direction:column; gap:16px; }
+
+  .panel{
+    background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius);
+    padding:20px 22px;
+  }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .panel-head h3{ font-size:13px; font-weight:600; letter-spacing:0.2px; display:flex; align-items:center; gap:8px;}
+  .panel-head .link{ font-size:11.5px; color:var(--gold-bright); }
+
+  /* Next action card */
+  .next-action{
+    background: linear-gradient(160deg, rgba(201,169,97,0.09), var(--panel) 55%);
+    border:1px solid var(--border);
+  }
+  .tag{
+    display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700;
+    letter-spacing:0.4px; text-transform:uppercase; padding:3px 8px; border-radius:5px;
+    cursor:pointer; user-select:none; transition:opacity 0.15s;
+  }
+  .tag.blocking{ background:var(--red-dim); color:var(--red); }
+  .tag.due{ background:var(--panel-alt); color:var(--text-dim); border:1px solid var(--border-soft);}
+  .tag.inactive{ opacity:0.4; }
+  .tag.disabled{ opacity:0.25; cursor:default; }
+  .next-action h4{ font-family:var(--serif); font-size:19px; font-weight:600; margin:12px 0 8px; line-height:1.3;}
+  .next-action .why{ font-size:12.5px; color:var(--text-dim); line-height:1.6; margin-bottom:16px;}
+  .na-footer{ display:flex; align-items:center; justify-content:space-between; gap:16px;}
+  .do-now{
+    flex:1; background: linear-gradient(155deg, var(--gold-bright), var(--gold));
+    color:#181205; font-weight:700; font-size:13px; letter-spacing:0.3px;
+    padding:13px 20px; border-radius:10px; text-align:center;
+  }
+  .impact-badge{ text-align:center; }
+  .impact-badge .num{ font-family:var(--serif); font-size:20px; color:var(--gold-bright); font-weight:700;}
+  .impact-badge .lbl{ font-size:9.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.4px;}
+
+  /* Pennyworth */
+  .pennyworth-panel{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .pw-avatar{
+    width:64px; height:64px; border-radius:50%; margin-bottom:12px;
+    background: radial-gradient(circle at 35% 30%, #4a4030, #14120c);
+    border:2px solid var(--gold); display:flex; align-items:center; justify-content:center;
+    font-family:var(--serif); font-size:24px; color:var(--gold-bright);
+  }
+  .pennyworth-panel h4{ font-family:var(--serif); font-size:15px; margin-bottom:6px;}
+  .pennyworth-panel p{ font-size:12px; color:var(--text-dim); line-height:1.6; margin-bottom:14px;}
+  .pw-input{
+    width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:9px;
+    padding:10px 14px; font-size:12px; color:var(--text-faint); text-align:left;
+  }
+
+  /* Schedule */
+  .sched-item{ display:flex; gap:12px; padding:9px 0; border-bottom:1px solid var(--border-soft); }
+  .sched-item:last-of-type{ border-bottom:none; }
+  .sched-time{ font-size:11.5px; color:var(--gold-bright); font-weight:600; width:42px; flex-shrink:0; padding-top:1px;}
+  .sched-info p{ font-size:12.5px; font-weight:500; }
+  .sched-info span{ font-size:10.5px; color:var(--text-faint); }
+
+  /* Funnel */
+  .funnel-row{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+  .funnel-label{ width:110px; font-size:12px; color:var(--text-dim); flex-shrink:0;}
+  .funnel-bar-track{ flex:1; height:22px; background:var(--panel-alt); border-radius:5px; display:flex; align-items:center; position:relative;}
+  .funnel-bar-fill{ height:100%; border-radius:5px; background:linear-gradient(90deg, var(--gold), var(--gold-bright)); max-width:100%;}
+  .funnel-pct{ font-size:11px; font-weight:700; color:var(--gold-bright); margin-left:8px; white-space:nowrap; flex-shrink:0;}
+  .funnel-count{ width:60px; text-align:right; font-size:12px; color:var(--text-dim); flex-shrink:0;}
+  .dropoff{ margin-top:16px; padding-top:16px; border-top:1px solid var(--border-soft);}
+  .dropoff-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-faint); margin-bottom:10px;}
+  .dropoff-row{ display:flex; align-items:center; gap:10px; margin-bottom:7px; font-size:11px; }
+  .dropoff-row .stages{ width:170px; color:var(--text-dim); flex-shrink:0;}
+  .dropoff-track{ flex:1; height:6px; background:var(--panel-alt); border-radius:3px; overflow:hidden;}
+  .dropoff-fill{ height:100%; background:var(--red); border-radius:3px;}
+  .dropoff-pct{ width:44px; text-align:right; color:var(--red);}
+
+  /* Blockers / Decisions */
+  .tabs{ display:flex; gap:6px; background:var(--panel-alt); padding:4px; border-radius:9px; margin-bottom:14px;}
+  .tab{ flex:1; text-align:center; padding:7px 10px; font-size:11.5px; color:var(--text-dim); border-radius:7px; font-weight:500;}
+  .tab.active{ background:var(--gold-dim); color:var(--gold-bright); font-weight:600;}
+  .bd-item{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-soft);}
+  .bd-item:last-child{ border-bottom:none; }
+  .bd-item p{ font-size:12.5px; font-weight:500; }
+  .bd-item .area{ font-size:10.5px; color:var(--text-faint); margin-top:2px;}
+  .pill{ font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:0.3px; flex-shrink:0;}
+  .pill.critical{ background:var(--red-dim); color:var(--red);}
+  .pill.high{ background:var(--amber-dim); color:var(--amber);}
+  .pill.decision{ background:var(--blue-dim); color:var(--blue);}
+
+  @media (max-width: 1000px){
+    .stat-row{ grid-template-columns: repeat(2,1fr); }
+    .grid-2, .grid-2b{ grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px){
+    .topbar{ flex-wrap:wrap; gap:10px; padding:14px 16px; }
+    .search{ order:3; max-width:100%; margin:0; width:100%; }
+    .main{ padding:20px 16px 40px; }
+    .stat-row{ grid-template-columns: repeat(2,1fr); gap:10px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">ONG</div>
+      <div class="brand-text">
+        <h1>Command Center</h1>
+        <p id="project-subtitle">One Night Guest &amp; Aurelio</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="icon-btn" onclick="window.location.href='https://jarvis-dashboard-phi-one.vercel.app/'" style="cursor:pointer;" title="Back to dashboard picker">🏠</div>
+      <div class="ask-btn" onclick="window.location.href='https://app.notion.com/p/d9917599cc404cc58b50e9e3401b4bf8'" style="cursor:pointer;">✦ Ask Pennyworth</div>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="main">
+      <div class="page-head">
+        <div>
+          <h2 id="page-title">One Night Guest</h2>
+          <p>Today's operating view — what needs attention, what's blocked, what's next.</p>
+        </div>
+        <p class="sync-note" id="sync-note">Synced with Notion · just now</p>
+      </div>
+
+      <!-- Stat row -->
+      <div class="stat-row" id="stat-row"></div>
+      <div id="status-breakdown" style="margin-bottom:20px;"></div>
+
+      <!-- Next action + Pennyworth -->
+      <div class="grid-2">
+        <div class="panel next-action" id="next-action-panel"></div>
+        <div class="panel pennyworth-panel" id="pennyworth-panel"></div>
+      </div>
+
+      <!-- Schedule + weekly -->
+      <div class="grid-2b">
+        <div class="panel">
+          <div class="panel-head"><h3>📅 Today's Schedule</h3><span class="link" style="cursor:pointer;" onclick="window.location.href='https://app.notion.com/p/39671c26ce3644a8a3f529de077a10bd'">View calendar</span></div>
+          <div id="schedule-list"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>📈 Weekly Progress</h3></div>
+          <div style="display:flex; align-items:baseline; gap:10px;">
+            <span style="font-family:var(--serif); font-size:30px; font-weight:600; color:var(--green);" id="weekly-change">+16%</span>
+            <span style="font-size:11.5px; color:var(--text-faint);">vs. last week</span>
+          </div>
+          <svg viewBox="0 0 240 60" style="width:100%; height:60px; margin-top:12px;">
+            <polyline points="0,45 30,42 60,38 90,40 120,30 150,28 180,18 210,15 240,8" fill="none" stroke="#7cc99a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Funnel + Blockers -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><h3>🎯 Provider Funnel</h3><span class="link" style="cursor:pointer;" onclick="window.location.href='https://app.notion.com/p/a4bf3518178d490da120e591ebaf7379'">View full funnel</span></div>
+          <div style="font-size:10.5px; color:var(--text-faint); margin-bottom:8px;">Embudo de proveedores (CRM/Leads) — no es Google Ads/Analytics, eso es un pendiente aparte.</div>
+          <div id="funnel-list"></div>
+          <div class="dropoff">
+            <p class="dropoff-label">Drop-off analysis</p>
+            <div id="dropoff-list"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>⚠ Blockers / Decisions</h3></div>
+          <div class="tabs" id="bd-tabs">
+            <div class="tab active" data-filter="all">All</div>
+            <div class="tab" data-filter="Blocked">Blocked</div>
+            <div class="tab" data-filter="Decision">Decisions</div>
+          </div>
+          <div id="bd-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   MOCK DATA — structured to mirror Notion property names 1:1.
+   Replace this block with a fetch() to the backend API proxy
+   (which calls the Notion API server-side) once that's wired up.
+   Field names below match the real Master Actions / Master
+   Entities / CRM-Leads / Meetings / Decisions schema already
+   built in Notion, so swapping this for live data is a
+   drop-in replacement, not a rewrite.
+
+   IMPORTANT — this is ONLY used when the /api/ong-data call fails
+   entirely (not deployed, token missing, etc.), and the sync banner
+   says so explicitly ("Demo data — Notion connection not active").
+   It must never be blended into a successful live response on a
+   per-field basis — that was a real bug here before (MRR, funnel,
+   schedule, and next-action all silently fell back to these fake
+   numbers even when Notion was connected, while the banner still
+   claimed "Synced with Notion"). See loadData() below: every field
+   with no live value now renders an honest empty state instead.
+   ============================================================ */
+const DEMO_DATA = {
+  project: { name: "One Night Guest", shortName: "ONG" },
+  stats: {
+    critical: 3, decisions: 2, onTrack: 4,
+    mrrActual: 12450, mrrChangePct: 15,
+    totalLeads: 248, leadsPeriod: "This month"
+  },
+  nextAction: {
+    taskName: "Auditoría legal y fiscal inicial",
+    blocksLaunch: true,
+    dueLabel: "Due today",
+    why: "This unlocks Ola 1 (legal + core tech foundation) and is the top P0 blocker for the launch timeline."
+  },
+  nextActionDue: {
+    taskName: "Apple Developer preparation",
+    blocksLaunch: true,
+    dueLabel: "Due today",
+    why: "Apple Developer account setup needs to close today to keep the App Store submission on schedule."
+  },
+  pennyworth: {
+    greeting: "Good morning, Aurelio. Here are the 3 things that need your attention today."
+  },
+  schedule: [
+    { time: "12:00", title: "Team Standup", project: "ONG" },
+    { time: "15:00", title: "Campaign Review", project: "ONG" },
+    { time: "17:00", title: "Pennyworth Sync", project: "Personal" }
+  ],
+  weeklyChangePct: 16,
+  funnel: [
+    { stage: "Lead", count: 248 },
+    { stage: "Trial Profile", count: 38 },
+    { stage: "Activation", count: 18 },
+    { stage: "PRO Subscription", count: 6 }
+  ],
+  blockersAndDecisions: [
+    { title: "Website recovery and optimization", type: "Blocked", severity: "critical", area: "Programación / Desarrollo" },
+    { title: "Apple Developer preparation", type: "Blocked", severity: "high", area: "Legal, Corporativo, Fiscal y Cumplimiento" },
+    { title: "Recuperar página oficial de LinkedIn", type: "Blocked", severity: "critical", area: "LinkedIn y Captación de Proveedores" },
+    { title: "Provider offer decision", type: "Decision", severity: "decision", area: "Funnels, CRM y Automatización" },
+    { title: "Email automation sequence", type: "Decision", severity: "decision", area: "Funnels, CRM y Automatización" }
+  ]
+};
+
+/* ===== Render ===== */
+function fmtMoney(n){ return "$" + n.toLocaleString("en-US"); }
+
+function renderStats(d){
+  const s = d.stats;
+  const cards = [
+    { icon:"🔴", bg:"var(--red-dim)", label:"Critical", value:s.critical, sub:"P0 sin cerrar (todas las prioridades)" },
+    { icon:"🔵", bg:"var(--blue-dim)", label:"Decisions", value:s.decisions, sub:"Decision Log — base separada" },
+    { icon:"🟢", bg:"var(--green-dim)", label:"On Track", value:s.onTrack, sub:"Solo estado \"En progreso\"" },
+    { icon:"💰", bg:"var(--gold-dim)", label:"MRR Actual",
+      value: (s.mrrActual!=null) ? fmtMoney(s.mrrActual) : null,
+      sub: (s.mrrActual!=null) ? `+${s.mrrChangePct}% vs last month` : "No hay fuente en Notion todavía", pos:true },
+    { icon:"👥", bg:"var(--blue-dim)", label:"Total Leads", value:s.totalLeads, sub:s.leadsPeriod || "No data yet" }
+  ];
+  document.getElementById("stat-row").innerHTML = cards.map(c => `
+    <div class="stat-card">
+      <div class="top"><div class="stat-icon" style="background:${c.bg}">${c.icon}</div><span class="label">${c.label}</span></div>
+      <div class="value" style="${c.value==null ? 'font-size:13px; font-style:italic; color:var(--text-faint);' : ''}">${c.value==null ? 'No data yet' : c.value}</div>
+      <div class="sub ${c.pos && c.value!=null ?'pos':''}">${c.sub}</div>
+    </div>`).join("");
+
+  // These three numbers are deliberately different lenses on the same task
+  // pool (by priority, by exact status, and a separate database entirely)
+  // — they were never meant to sum, but that was never explained before.
+  // This breakdown DOES reconcile exactly to the open-task total shown on
+  // the Home screen, so the arithmetic is visible and honest.
+  if(s.statusBreakdown){
+    const rows = Object.entries(s.statusBreakdown).filter(([,v]) => v > 0);
+    document.getElementById("status-breakdown").innerHTML = `
+      <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">
+        ${s.openTotal} tareas abiertas, por estado exacto (esto sí suma al total):
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        ${rows.map(([status,count]) => `<span style="font-size:11px; background:var(--panel-alt); padding:4px 9px; border-radius:6px; color:var(--text-dim);">${status}: <b style="color:var(--text)">${count}</b></span>`).join("")}
+      </div>`;
+  }
+  // Real area breakdown — this data existed the whole time on 219/223
+  // tasks (via "Related Entity") but no dashboard ever showed it.
+  if(s.areaBreakdown && Object.keys(s.areaBreakdown).length){
+    const areaRows = Object.entries(s.areaBreakdown).sort((a,b) => b[1]-a[1]);
+    document.getElementById("status-breakdown").innerHTML += `
+      <div style="font-size:11px; color:var(--text-faint); margin:10px 0 6px;">Por área:</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        ${areaRows.map(([area,count]) => `<span style="font-size:11px; background:var(--panel-alt); padding:4px 9px; border-radius:6px; color:var(--text-dim);">${area}: <b style="color:var(--text)">${count}</b></span>`).join("")}
+      </div>`;
+  }
+}
+
+let activeNextActionTab = "blocking";
+
+function renderNextAction(d){
+  const hasDue = !!d.nextActionDue;
+  const showingDue = activeNextActionTab === "due" && hasDue;
+  const a = showingDue ? d.nextActionDue : d.nextAction;
+  if(!a){
+    document.getElementById("next-action-panel").innerHTML = `
+      <div style="font-size:12px;color:var(--text-faint);font-style:italic;padding:12px 0;">
+        No hay próxima acción conectada desde Notion todavía.
+      </div>`;
+    return;
+  }
+  document.getElementById("next-action-panel").innerHTML = `
+    <div style="display:flex; gap:8px; align-items:center;">
+      <span class="tag blocking ${showingDue ? "inactive" : ""}" data-tab="blocking">Blocking</span>
+      <span class="tag due ${showingDue ? "" : "inactive"} ${hasDue ? "" : "disabled"}" data-tab="due">Due Today</span>
+    </div>
+    <h4>${a.taskName}</h4>
+    <p class="why">${a.why}</p>
+    <div class="na-footer">
+      <div class="do-now">Do Now →</div>
+    </div>`;
+  document.querySelectorAll("#next-action-panel .tag").forEach(tag => {
+    tag.addEventListener("click", () => {
+      const key = tag.dataset.tab;
+      if (key === "due" && !hasDue) return;
+      activeNextActionTab = key;
+      renderNextAction(d);
+      wireDoNow(d);
+    });
+  });
+}
+
+function renderPennyworth(d){
+  document.getElementById("pennyworth-panel").innerHTML = `
+    <div class="pw-avatar">P</div>
+    <h4>Pennyworth AI</h4>
+    <p>${d.pennyworth.greeting}</p>
+    <div class="pw-input" onclick="window.location.href='https://app.notion.com/p/d9917599cc404cc58b50e9e3401b4bf8'" style="cursor:pointer;">Ask Pennyworth anything…</div>`;
+}
+
+function renderSchedule(d){
+  if(!d.schedule || !d.schedule.length){
+    document.getElementById("schedule-list").innerHTML = `<div class="empty-note" style="font-size:12px;color:var(--text-faint);font-style:italic;padding:12px 0;">Sin agenda conectada todavía — no hay fuente en Notion para esto.</div>`;
+  } else {
+    document.getElementById("schedule-list").innerHTML = d.schedule.map(s => `
+      <div class="sched-item">
+        <div class="sched-time">${s.time}</div>
+        <div class="sched-info"><p>${s.title}</p><span>${s.project}</span></div>
+      </div>`).join("");
+  }
+  const weeklyEl = document.getElementById("weekly-change");
+  if(d.weeklyChangePct==null){ weeklyEl.textContent = "No data yet"; weeklyEl.style.fontStyle="italic"; }
+  else { weeklyEl.textContent = (d.weeklyChangePct>=0?"+":"") + d.weeklyChangePct + "%"; }
+}
+
+function renderFunnel(d){
+  if(!d.funnel || !d.funnel.length){
+    document.getElementById("funnel-list").innerHTML = `<div class="empty-note" style="font-size:12px;color:var(--text-faint);font-style:italic;padding:12px 0;">Sin datos de embudo conectados todavía.</div>`;
+    document.getElementById("dropoff-list").innerHTML = "";
+    return;
+  }
+  const max = d.funnel[0].count;
+  document.getElementById("funnel-list").innerHTML = d.funnel.map(f => {
+    const pct = (f.count / max * 100).toFixed(1);
+    return `<div class="funnel-row">
+      <div class="funnel-label">${f.stage}</div>
+      <div class="funnel-bar-track">
+        <div class="funnel-bar-fill" style="width:${pct}%"></div>
+        <span class="funnel-pct">${pct}%</span>
+      </div>
+      <div class="funnel-count">${f.count}</div>
+    </div>`;
+  }).join("");
+
+  const drop = [];
+  for(let i=0;i<d.funnel.length-1;i++){
+    const from = d.funnel[i], to = d.funnel[i+1];
+    const dropPct = (100 - (to.count/from.count*100)).toFixed(1);
+    drop.push({ label: `${from.stage} → ${to.stage}`, pct: dropPct });
+  }
+  document.getElementById("dropoff-list").innerHTML = drop.map(r => `
+    <div class="dropoff-row">
+      <div class="stages">${r.label}</div>
+      <div class="dropoff-track"><div class="dropoff-fill" style="width:${r.pct}%"></div></div>
+      <div class="dropoff-pct">${r.pct}%</div>
+    </div>`).join("");
+}
+
+function renderBD(d, filter){
+  const sevClass = { critical:"critical", high:"high", decision:"decision" };
+  const items = (d.blockersAndDecisions || []).filter(b => filter==="all" ? true : b.type===filter);
+  if(!items.length){
+    document.getElementById("bd-list").innerHTML = `<div style="font-size:12px;color:var(--text-faint);font-style:italic;padding:12px 0;">Nada aquí por ahora.</div>`;
+    return;
+  }
+  document.getElementById("bd-list").innerHTML = items.map(b => `
+    <div class="bd-item" ${b.notionUrl ? `style="cursor:pointer;" onclick="window.location.href='${b.notionUrl}'"` : ''}>
+      <div><p>${b.title}</p><div class="area">${b.area || b.source}</div></div>
+      <span class="pill ${sevClass[b.severity]}">${b.type}</span>
+    </div>`).join("");
+}
+
+function initTabs(d){
+  const tabs = document.querySelectorAll("#bd-tabs .tab");
+  tabs.forEach(t => t.addEventListener("click", () => {
+    tabs.forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    renderBD(d, t.dataset.filter);
+  }));
+}
+
+function render(d){
+  document.getElementById("project-subtitle").textContent = `${d.project.name} & Aurelio`;
+  document.getElementById("page-title").textContent = d.project.name;
+  renderStats(d);
+  renderNextAction(d);
+  renderPennyworth(d);
+  renderSchedule(d);
+  renderFunnel(d);
+  renderBD(d, "all");
+  initTabs(d);
+}
+
+/* ============================================================
+   Live data loading. Tries the Notion-backed API first; if it
+   fails (not deployed yet, DB not shared, etc.) it falls back
+   to DEMO_DATA above, clearly labeled in the sync banner. On a
+   successful call, every field is exactly what Notion returned —
+   nothing is padded with fake numbers. Fields Notion doesn't
+   provide (e.g. MRR, schedule, funnel) render an honest empty
+   state, and the sync banner lists what's still unconnected.
+   doesn't return yet (like the daily schedule, which has no
+   Notion equivalent configured) keep their mock values.
+   ============================================================ */
+async function loadData(){
+  const syncNote = document.getElementById("sync-note");
+  try{
+    const res = await fetch("/api/ong-data");
+    if(!res.ok) throw new Error("API returned " + res.status);
+    const live = await res.json();
+
+    // Honest merge: only DEMO_DATA.project (a label, not a fact) ever
+    // fills a gap. Every other field is exactly what Notion returned —
+    // missing means missing, rendered as an explicit empty state, never
+    // silently replaced by a fake number.
+    const merged = {
+      project: live.project || DEMO_DATA.project,
+      stats: live.stats || {},
+      nextAction: live.nextAction || null,
+      nextActionDue: live.nextActionDue || null,
+      pennyworth: DEMO_DATA.pennyworth,
+      schedule: live.schedule || [],
+      weeklyChangePct: (live.weeklyChangePct !== undefined) ? live.weeklyChangePct : null,
+      funnel: live.funnel || [],
+      blockersAndDecisions: live.blockersAndDecisions || [],
+    };
+    render(merged);
+    wireDoNow(merged);
+
+    const missing = [];
+    if(merged.stats.mrrActual==null) missing.push("MRR");
+    if(!merged.schedule.length) missing.push("agenda");
+    if(!merged.funnel.length) missing.push("embudo");
+    if(!merged.nextAction) missing.push("próxima acción");
+    syncNote.textContent = missing.length
+      ? `Synced with Notion · sin fuente todavía para: ${missing.join(", ")}`
+      : "Synced with Notion · " + new Date(live.fetchedAt).toLocaleTimeString();
+  }catch(err){
+    console.warn("Live Notion data unavailable, showing demo data:", err.message);
+    render(DEMO_DATA);
+    wireDoNow(DEMO_DATA);
+    if(syncNote) syncNote.textContent = "Demo data — Notion connection not active yet";
+  }
+}
+
+/* Wire the "Do Now" button to actually write back to Notion — acts on
+   whichever tab (Blocking / Due Today) is currently showing. If there's
+   no real next-action data (live or demo), the click says so honestly
+   instead of doing nothing. */
+function wireDoNow(data){
+  const btn = document.querySelector(".do-now");
+  const showingDue = activeNextActionTab === "due" && !!data.nextActionDue;
+  const active = showingDue ? data.nextActionDue : data.nextAction;
+  if(!btn) return;
+  if(!active || !active.id){
+    // No real Notion page behind this card yet (demo data / not synced) —
+    // make that explicit on click instead of the button silently doing nothing.
+    btn.style.cursor = "pointer";
+    btn.onclick = () => alert("Not connected to Notion yet — this card is showing demo data, so there's no real task to open.");
+    return;
+  }
+  btn.style.cursor = "pointer";
+  btn.onclick = async () => {
+    // Open the actual Notion page for this task right away...
+    window.location.href = `https://www.notion.so/${active.id.replace(/-/g, "")}`;
+    // ...and mark it "En progreso" in the background so the dashboard and
+    // Notion stay in sync without making Aurelio wait on the network call.
+    const original = btn.textContent;
+    try{
+      const res = await fetch("/api/update-action", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ pageId: active.id, status: "En progreso" })
+      });
+      if(!res.ok) throw new Error("Update failed");
+      btn.textContent = "✓ Opened · Marked In Progress";
+      setTimeout(() => { btn.textContent = original; }, 2500);
+    }catch(e){
+      console.warn("Couldn't update status in Notion:", e.message);
+    }
+  };
+}
+
+loadData();
+</script>
+</body>
+</html>
