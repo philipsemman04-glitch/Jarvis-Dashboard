@@ -1,53 +1,79 @@
 const { queryDatabase, getTitle, getRichText, getSelect, getNumber, getCheckbox, getDate } = require("./_notion");
 
 /**
- * Database IDs — confirmed against the real workspace schema on Aug 11.
- * Override any of these in Vercel → Settings → Environment Variables if
- * Aurelio's workspace structure changes.
+ * Database IDs.
+ *
+ * FIX (Aug 15): repointed from "📚 Learning Library" (a demo database with
+ * 3 sample rows and a fixed 6-option topic list) to "Referencias" — the
+ * database Aurelio actually built for this: Tipo, Tema (multi-select,
+ * extensible), Aplicar a, Enlace, Estado, "Por qué me interesa". It has 0
+ * rows right now, which is correct — every stat below is computed from
+ * whatever's actually there, so it starts at honest zeros and grows as
+ * Aurelio (or Claude, writing directly into this database) adds real
+ * references. Nothing here is backfilled with a fallback number.
  */
-const DB_LEARNING = process.env.NOTION_DB_LEARNING || "6e5a2bcc-cf58-4c45-93b1-e29f10ee57db"; // "📚 Learning Library"
+const DB_REFERENCIAS = process.env.NOTION_DB_REFERENCIAS || "7456b43c-50ef-4e15-bea4-ab2f824add71";
 const DB_GOALS = process.env.NOTION_DB_GOALS || "9644905b-74ff-4949-8671-c2ceaab319c5"; // "🎯 Personal Goals"
-// "Habits" is intentionally NOT the plain "Habits" database — per Aurelio's own
-// Workspace Spec doc, the real, richer habit log is "Rutina — Registro Diario"
-// (one row per activity per day, with per-activity structured notes). Preserve
-// that structure rather than flattening it into a generic streak counter.
 const DB_RUTINA = process.env.NOTION_DB_HABITS || "c8928c8a-b6ba-41ee-8972-d001cc13d61e"; // "Rutina — Registro Diario"
+
+function getMultiSelect(props, key) {
+  return (props[key]?.multi_select || []).map((o) => o.name);
+}
+function getUrl(props, key) {
+  return props[key]?.url || null;
+}
 
 module.exports = async (req, res) => {
   try {
-    // ---- Learning Library ----
-    let library = [];
-    let topicCounts = {};
-    if (DB_LEARNING) {
-      const pages = await queryDatabase(DB_LEARNING, {});
-      library = pages.map((p) => {
-        const props = p.properties;
-        const topics = (props["Topics"]?.multi_select || []).map((t) => t.name);
-        topics.forEach((t) => (topicCounts[t] = (topicCounts[t] || 0) + 1));
-        return {
-          id: p.id,
-          title: getTitle(props, "Title"),
-          type: getSelect(props, "Type"),
-          status: props["Status"]?.status?.name || null,
-          topics,
-          summary: getRichText(props, "Summary"),
-        };
-      });
-    }
-
-    const typeCounts = {};
-    library.forEach((l) => {
-      if (l.type) typeCounts[l.type] = (typeCounts[l.type] || 0) + 1;
+    // ---- Referencias: the real knowledge/reference library ----
+    const pages = await queryDatabase(DB_REFERENCIAS, {
+      sorts: [{ property: "Referencia", direction: "ascending" }],
     });
-    const biblioteca = Object.entries(typeCounts).map(([label, value]) => ({ label, value }));
 
-    // ---- Personal Goals ----
+    const referencias = pages.map((p) => ({
+      id: p.id,
+      notionUrl: p.url,
+      referencia: getTitle(p.properties, "Referencia"),
+      tipo: getSelect(p.properties, "Tipo"),
+      temas: getMultiSelect(p.properties, "Tema"),
+      aplicarA: getMultiSelect(p.properties, "Aplicar a"),
+      enlace: getUrl(p.properties, "Enlace"),
+      estado: getSelect(p.properties, "Estado"),
+      porQueMeInteresa: getRichText(p.properties, "Por qué me interesa"),
+      createdTime: p.created_time,
+    }));
+
+    // ---- Real computed stats — every number here comes from the rows above ----
+    const temaCounts = {};
+    const tipoCounts = {};
+    const estadoCounts = {};
+    referencias.forEach((r) => {
+      r.temas.forEach((t) => (temaCounts[t] = (temaCounts[t] || 0) + 1));
+      if (r.tipo) tipoCounts[r.tipo] = (tipoCounts[r.tipo] || 0) + 1;
+      if (r.estado) estadoCounts[r.estado] = (estadoCounts[r.estado] || 0) + 1;
+    });
+
+    const biblioteca = Object.entries(tipoCounts).map(([label, value]) => ({ label, value }));
+    const temasExplorados = Object.entries(temaCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+    const nubeTemas = temasExplorados.map((t) => ({ word: t.name, weight: t.count }));
+
+    // Most recent additions, by type, for the "recientes" panels
+    const recentByTipo = (tipo, n) =>
+      referencias
+        .filter((r) => r.tipo === tipo)
+        .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
+        .slice(0, n)
+        .map((r) => ({ title: r.referencia, meta: r.porQueMeInteresa || "", enlace: r.enlace }));
+
+    // ---- Personal Goals tagged "Learning" (unchanged — this part was already correct) ----
     let metasAprendizaje = [];
     if (DB_GOALS) {
-      const pages = await queryDatabase(DB_GOALS, {
+      const goalPages = await queryDatabase(DB_GOALS, {
         filter: { property: "Area", select: { equals: "Learning" } },
       });
-      metasAprendizaje = pages.map((p) => ({
+      metasAprendizaje = goalPages.map((p) => ({
         label: getTitle(p.properties, "Goal"),
         pct: Math.round((getNumber(p.properties, "Progress") || 0) * 100),
         nextAction: getRichText(p.properties, "Next Action"),
@@ -55,21 +81,15 @@ module.exports = async (req, res) => {
       }));
     }
 
-    // ---- Rutina — Registro Diario (real habit log) ----
-    let rutina = [];
+    // ---- Rutina — Registro Diario: real habit-streak logic (unchanged, unrelated to this fix) ----
     let racha = 0;
     if (DB_RUTINA) {
-      const pages = await queryDatabase(DB_RUTINA, {
+      const rutinaPages = await queryDatabase(DB_RUTINA, {
         sorts: [{ property: "Fecha", direction: "descending" }],
       });
-      rutina = pages.map((p) => ({
-        id: p.id,
-        registro: getTitle(p.properties, "Registro"),
-        actividad: getSelect(p.properties, "Actividad"),
-        fecha: getDate(p.properties, "Fecha"),
-        duracion: getNumber(p.properties, "Duración (min)"),
-        nota: getRichText(p.properties, "Nota rápida"),
+      const rutina = rutinaPages.map((p) => ({
         hecho: getCheckbox(p.properties, "Hecho"),
+        fecha: getDate(p.properties, "Fecha"),
       }));
       const doneDates = [...new Set(rutina.filter((r) => r.hecho && r.fecha).map((r) => r.fecha))].sort().reverse();
       let cursor = new Date();
@@ -82,17 +102,22 @@ module.exports = async (req, res) => {
     }
 
     res.status(200).json({
-      source: DB_LEARNING ? "notion-live" : "not-configured",
+      source: "notion-live",
       fetchedAt: new Date().toISOString(),
       stats: {
-        areasExploradas: Object.keys(topicCounts).length || undefined,
-        contenidoGuardado: library.length || undefined,
+        referenciasGuardadas: referencias.length,
+        temasExplorados: temasExplorados.length,
+        porConsumir: estadoCounts["Por consumir"] || 0,
+        terminado: estadoCounts["Terminado"] || 0,
       },
-      biblioteca: biblioteca.length ? biblioteca : undefined,
-      nubeTemas: Object.entries(topicCounts).map(([word, weight]) => ({ word, weight })),
-      library,
-      metasAprendizaje: metasAprendizaje.length ? metasAprendizaje : undefined,
-      rutinaReciente: rutina.slice(0, 10),
+      referencias,
+      biblioteca,
+      temasExplorados,
+      nubeTemas,
+      librosRecientes: recentByTipo("Libro", 3),
+      podcastsRecientes: recentByTipo("Podcast", 3),
+      ideasRecientes: recentByTipo("Idea / Concepto", 5),
+      metasAprendizaje,
       rachaAprendizaje: racha,
     });
   } catch (err) {
