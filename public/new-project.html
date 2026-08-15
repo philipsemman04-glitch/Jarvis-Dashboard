@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuevo Proyecto — Jarvis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090d; --panel:#12141d; --panel-alt:#1a1d29; --border-soft:rgba(255,255,255,0.09);
+    --gold:#d4af6a; --gold-bright:#f0cd8e; --text:#f8f6f0; --text-dim:#a8a496; --text-faint:#6f6c62;
+    --green:#3ecf8e; --radius:14px; --serif:'Fraunces',serif; --sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .card{ background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius); padding:28px; max-width:460px; width:100%;}
+  h2{ font-family:var(--serif); font-size:21px; margin-bottom:6px;}
+  p.sub{ font-size:12.5px; color:var(--text-dim); margin-bottom:20px; line-height:1.5;}
+  label{ font-size:11px; color:var(--text-dim); display:block; margin-bottom:6px;}
+  input{ width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:8px;
+    color:var(--text); font-family:inherit; font-size:14px; padding:11px 12px; margin-bottom:16px;}
+  .areas-preview{ font-size:11px; color:var(--text-faint); background:var(--panel-alt); border-radius:8px; padding:10px 12px; margin-bottom:18px; line-height:1.6;}
+  button{ width:100%; background:linear-gradient(155deg,var(--gold-bright),var(--gold)); color:#181205; font-weight:700;
+    font-size:13px; padding:12px; border-radius:9px; border:none; cursor:pointer;}
+  button:disabled{ opacity:0.5; cursor:default;}
+  .status{ font-size:12px; margin-top:14px; text-align:center; min-height:16px;}
+  .status.ok{ color:var(--green);}
+  .status.err{ color:#e8615f;}
+  .home-link{ display:block; text-align:center; font-size:11.5px; color:var(--text-faint); margin-top:16px; cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>🗂️ Nuevo Proyecto</h2>
+  <p class="sub">Crea un proyecto con la arquitectura estándar completa — no hace falta reconstruir todo desde cero cada vez.</p>
+  <label>Nombre del proyecto</label>
+  <input type="text" id="name" placeholder="ej. Tracks Factory">
+  <div class="areas-preview">Se crearán 12 áreas estándar: Development/Product, Legal, Marketing, Sales, Operations, Finance, Content, Strategy, Documents, Tasks, Meetings, Knowledge — más una tarjeta en Inicio con su propio Command Center funcionando de inmediato.</div>
+  <button id="btn" onclick="createProject()">Crear Proyecto</button>
+  <div class="status" id="status"></div>
+  <span class="home-link" onclick="window.location.href='/'">← Volver a Inicio</span>
+</div>
+<script>
+async function createProject(){
+  const name = document.getElementById('name').value.trim();
+  const status = document.getElementById('status');
+  const btn = document.getElementById('btn');
+  if(!name){ status.textContent = 'Escribe un nombre primero.'; status.className = 'status err'; return; }
+  btn.disabled = true; status.textContent = 'Creando estructura…'; status.className = 'status';
+  try{
+    const res = await fetch('/api/scaffold-project', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'Error desconocido');
+    status.innerHTML = `✓ Proyecto creado (${data.areasCreated} áreas). Un paso manual queda pendiente: ${data.remainingManualStep}`;
+    status.className = 'status ok';
+  }catch(err){
+    status.textContent = 'No se pudo crear: ' + err.message;
+    status.className = 'status err';
+  }finally{
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
