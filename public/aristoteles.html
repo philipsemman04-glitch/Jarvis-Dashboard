@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aristóteles — Jarvis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090d; --panel:#12141d; --panel-alt:#1a1d29;
+    --border:rgba(201,169,97,0.18); --border-soft:rgba(255,255,255,0.09);
+    --gold:#d4af6a; --gold-bright:#f0cd8e; --gold-dim:rgba(212,175,106,0.16);
+    --text:#f8f6f0; --text-dim:#a8a496; --text-faint:#6f6c62;
+    --blue:#4f8fe8; --blue-dim:rgba(79,143,232,0.18);
+    --green:#3ecf8e; --green-dim:rgba(62,207,142,0.18);
+    --radius:14px; --serif:'Fraunces',serif; --sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: radial-gradient(ellipse 1400px 900px at 15% -10%, #181420 0%, transparent 55%),
+                radial-gradient(ellipse 1100px 800px at 100% 0%, #101a26 0%, transparent 50%), var(--bg);
+    color:var(--text); font-family:var(--sans); min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration:none;} button,select,input{font-family:inherit; cursor:pointer;}
+  ::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:var(--panel-alt); border-radius:8px;}
+
+  .main{ padding:22px 26px 60px; max-width:1400px; margin:0 auto;}
+  .page-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
+  .page-head h2{ font-family:var(--serif); font-size:22px; font-weight:600; display:flex; align-items:center; gap:8px;}
+  .page-head p{ font-size:12px; color:var(--text-dim); margin-top:3px;}
+  .head-actions{ display:flex; align-items:center; gap:8px;}
+  .head-btn{ background:var(--panel); border:1px solid var(--border-soft); color:var(--text); font-weight:600; font-size:12px;
+    padding:9px 14px; border-radius:8px; display:flex; align-items:center; gap:6px;}
+  .head-btn:hover{ border-color:var(--gold); }
+  .head-btn.primary{ background:linear-gradient(155deg,var(--gold-bright),var(--gold)); color:#181205; border:none;}
+  .search-box{ background:var(--panel); border:1px solid var(--border-soft); border-radius:8px; padding:9px 14px; color:var(--text); font-size:12.5px; min-width:200px;}
+
+  .layout{ display:grid; grid-template-columns:1fr 320px; gap:16px; align-items:start;}
+  .panel{ background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px; box-shadow:0 8px 24px rgba(0,0,0,0.28);}
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .panel-head h3{ font-size:13px; font-weight:600;}
+
+  .sections-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+  .section-card{ background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:12px; padding:16px;}
+  .section-card .ic{ width:34px; height:34px; border-radius:9px; background:var(--gold-dim); display:flex; align-items:center; justify-content:center; font-size:15px; margin-bottom:10px;}
+  .section-card .nm{ font-size:13.5px; font-weight:600; margin-bottom:2px;}
+  .section-card .ct{ font-size:10.5px; color:var(--text-faint); margin-bottom:8px;}
+  .section-card .desc{ font-size:11px; color:var(--text-dim); line-height:1.4; margin-bottom:12px; min-height:30px;}
+  .section-card .action{ font-size:11.5px; font-weight:600; cursor:pointer;}
+  .section-card .action.open{ color:var(--green);}
+  .section-card .action.add{ color:var(--gold-bright);}
+  .section-card.new{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; border-style:dashed; cursor:pointer; color:var(--text-dim);}
+
+  .stat-line-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-soft); font-size:12.5px;}
+  .stat-line-row:last-child{ border-bottom:none;}
+  .stat-num{ font-family:var(--serif); font-size:16px; font-weight:700; min-width:26px;}
+  .coverage-bar{ display:flex; gap:3px; margin:10px 0 6px;}
+  .coverage-seg{ flex:1; height:6px; border-radius:3px; background:var(--panel-alt);}
+  .coverage-seg.filled{ background:var(--green);}
+  .coverage-label{ font-size:11px; color:var(--text-faint);}
+
+  .recent-row{ display:flex; align-items:center; gap:9px; padding:8px 0; border-bottom:1px solid var(--border-soft); font-size:12px; cursor:pointer;}
+  .recent-row:last-child{ border-bottom:none;}
+  .recent-row:hover .rn{ color:var(--gold-bright);}
+  .rn{ font-weight:500;}
+  .rd{ font-size:10px; color:var(--text-faint); margin-top:1px;}
+
+  .pw-avatar{ width:40px; height:40px; border-radius:50%; background:var(--gold-dim); color:var(--gold-bright); font-family:var(--serif); font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
+  .pw-input{ background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:8px; padding:10px 12px; font-size:12px; color:var(--text-faint); cursor:pointer;}
+
+  .empty-note{ font-size:12px; color:var(--text-faint); font-style:italic; padding:14px 0; text-align:center;}
+  #sync-note{ display:block; text-align:center; font-size:11px; color:var(--text-faint); margin-top:14px;}
+
+  #section-view{ display:none;}
+  .doc-row{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;}
+  .doc-row:hover .dn{ color:var(--gold-bright);}
+  .doc-row:last-child{ border-bottom:none;}
+  .dn{ flex:1; font-size:13px; font-weight:500;}
+  .estado-pill{ font-size:9.5px; padding:3px 9px; border-radius:6px;}
+  .estado-pill.Escrito{ background:var(--green-dim); color:var(--green);}
+  .estado-pill.Borrador{ background:rgba(232,195,79,0.18); color:#e8c34f;}
+  .estado-pill.Vacío{ background:var(--panel-alt); color:var(--text-faint);}
+
+  @media (max-width:1000px){ .sections-grid{ grid-template-columns:repeat(2,1fr);} .layout{ grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="main">
+
+  <div id="dashboard-view">
+    <div class="page-head">
+      <div>
+        <h2>🦉 Aristóteles</h2>
+        <p>Tu Centro de Contexto Personal — la base estructurada sobre quién eres, cómo piensas, qué te importa y hacia dónde vas.</p>
+      </div>
+      <div class="head-actions">
+        <div class="head-btn" onclick="window.location.href='/'">🏠 Inicio</div>
+        <input class="search-box" id="global-search" placeholder="Buscar en Aristóteles…">
+        <div class="head-btn primary" onclick="openNewDocPrompt()">+ Nuevo documento</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div class="panel">
+          <div class="panel-head"><h3>📂 Secciones de mi Identidad</h3></div>
+          <div class="sections-grid" id="sections-grid"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-head"><h3>📊 Estado de Aristóteles</h3></div>
+          <div id="state-stats"></div>
+          <div class="coverage-bar" id="coverage-bar"></div>
+          <div class="coverage-label" id="coverage-label"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>🕐 Documentos Recientes</h3></div>
+          <div id="recent-docs"></div>
+        </div>
+        <div class="panel">
+          <div class="pw-avatar">P</div>
+          <h3 style="margin-bottom:6px;">Pennyworth AI</h3>
+          <p style="font-size:11.5px; color:var(--text-dim); margin-bottom:10px;">Tu asistente personal para entenderte mejor y tomar mejores decisiones.</p>
+          <input id="pw-question" placeholder="Pregúntame sobre ti…" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:8px; padding:10px 12px; font-size:12px; color:var(--text); margin-bottom:8px;">
+          <div class="head-btn" style="width:100%; justify-content:center;" onclick="askPennyworth()">Preguntar</div>
+          <div id="pw-response" style="font-size:11.5px; color:var(--text-faint); margin-top:8px; line-height:1.5;"></div>
+        </div>
+      </div>
+    </div>
+    <span id="sync-note"></span>
+  </div>
+
+  <div id="section-view">
+    <div class="page-head">
+      <div><h2 id="section-title">📖 Sección</h2><p id="section-desc"></p></div>
+      <div class="head-actions">
+        <div class="head-btn" onclick="backToDashboard()">← Volver a Aristóteles</div>
+        <div class="head-btn primary" id="add-doc-in-section-btn">+ Nuevo documento</div>
+      </div>
+    </div>
+    <div class="panel"><div id="section-docs"></div></div>
+  </div>
+
+</div>
+
+<script>
+let allData = null;
+let activeSection = null;
+
+function emptyNote(t){ return `<div class="empty-note">${t}</div>`; }
+
+function renderSections(sections){
+  const el = document.getElementById("sections-grid");
+  el.innerHTML = sections.map(s => `
+    <div class="section-card">
+      <div class="ic">${s.icon}</div>
+      <div class="nm">${s.name}</div>
+      <div class="ct">${s.count} documento${s.count===1?'':'s'}</div>
+      <div class="desc">${s.desc}</div>
+      <div class="action ${s.count>0?'open':'add'}" data-section="${s.name}">${s.count>0?'Abrir →':'Agregar información'}</div>
+    </div>`).join("") + `<div class="section-card new" id="new-section-btn"><div style="font-size:22px; margin-bottom:6px;">+</div><div style="font-size:12.5px; font-weight:600;">Nueva sección</div></div>`;
+  el.querySelectorAll("[data-section]").forEach(c => c.addEventListener("click", () => openSection(c.dataset.section)));
+  document.getElementById("new-section-btn").addEventListener("click", createSection);
+}
+
+function renderState(stats){
+  document.getElementById("state-stats").innerHTML = [
+    { icon:"📄", color:"var(--text)", value:stats.totalDocs, label:"Documentos escritos" },
+    { icon:"✅", color:"var(--green)", value:stats.sectionsWithInfo, label:"Secciones con información" },
+    { icon:"⏳", color:"var(--text-faint)", value:stats.sectionsPending, label:"Secciones pendientes" },
+    { icon:"📚", color:"var(--gold-bright)", value:stats.totalSections, label:"Secciones totales" },
+  ].map(s => `<div class="stat-line-row"><span>${s.icon}</span><span class="stat-num" style="color:${s.color}">${s.value}</span><span>${s.label}</span></div>`).join("");
+
+  document.getElementById("coverage-bar").innerHTML = Array.from({length: stats.totalSections}).map((_,i) =>
+    `<div class="coverage-seg ${i < stats.sectionsWithInfo ? 'filled' : ''}"></div>`).join("");
+  document.getElementById("coverage-label").textContent = `${stats.sectionsWithInfo} de ${stats.totalSections} secciones iniciadas`;
+}
+
+function renderRecent(recent){
+  const el = document.getElementById("recent-docs");
+  if(!recent.length){ el.innerHTML = emptyNote("Sin documentos todavía."); return; }
+  el.innerHTML = recent.map(d => `
+    <div class="recent-row" data-url="${d.notionUrl}">
+      <div><div class="rn">${d.name}</div><div class="rd">${d.seccion} · ${new Date(d.lastEditedTime).toLocaleDateString('es-MX',{day:'numeric',month:'short'})}</div></div>
+    </div>`).join("");
+  el.querySelectorAll("[data-url]").forEach(row => row.addEventListener("click", () => window.location.href = row.dataset.url));
+}
+
+function openSection(sectionName){
+  activeSection = sectionName;
+  const section = allData.sections.find(s => s.name === sectionName);
+  document.getElementById("dashboard-view").style.display = "none";
+  document.getElementById("section-view").style.display = "block";
+  document.getElementById("section-title").textContent = `${section.icon} ${section.name}`;
+  document.getElementById("section-desc").textContent = section.desc;
+  document.getElementById("add-doc-in-section-btn").onclick = () => openNewDocPrompt(sectionName);
+  renderSectionDocs();
+}
+function backToDashboard(){
+  document.getElementById("section-view").style.display = "none";
+  document.getElementById("dashboard-view").style.display = "block";
+  activeSection = null;
+}
+function renderSectionDocs(){
+  const docs = allData.docs.filter(d => d.seccion === activeSection);
+  const el = document.getElementById("section-docs");
+  if(!docs.length){ el.innerHTML = emptyNote("Sin documentos en esta sección todavía."); return; }
+  el.innerHTML = docs.map(d => `
+    <div class="doc-row" data-url="${d.notionUrl}">
+      <span class="dn">${d.name}</span>
+      <span class="estado-pill ${d.estado}">${d.estado}</span>
+    </div>`).join("");
+  el.querySelectorAll("[data-url]").forEach(row => row.addEventListener("click", () => window.location.href = row.dataset.url));
+}
+
+async function openNewDocPrompt(prefillSection){
+  const seccion = prefillSection || prompt("¿En qué sección va este documento?\n\n" + allData.sections.map(s=>s.name).join(", "));
+  if(!seccion) return;
+  const validSection = allData.sections.find(s => s.name.toLowerCase() === seccion.toLowerCase());
+  if(!validSection){ alert("Sección no encontrada. Usa exactamente uno de los nombres listados."); return; }
+  const documento = prompt("Título del nuevo documento:");
+  if(!documento || !documento.trim()) return;
+  const t = jarvisToast.loading("Creando documento…");
+  try{
+    const res = await fetch("/api/capture", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ action:"create-aristoteles-doc", documento, seccion: validSection.name })
+    });
+    const result = await res.json();
+    if(!res.ok || result.error) throw new Error(result.error || "Error desconocido");
+    jarvisToast.success(t, "Documento creado");
+    await loadData();
+    if(result.notionUrl) window.location.href = result.notionUrl;
+  }catch(e){ jarvisToast.error(t, "No se pudo crear el documento: " + e.message); }
+}
+async function createSection(){
+  const name = prompt("Nombre de la nueva sección:");
+  if(!name || !name.trim()) return;
+  const t = jarvisToast.loading("Creando sección…");
+  try{
+    const r = await fetch("/api/capture", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ action:"create-aristoteles-section", name }) });
+    const result = await r.json();
+    if(!r.ok || result.error) throw new Error(result.error || "Error desconocido");
+    jarvisToast.success(t, "Sección creada");
+    loadData();
+  }catch(e){ jarvisToast.error(t, "No se pudo crear la sección: " + e.message); }
+}
+
+function askPennyworth(){
+  const input = document.getElementById("pw-question");
+  const resp = document.getElementById("pw-response");
+  if(!input.value.trim()){ return; }
+  resp.textContent = "Pennyworth todavía no está conectado a un modelo de IA en vivo — esta función llega en la siguiente fase. Por ahora, tu contexto está organizado y listo arriba para cuando se conecte.";
+  input.value = "";
+}
+
+document.getElementById("global-search").addEventListener("keydown", (e) => {
+  if(e.key === "Enter" && e.target.value.trim()){
+    const q = e.target.value.trim().toLowerCase();
+    const match = allData.docs.find(d => d.name.toLowerCase().includes(q));
+    if(match) window.location.href = match.notionUrl;
+    else {
+      const sectionMatch = allData.sections.find(s => s.name.toLowerCase().includes(q));
+      if(sectionMatch) openSection(sectionMatch.name);
+    }
+  }
+});
+
+async function loadData(){
+  const syncNote = document.getElementById("sync-note");
+  try{
+    const res = await fetch("/api/project-data?project=aristoteles");
+    const data = await res.json();
+    if(data.error && !data.isAristoteles) throw new Error(data.error);
+    allData = data;
+    renderSections(data.sections);
+    renderState(data.stats);
+    renderRecent(data.recent);
+    if(activeSection) renderSectionDocs();
+    syncNote.textContent = "";
+  }catch(err){
+    console.warn("Live data unavailable:", err.message);
+    document.getElementById("sections-grid").innerHTML = emptyNote("No se pudo conectar con Notion.");
+    syncNote.textContent = "Sin conexión a Notion — revisa NOTION_TOKEN en Vercel.";
+  }
+}
+loadData();
+</script>
+<script src="/toast.js"></script>
+<script src="/sidebar.js"></script>
+</body>
+</html>
