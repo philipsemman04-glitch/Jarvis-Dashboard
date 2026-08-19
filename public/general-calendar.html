@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario — Jarvis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0b10; --panel: #12141d; --panel-alt: #171a24;
+    --border: rgba(201,169,97,0.14); --border-soft: rgba(255,255,255,0.06);
+    --gold: #c9a961; --gold-bright: #e0c584; --gold-dim: rgba(201,169,97,0.14);
+    --text: #f3f0e8; --text-dim: #9a9683; --text-faint: #67645a;
+    --red: #e0636b; --red-dim: rgba(224,99,107,0.14);
+    --green: #7cc99a; --green-dim: rgba(124,201,154,0.14);
+    --purple: #b491d9; --purple-dim: rgba(180,145,217,0.14);
+    --radius: 14px; --serif:'Fraunces',serif; --sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:radial-gradient(ellipse 1400px 900px at 15% -10%, #1a1710 0%, transparent 55%),
+        radial-gradient(ellipse 1000px 700px at 100% 0%, #0f1420 0%, transparent 50%), var(--bg);
+        color:var(--text); font-family:var(--sans); min-height:100vh; -webkit-font-smoothing:antialiased; }
+  a{color:inherit; text-decoration:none;}
+  select, button{font-family:inherit;}
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:16px 28px; border-bottom:1px solid var(--border-soft); }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{ width:38px; height:38px; border-radius:10px; background:var(--purple-dim); color:var(--purple);
+    display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .brand-text h1{ font-family:var(--serif); font-weight:600; font-size:19px; }
+  .brand-text p{ font-size:11.5px; color:var(--text-dim); }
+  .icon-btn{ width:36px; height:36px; border-radius:50%; background:var(--panel-alt); border:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:center; font-size:15px; cursor:pointer; }
+
+  .shell{ max-width:980px; margin:0 auto; padding:24px 20px 60px; display:grid; grid-template-columns:1fr 300px; gap:18px; align-items:start; }
+  @media (max-width:800px){ .shell{ grid-template-columns:1fr; } }
+
+  .panel{ background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius); padding:18px 20px; }
+  .filters{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+  .filters select{ background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text-dim);
+    font-size:11.5px; padding:7px 9px; border-radius:7px; }
+  .filters select.active-filter{ border-color:var(--gold); color:var(--gold-bright); }
+  .filter-clear{ font-size:11px; color:var(--text-faint); cursor:pointer; padding:7px 4px; }
+  .filter-clear:hover{ color:var(--red); }
+
+  .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cal-head .month-label{ font-family:var(--serif); font-size:16px; font-weight:600; }
+  .cal-nav{ display:flex; gap:6px; }
+  .cal-nav button{ color:var(--text-dim); font-size:15px; padding:2px 8px; background:var(--panel-alt); border-radius:6px; cursor:pointer; }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .cal-dow{ font-size:9.5px; color:var(--text-faint); text-align:center; padding-bottom:4px; }
+  .cal-day{ aspect-ratio:1; border-radius:9px; background:var(--panel-alt); border:1px solid var(--border-soft);
+    padding:5px; cursor:pointer; display:flex; flex-direction:column; gap:2px; overflow:hidden; }
+  .cal-day.empty{ visibility:hidden; cursor:default; }
+  .cal-day.today{ border-color:var(--gold); }
+  .cal-day.selected{ background:var(--gold-dim); border-color:var(--gold); }
+  .cal-day .num{ font-size:10.5px; color:var(--text-dim); }
+  .cal-dots{ display:flex; gap:2px; flex-wrap:wrap; }
+  .dot{ width:5px; height:5px; border-radius:50%; }
+  .dot.deadline{ background:var(--red); } .dot.completado{ background:var(--green); } .dot.meeting{ background:var(--purple); }
+
+  .agenda-title{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-faint); margin-bottom:10px; }
+  .event-item{ display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--border-soft); cursor:pointer; }
+  .event-item:last-child{ border-bottom:none; }
+  .event-item .dot{ margin-top:5px; flex-shrink:0; width:7px; height:7px; }
+  .event-item .et{ font-size:12.5px; color:var(--text); line-height:1.35; }
+  .event-item .em{ font-size:10.5px; color:var(--text-faint); margin-top:2px; }
+  .empty-note{ font-size:12px; color:var(--text-faint); padding:14px 0; }
+  .legend{ display:flex; gap:14px; margin-top:12px; font-size:10.5px; color:var(--text-faint); flex-wrap:wrap; }
+  .legend .dot{ margin-right:5px; vertical-align:middle; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">📅</div>
+      <div class="brand-text"><h1>Calendario General</h1><p>Todo lo que pasó y lo que viene, en un solo lugar</p></div>
+    </div>
+    <div class="icon-btn" onclick="window.location.href='https://jarvis-dashboard-phi-one.vercel.app/'" title="Volver al inicio">🏠</div>
+  </div>
+
+  <div class="shell">
+    <div class="panel">
+      <div class="filters" id="filter-bar"></div>
+      <div class="cal-head">
+        <span class="month-label" id="month-label"></span>
+        <div class="cal-nav"><button id="cal-prev">‹</button><button id="cal-next">›</button></div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="legend">
+        <span><span class="dot deadline"></span>Fecha límite</span>
+        <span><span class="dot completado"></span>Completado</span>
+        <span><span class="dot meeting"></span>Reunión</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="agenda-title" id="agenda-title">Selecciona un día</div>
+      <div id="agenda-list"></div>
+    </div>
+  </div>
+
+<script>
+const PROJECTS = ["One Night Guest","RoutePup","Nikita","StatStrike","Aristóteles","Personal","Transversal"];
+const TYPE_LABEL = { deadline:"Fecha límite", completado:"Completado", meeting:"Reunión" };
+
+let allEvents = [];
+let filters = { project:"all", type:"all", person:"all" };
+let calYear, calMonth;
+let selectedDate = null;
+
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
+function uniquePeople(){
+  const set = new Set();
+  allEvents.forEach(e => (e.person||"").split(",").map(s=>s.trim()).filter(Boolean).forEach(p=>set.add(p)));
+  return [...set].sort();
+}
+function filteredEvents(){
+  return allEvents.filter(e => {
+    if(filters.project !== "all" && e.project !== filters.project) return false;
+    if(filters.type !== "all" && e.type !== filters.type) return false;
+    if(filters.person !== "all" && !(e.person||"").includes(filters.person)) return false;
+    return true;
+  });
+}
+function eventsOnDate(dateStr){ return filteredEvents().filter(e => e.date === dateStr); }
+
+function renderFilterBar(){
+  const el = document.getElementById("filter-bar");
+  const anyActive = Object.values(filters).some(v => v !== "all");
+  el.innerHTML = `
+    <select id="f-project"><option value="all">Proyecto: Todos</option>${PROJECTS.map(p=>`<option value="${p}" ${filters.project===p?"selected":""}>${p}</option>`).join("")}</select>
+    <select id="f-type"><option value="all">Tipo: Todos</option>${Object.entries(TYPE_LABEL).map(([k,v])=>`<option value="${k}" ${filters.type===k?"selected":""}>${v}</option>`).join("")}</select>
+    <select id="f-person"><option value="all">Persona: Todas</option>${uniquePeople().map(p=>`<option value="${p}" ${filters.person===p?"selected":""}>${p}</option>`).join("")}</select>
+    ${anyActive ? `<span class="filter-clear" id="f-clear">✕ Limpiar</span>` : ""}`;
+  document.getElementById("f-project").addEventListener("change", e => { filters.project = e.target.value; renderAll(); });
+  document.getElementById("f-type").addEventListener("change", e => { filters.type = e.target.value; renderAll(); });
+  document.getElementById("f-person").addEventListener("change", e => { filters.person = e.target.value; renderAll(); });
+  document.querySelectorAll("#filter-bar select").forEach(s => { if(s.value !== "all") s.classList.add("active-filter"); });
+  const clearBtn = document.getElementById("f-clear");
+  if(clearBtn) clearBtn.addEventListener("click", () => { filters = {project:"all",type:"all",person:"all"}; renderAll(); });
+}
+
+function renderCalendar(){
+  const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  document.getElementById("month-label").textContent = `${monthNames[calMonth]} ${calYear}`;
+  const firstDow = new Date(calYear, calMonth, 1).getDay();
+  const total = daysInMonth(calYear, calMonth);
+  const today = todayISO();
+  const grid = document.getElementById("cal-grid");
+  let html = ["D","L","M","M","J","V","S"].map(d=>`<div class="cal-dow">${d}</div>`).join("");
+  for(let i=0;i<firstDow;i++) html += `<div class="cal-day empty"></div>`;
+  for(let d=1; d<=total; d++){
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEvents = eventsOnDate(dateStr);
+    const types = [...new Set(dayEvents.map(e=>e.type))];
+    html += `<div class="cal-day ${dateStr===today?'today':''} ${dateStr===selectedDate?'selected':''}" data-date="${dateStr}">
+      <span class="num">${d}</span>
+      <div class="cal-dots">${types.map(t=>`<span class="dot ${t}"></span>`).join("")}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+  grid.querySelectorAll(".cal-day[data-date]").forEach(cell => {
+    cell.addEventListener("click", () => { selectedDate = cell.dataset.date; renderCalendar(); renderAgenda(); });
+  });
+}
+
+function renderAgenda(){
+  const title = document.getElementById("agenda-title");
+  const list = document.getElementById("agenda-list");
+  let items;
+  if(selectedDate){
+    const label = new Date(selectedDate+"T00:00:00").toLocaleDateString("es",{day:"numeric",month:"long",year:"numeric"});
+    title.textContent = label;
+    items = eventsOnDate(selectedDate);
+  } else {
+    title.textContent = "Próximos eventos";
+    const today = todayISO();
+    items = filteredEvents().filter(e => e.date >= today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
+  }
+  if(!items.length){ list.innerHTML = `<div class="empty-note">Sin eventos que coincidan con estos filtros.</div>`; return; }
+  list.innerHTML = items.map(e => `
+    <div class="event-item" data-url="${e.url}">
+      <span class="dot ${e.type}"></span>
+      <div>
+        <div class="et">${e.title}</div>
+        <div class="em">${TYPE_LABEL[e.type]}${e.project?" · "+e.project:""}${e.person?" · "+e.person:""}${!selectedDate?" · "+e.date:""}</div>
+      </div>
+    </div>`).join("");
+  list.querySelectorAll(".event-item").forEach(item => {
+    item.addEventListener("click", () => window.open(item.dataset.url, "_blank"));
+  });
+}
+
+function renderAll(){ renderFilterBar(); renderCalendar(); renderAgenda(); }
+
+document.getElementById("cal-prev").addEventListener("click", () => {
+  calMonth--; if(calMonth < 0){ calMonth = 11; calYear--; } renderCalendar();
+});
+document.getElementById("cal-next").addEventListener("click", () => {
+  calMonth++; if(calMonth > 11){ calMonth = 0; calYear++; } renderCalendar();
+});
+
+async function loadData(){
+  const today = new Date();
+  calYear = today.getFullYear(); calMonth = today.getMonth();
+  const presetProject = new URLSearchParams(window.location.search).get("project");
+  if(presetProject) filters.project = presetProject;
+  try{
+    const res = await fetch("/api/task-api?action=calendar");
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    allEvents = data.events || [];
+  }catch(e){
+    console.warn("Calendar data unavailable:", e.message);
+    allEvents = [];
+  }
+  renderAll();
+}
+loadData();
+</script>
+<script src="/sidebar.js"></script>
+</body>
+</html>
