@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meetings — Jarvis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090d; --panel:#12141d; --panel-alt:#1a1d29;
+    --border-soft:rgba(255,255,255,0.09); --gold:#d4af6a; --gold-bright:#f0cd8e;
+    --text:#f8f6f0; --text-dim:#a8a496; --text-faint:#6f6c62;
+    --blue:#4f8fe8; --blue-dim:rgba(79,143,232,0.18);
+    --green:#3ecf8e; --green-dim:rgba(62,207,142,0.18);
+    --red:#e8615f; --red-dim:rgba(232,97,95,0.18);
+    --gray-dim:rgba(154,150,131,0.14);
+    --radius:14px; --serif:'Fraunces',serif; --sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:radial-gradient(ellipse 1400px 900px at 15% -10%, #181420 0%, transparent 55%),
+        radial-gradient(ellipse 1100px 800px at 100% 0%, #101a26 0%, transparent 50%), var(--bg);
+        color:var(--text); font-family:var(--sans); min-height:100vh; -webkit-font-smoothing:antialiased; }
+  a{color:inherit; text-decoration:none;} button,select,input,textarea{font-family:inherit; cursor:pointer;}
+
+  .main{ padding:22px 26px 60px; max-width:900px; margin:0 auto; }
+  .page-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
+  .page-head h2{ font-family:var(--serif); font-size:22px; font-weight:600;}
+  .page-head p{ font-size:12px; color:var(--text-dim); margin-top:3px;}
+  .head-actions{ display:flex; align-items:center; gap:8px;}
+  .head-btn{ background:var(--panel); border:1px solid var(--border-soft); color:var(--text); font-weight:600; font-size:12px;
+    padding:9px 14px; border-radius:8px; }
+  .head-btn.primary{ background:linear-gradient(155deg,var(--gold-bright),var(--gold)); color:#181205; border:none;}
+
+  #quick-add{ display:none; background:var(--panel); border:1px solid var(--border-soft); border-radius:12px;
+    padding:14px; margin-bottom:16px; gap:8px; flex-wrap:wrap; align-items:center; }
+  #quick-add.open{ display:flex; }
+  #quick-add input[type=text]{ flex:1; min-width:200px; background:var(--panel-alt); border:1px solid var(--border-soft);
+    color:var(--text); padding:9px 12px; border-radius:8px; font-size:13px; }
+  #quick-add input[type=date]{ background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text-dim);
+    padding:9px 10px; border-radius:8px; font-size:12.5px; }
+  #quick-add .save-btn{ background:var(--gold); color:#181205; font-weight:700; font-size:12.5px; padding:9px 16px; border-radius:8px; }
+
+  .filter-bar{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+  .filter-bar select{ background:var(--panel); border:1px solid var(--border-soft); color:var(--text-dim);
+    font-size:11.5px; padding:7px 9px; border-radius:7px; }
+
+  .m-list{ display:flex; flex-direction:column; gap:10px; }
+  .m-card{ background:var(--panel); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px; cursor:pointer; }
+  .m-top{ display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
+  .m-title{ font-weight:600; font-size:13.5px; flex:1; }
+  .tag{ font-size:9.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; padding:2px 8px; border-radius:5px; }
+  .tag.scheduled{ background:var(--blue-dim); color:var(--blue); }
+  .tag.completed{ background:var(--green-dim); color:var(--green); }
+  .tag.cancelled{ background:var(--red-dim); color:var(--red); }
+  .m-meta{ font-size:11px; color:var(--text-faint); }
+  .m-summary{ font-size:12px; color:var(--text-dim); margin-top:6px; line-height:1.4; }
+  .empty-note{ font-size:12.5px; color:var(--text-faint); font-style:italic; text-align:center; padding:30px 0; }
+
+  #modal-backdrop{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; align-items:center; justify-content:center; padding:20px;}
+  #modal{ background:var(--panel); border:1px solid var(--border-soft); border-radius:16px; max-width:560px; width:100%; max-height:85vh; overflow-y:auto; padding:24px;}
+  .field-lbl{ font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px; margin-top:14px;}
+  .field-input{ width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:9px; border-radius:8px; font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="page-head">
+    <div><h2>🗓️ Meetings</h2><p>Reuniones agendadas y notas de encuentros.</p></div>
+    <div class="head-actions">
+      <div class="head-btn" onclick="window.location.href='/'">🏠 Inicio</div>
+      <div class="head-btn primary" onclick="document.getElementById('quick-add').classList.toggle('open')">+ Nueva Reunión</div>
+    </div>
+  </div>
+
+  <div id="quick-add">
+    <input type="text" id="new-name" placeholder="Nombre de la reunión…">
+    <input type="date" id="new-date">
+    <div class="save-btn" onclick="submitNewMeeting()">Guardar</div>
+  </div>
+
+  <div class="filter-bar" id="filter-bar"></div>
+  <div class="m-list" id="m-list"></div>
+</div>
+
+<div id="modal-backdrop"><div id="modal"></div></div>
+
+<script>
+const STATUS_OPTIONS = ["Scheduled","Completed","Cancelled"];
+const STATUS_LABEL = { Scheduled:"Programada", Completed:"Completada", Cancelled:"Cancelada" };
+let allMeetings = [];
+let activeFilter = "all";
+
+function emptyNote(t){ return `<div class="empty-note">${t}</div>`; }
+function statusClass(s){ return (s||"Scheduled").toLowerCase(); }
+
+function renderFilterBar(){
+  document.getElementById("filter-bar").innerHTML = `
+    <select id="f-status"><option value="all">Estado: Todas</option>${STATUS_OPTIONS.map(s=>`<option value="${s}" ${activeFilter===s?"selected":""}>${STATUS_LABEL[s]}</option>`).join("")}</select>`;
+  document.getElementById("f-status").addEventListener("change", e=>{ activeFilter=e.target.value; render(); });
+}
+
+function render(){
+  const list = document.getElementById("m-list");
+  const filtered = activeFilter==="all" ? allMeetings : allMeetings.filter(m=>m.status===activeFilter);
+  if(!filtered.length){ list.innerHTML = emptyNote("Sin reuniones que coincidan."); return; }
+  list.innerHTML = filtered.map(m => `
+    <div class="m-card" data-id="${m.id}">
+      <div class="m-top">
+        <span class="m-title">${m.name||"(sin título)"}</span>
+        <span class="tag ${statusClass(m.status)}">${STATUS_LABEL[m.status]||m.status||"Programada"}</span>
+      </div>
+      <div class="m-meta">${m.date || "Sin fecha"}</div>
+      ${m.summary ? `<div class="m-summary">${m.summary}</div>` : ""}
+    </div>`).join("");
+  list.querySelectorAll(".m-card").forEach(c => c.addEventListener("click", () => openDetail(c.dataset.id)));
+}
+
+function openDetail(id){
+  const m = allMeetings.find(x => x.id === id);
+  if(!m) return;
+  document.getElementById("modal-backdrop").style.display = "flex";
+  document.getElementById("modal").innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <h2 style="font-family:var(--serif); font-size:18px; flex:1;">${m.name}</h2>
+      <span style="cursor:pointer; color:var(--text-faint); font-size:18px;" onclick="closeModal()">✕</span>
+    </div>
+    <label class="field-lbl">Estado</label>
+    <select class="field-input" id="m-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${s===m.status?"selected":""}>${STATUS_LABEL[s]}</option>`).join("")}</select>
+    <label class="field-lbl">Resumen</label>
+    <textarea class="field-input" id="m-summary" rows="3">${m.summary||""}</textarea>
+    <label class="field-lbl">Decisiones tomadas</label>
+    <textarea class="field-input" id="m-decisions" rows="2">${m.decisions||""}</textarea>
+    <label class="field-lbl">Notas</label>
+    <textarea class="field-input" id="m-notes" rows="3">${m.notes||""}</textarea>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <div class="head-btn primary" style="flex:1; text-align:center;" onclick="saveDetail('${id}')">Guardar</div>
+      <div class="head-btn" onclick="closeModal()">Cerrar</div>
+    </div>`;
+}
+function closeModal(){ document.getElementById("modal-backdrop").style.display = "none"; }
+document.getElementById("modal-backdrop").addEventListener("click", e => { if(e.target.id==="modal-backdrop") closeModal(); });
+
+async function saveDetail(id){
+  const t = window.jarvisToast?.loading("Guardando…");
+  try{
+    const r = await fetch("/api/task-api", { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ action:"update-meeting", pageId:id,
+        status: document.getElementById("m-status").value,
+        summary: document.getElementById("m-summary").value,
+        decisions: document.getElementById("m-decisions").value,
+        notes: document.getElementById("m-notes").value }) });
+    if(!r.ok) throw new Error("Error " + r.status);
+    window.jarvisToast?.success(t, "Guardado");
+    closeModal();
+    loadData();
+  }catch(e){ window.jarvisToast?.error(t, "No se pudo guardar: " + e.message); }
+}
+
+async function submitNewMeeting(){
+  const name = document.getElementById("new-name").value.trim();
+  if(!name){ alert("Escribe el nombre de la reunión."); return; }
+  const date = document.getElementById("new-date").value || undefined;
+  const t = window.jarvisToast?.loading("Creando…");
+  try{
+    const r = await fetch("/api/task-api", { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ action:"create-meeting", name, date }) });
+    if(!r.ok) throw new Error("Error " + r.status);
+    window.jarvisToast?.success(t, "Reunión creada");
+    document.getElementById("new-name").value = "";
+    document.getElementById("quick-add").classList.remove("open");
+    loadData();
+  }catch(e){ window.jarvisToast?.error(t, "No se pudo crear: " + e.message); }
+}
+
+async function loadData(){
+  try{
+    const res = await fetch("/api/task-api?action=meetings");
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    allMeetings = data.meetings || [];
+  }catch(e){
+    console.warn("Meetings data unavailable:", e.message);
+    allMeetings = [];
+  }
+  renderFilterBar();
+  render();
+}
+loadData();
+</script>
+<script src="/toast.js"></script>
+<script src="/sidebar.js"></script>
+</body>
+</html>
