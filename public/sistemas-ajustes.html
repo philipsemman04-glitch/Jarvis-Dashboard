@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistemas & Ajustes — Jarvis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090d; --panel:#12141d; --panel-alt:#1a1d29; --border-soft:rgba(255,255,255,0.09);
+    --text:#f8f6f0; --text-dim:#a8a496; --text-faint:#6f6c62;
+    --green:#3ecf8e; --green-dim:rgba(62,207,142,0.14);
+    --red:#e8615f; --red-dim:rgba(232,97,95,0.14);
+    --gold:#d4af6a; --radius:14px; --serif:'Fraunces',serif; --sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
+  .main{ padding:24px 28px 60px; max-width:900px; margin:0 auto;}
+  .page-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;}
+  .page-head h2{ font-family:var(--serif); font-size:22px; font-weight:600;}
+  .page-head p{ font-size:12px; color:var(--text-dim); margin-top:4px;}
+  .home-btn{ background:var(--panel); border:1px solid var(--border-soft); color:var(--text); font-weight:600; font-size:12px;
+    padding:9px 14px; border-radius:8px; cursor:pointer;}
+  .summary{ display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--border-soft);
+    border-radius:var(--radius); padding:16px 18px; margin-bottom:16px;}
+  .summary .big{ font-family:var(--serif); font-size:28px; font-weight:700;}
+  .summary .big.ok{ color:var(--green);} .summary .big.warn{ color:var(--red);}
+  .summary .label{ font-size:12px; color:var(--text-dim);}
+  .refresh-btn{ margin-left:auto; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text);
+    font-size:12px; font-weight:600; padding:8px 14px; border-radius:8px; cursor:pointer;}
+  .row{ display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--border-soft);
+    border-radius:10px; padding:12px 16px; margin-bottom:8px;}
+  .dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .dot.ok{ background:var(--green); box-shadow:0 0 8px var(--green);}
+  .dot.fail{ background:var(--red); box-shadow:0 0 8px var(--red);}
+  .row-name{ font-size:13px; font-weight:600; min-width:180px;}
+  .row-powers{ font-size:11px; color:var(--text-faint); flex:1;}
+  .row-meta{ font-size:11px; color:var(--text-dim); white-space:nowrap;}
+  .row-meta.fail{ color:var(--red);}
+  .note{ font-size:11px; color:var(--text-faint); text-align:center; margin-top:14px;}
+  .section-head{ font-size:12px; font-weight:600; color:var(--gold); text-transform:uppercase; letter-spacing:0.04em; margin:26px 0 10px;}
+  .integ-row{ display:flex; justify-content:space-between; background:var(--panel); border:1px solid var(--border-soft);
+    border-radius:10px; padding:12px 16px; margin-bottom:8px; font-size:12.5px;}
+  .integ-row .what{ color:var(--text-dim);}
+
+  .workspace-banner{position:relative;min-height:156px;margin:0 0 18px;border:1px solid rgba(255,255,255,.10);border-radius:16px;overflow:hidden;background-position:center;background-size:cover;box-shadow:0 16px 40px rgba(0,0,0,.30)}
+  .workspace-banner::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,7,12,.90),rgba(5,7,12,.48) 46%,rgba(5,7,12,.18)),linear-gradient(0deg,rgba(5,7,12,.46),transparent 60%)}
+  .workspace-banner-content{position:relative;z-index:1;min-height:156px;display:flex;align-items:flex-end;padding:20px 24px}
+  .workspace-banner-kicker{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#f0cf8d;font-weight:800}
+</style>
+</head>
+<body>
+<div class="main">
+    <section class="workspace-banner" style="background-image:url('/assets/covers/sistemas-ajustes-cover-v2.jpg')"><div class="workspace-banner-content"><div class="workspace-banner-kicker">Jarvis · Sistemas &amp; Ajustes</div></div></section>
+  <div class="page-head">
+    <div>
+      <h2>⚙️ Sistemas & Ajustes</h2>
+      <p>Estado real de cada conexión — se verifica en vivo, no es una lista decorativa.</p>
+    </div>
+    <div class="home-btn" onclick="window.location.href='/'">🏠 Inicio</div>
+  </div>
+
+  <div class="summary" id="summary">Verificando…</div>
+  <div id="db-list"></div>
+  <div class="note" id="checked-note"></div>
+
+  <div class="section-head">Integraciones</div>
+  <div class="integ-row"><b>Notion → Vercel</b><span class="what">NOTION_TOKEN lee/escribe las bases de arriba</span></div>
+  <div class="integ-row"><b>GitHub → Vercel</b><span class="what">Push a main redeploya el sitio automáticamente</span></div>
+  <div class="integ-row"><b>Claude → Notion</b><span class="what">Acceso de lectura/escritura confirmado directamente por Aurelio (14 ago)</span></div>
+</div>
+
+<script>
+async function loadHealth(){
+  document.getElementById("summary").textContent = "Verificando…";
+  document.getElementById("db-list").innerHTML = "";
+  try{
+    const res = await fetch("/api/system-health");
+    const data = await res.json();
+
+    if(!data.tokenPresent){
+      document.getElementById("summary").innerHTML = `<div class="big warn">⚠️</div><div class="label">NOTION_TOKEN no está configurado en Vercel</div>`;
+    }else{
+      const allOk = data.healthyCount === data.totalCount;
+      document.getElementById("summary").innerHTML = `
+        <div class="big ${allOk?'ok':'warn'}">${data.healthyCount}/${data.totalCount}</div>
+        <div class="label">${allOk ? 'Todas las conexiones funcionando' : 'Algunas conexiones tienen problemas'}</div>
+        <button class="refresh-btn" onclick="loadHealth()">↻ Volver a verificar</button>`;
+    }
+
+    document.getElementById("db-list").innerHTML = data.results.map(r => `
+      <div class="row">
+        <div class="dot ${r.ok?'ok':'fail'}"></div>
+        <div class="row-name">${r.name}</div>
+        <div class="row-powers">${r.powers}</div>
+        <div class="row-meta ${r.ok?'':'fail'}">${r.ok ? r.ms+'ms' : r.error}</div>
+      </div>`).join("");
+
+    document.getElementById("checked-note").textContent = "Última verificación: " + new Date(data.checkedAt).toLocaleString();
+  }catch(err){
+    document.getElementById("summary").innerHTML = `<div class="big warn">⚠️</div><div class="label">No se pudo verificar — revisa la conexión con Vercel.</div>`;
+  }
+}
+loadHealth();
+</script>
+<script src="/sidebar.js"></script>
+</body>
+</html>
