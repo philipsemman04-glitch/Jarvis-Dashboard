@@ -13,7 +13,7 @@ function providerConfig() {
 
 function compactContext(context = {}) {
   return {
-    project: "One Night Guest",
+    project: context.project || "Jarvis",
     period: context.period || "month",
     totals: context.totals || {},
     tasks: Array.isArray(context.tasks) ? context.tasks.slice(0, 60).map(t => ({
@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
     return;
   }
   const projectContext = compactContext(context);
-  const system = `You are Penny, the strategic assistant inside Jarvis for the One Night Guest project. Answer only from the supplied One Night Guest context. Do not invent task facts, dates, owners, counts, or Notion properties. If the context does not contain the answer, say that clearly and suggest what Aurelio should check. Be concise, practical, and action-oriented. You may summarize, compare priorities, identify overdue or blocked work, and recommend next steps, but do not claim to have changed Notion. Current context JSON:\n${JSON.stringify(projectContext)}`;
+  const system = `You are Penny, the strategic assistant inside Jarvis for the ${projectContext.project} project. Answer only from the supplied ${projectContext.project} context. Do not invent task facts, dates, owners, counts, or Notion properties. If the context does not contain the answer, say that clearly and suggest what Aurelio should check. Be concise, practical, and action-oriented. You may summarize, compare priorities, identify overdue or blocked work, and recommend next steps, but do not claim to have changed Notion. Current context JSON:\n${JSON.stringify(projectContext)}`;
   const messages = [
     { role: "system", content: system },
     ...Array.isArray(history) ? history.slice(-10).filter(x => x && (x.role === "user" || x.role === "assistant")).map(x => ({ role: x.role, content: String(x.content || "").slice(0, 4000) })) : [],
