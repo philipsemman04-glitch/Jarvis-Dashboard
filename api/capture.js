@@ -113,6 +113,21 @@ async function handleRenameTopic(req, res) {
   res.status(200).json({ ok: true });
 }
 
+async function handleDeleteTopic(req, res) {
+  const { name } = req.body || {};
+  if (!name || !name.trim()) { res.status(400).json({ ok: false, error: "name is required" }); return; }
+  const schemaRes = await fetch(`https://api.notion.com/v1/data_sources/${DB_REFERENCIAS}`, { headers: headers() });
+  if (!schemaRes.ok) throw new Error(`Notion schema fetch failed (${schemaRes.status}): ${await schemaRes.text()}`);
+  const schema = await schemaRes.json();
+  const options = schema.properties?.["Tema"]?.multi_select?.options || [];
+  const target = options.find(o => o.name.toLowerCase() === name.trim().toLowerCase());
+  if (!target) { res.status(404).json({ ok: false, error: `Topic "${name}" was not found.` }); return; }
+  const updatedOptions = options.filter(o => o.id !== target.id).map(o => ({ id: o.id, name: o.name, color: o.color }));
+  const patchRes = await fetch(`https://api.notion.com/v1/data_sources/${DB_REFERENCIAS}`, { method: "PATCH", headers: headers(), body: JSON.stringify({ properties: { "Tema": { multi_select: { options: updatedOptions } } } }) });
+  if (!patchRes.ok) throw new Error(`Notion topic delete failed (${patchRes.status}): ${await patchRes.text()}`);
+  res.status(200).json({ ok: true });
+}
+
 async function handleComment(req, res) {
   const { pageId, text } = req.body || {};
   if (!pageId || !text || !text.trim()) { res.status(400).json({ ok: false, error: "pageId and text are required" }); return; }
@@ -216,6 +231,7 @@ module.exports = async (req, res) => {
     if (action === "delete-reference") return await handleDeleteReference(req, res);
     if (action === "create-topic") return await handleCreateTopic(req, res);
     if (action === "rename-topic") return await handleRenameTopic(req, res);
+    if (action === "delete-topic") return await handleDeleteTopic(req, res);
     if (action === "comment") return await handleComment(req, res);
     if (action === "upload") return await handleUpload(req, res);
     if (action === "create-aristoteles-doc") return await handleCreateAristotelesDoc(req, res);
