@@ -113,6 +113,54 @@ function todayISO() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
 
+/* ---------- Writing only fields that really exist ---------- */
+
+// Database schemas, cached briefly per warm instance. Pages were written
+// assuming fields ("Collaborators", "Owner", …) that don't all exist in
+// Aurelio's databases, and Notion rejects the WHOLE write if even one
+// property name is unknown — e.g. a status change failed only because the
+// form also sent a missing "Collaborators". Writes are checked against the
+// real schema first.
+const schemaCache = {};
+async function dataSourceSchema(dataSourceId) {
+  const cached = schemaCache[dataSourceId];
+  if (cached && Date.now() - cached.at < 5 * 60 * 1000) return cached.props;
+  const res = await fetch(`${BASE_URL}/data_sources/${dataSourceId}`, { headers: headers() });
+  if (!res.ok) throw new Error(`Notion schema fetch failed (${res.status}): ${await res.text()}`);
+  const props = (await res.json()).properties || {};
+  schemaCache[dataSourceId] = { at: Date.now(), props };
+  return props;
+}
+
+// The task's responsible person has been called "Collaborators" in some
+// pages and "Owner" in others; read/write whichever text field exists.
+const PERSON_FIELDS = ["Owner", "Collaborators", "Responsable"];
+function personText(props) {
+  for (const name of PERSON_FIELDS) {
+    const t = props?.[name]?.rich_text;
+    if (t && t.length) return t.map((x) => x.plain_text).join("");
+  }
+  return "";
+}
+
+/**
+ * Keep only properties that exist in the data source, and put `person`
+ * (if given) into its real person field. Returns { properties, skipped }.
+ */
+async function fitToSchema(dataSourceId, properties, person) {
+  const schema = await dataSourceSchema(dataSourceId);
+  const fitted = {}, skipped = [];
+  for (const [name, value] of Object.entries(properties)) {
+    if (schema[name]) fitted[name] = value; else skipped.push(name);
+  }
+  if (person !== undefined) {
+    const field = PERSON_FIELDS.find((name) => schema[name]?.type === "rich_text");
+    if (field) fitted[field] = richText(person); else skipped.push("Responsable");
+  }
+  if (skipped.length) console.warn(`Skipped fields not in data source ${dataSourceId}:`, skipped);
+  return { properties: fitted, skipped };
+}
+
 /* ---------- Small helpers for reading common Notion property shapes ---------- */
 
 function getTitle(props, key) {
@@ -145,6 +193,8 @@ module.exports = {
   updatePage,
   richText,
   todayISO,
+  fitToSchema,
+  personText,
   getTitle,
   getRichText,
   getSelect,

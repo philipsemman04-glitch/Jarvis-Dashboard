@@ -13,7 +13,7 @@
 // GET  /api/task-api?action=detail&pageId=X
 // POST /api/task-api  body: { action: "create"|"update-status"|"update-full"|"update-area"|"comment", ... }
 
-const { createPage, updatePage, queryDatabase, getTitle, richText, todayISO } = require("./_notion");
+const { createPage, updatePage, queryDatabase, getTitle, richText, todayISO, fitToSchema, personText } = require("./_notion");
 
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -37,6 +37,11 @@ function fileList(prop) {
     url: f.type === "file" ? f.file?.url : f.external?.url,
   }));
 }
+
+// Every Master Actions write goes through the real schema (see fitToSchema
+// in _notion.js), so a field the database doesn't have can't make the
+// whole save fail.
+const fitToActionsSchema = (properties, person) => fitToSchema(DB_ACTIONS, properties, person);
 
 // Completion Date should record when a task was actually finished — so it
 // is only set on the transition INTO "Terminado" (and cleared if the task
@@ -72,7 +77,7 @@ async function handleDetail(req, res) {
     id: page.id, notionUrl: page.url,
     taskName: text(props["Task Name"]), description: text(props["Description"]),
     status: select(props["Status"]), priority: select(props["Priority"]), priorityLevel: select(props["Priority Level"]),
-    collaborators: text(props["Collaborators"]), targetDate: props["Target Date"]?.date?.start || null,
+    collaborators: personText(props), owner: personText(props), targetDate: props["Target Date"]?.date?.start || null,
     areaIds: relationIds(props["Related Entity"]), tags: (props["Tags"]?.multi_select || []).map(t => t.name),
     attachments: fileList(props["Attachments"]),
     comments,
@@ -104,16 +109,17 @@ async function handleCreate(req, res) {
       areaWarning = `No area named "${area}" found under ${project}. Real areas: ${entityPages.map(p => getTitle(p.properties, "Entity Name")).join(", ")}.`;
     }
   }
-  const page = await createPage(DB_ACTIONS, properties);
-  res.status(200).json({ ok: true, pageId: page.id, areaMatched, areaWarning });
+  const fitted = await fitToActionsSchema(properties);
+  const page = await createPage(DB_ACTIONS, fitted.properties);
+  res.status(200).json({ ok: true, pageId: page.id, areaMatched, areaWarning, skipped: fitted.skipped });
 }
 
 async function handleUpdateStatus(req, res) {
   const { pageId, status } = req.body || {};
   if (!pageId || !status) { res.status(400).json({ error: "pageId and status are required" }); return; }
-  const properties = { Status: { select: { name: status } }, ...(await completionDateChange(pageId, status)) };
-  const result = await updatePage(pageId, properties);
-  res.status(200).json({ ok: true, pageId: result.id });
+  const fitted = await fitToActionsSchema({ Status: { select: { name: status } }, ...(await completionDateChange(pageId, status)) });
+  const result = await updatePage(pageId, fitted.properties);
+  res.status(200).json({ ok: true, pageId: result.id, skipped: fitted.skipped });
 }
 
 async function handleUpdateFull(req, res) {
@@ -130,8 +136,6 @@ async function handleUpdateFull(req, res) {
   // defaulting to P0.
   if (priority !== undefined) properties["Priority"] = priority ? { select: { name: priority } } : { select: null };
   if (priorityLevel !== undefined) properties["Priority Level"] = priorityLevel ? { select: { name: priorityLevel } } : { select: null };
-  if (collaborators !== undefined) properties["Collaborators"] = richText(collaborators);
-  if (owner !== undefined) properties["Owner"] = richText(owner);
   if (targetDate !== undefined) properties["Target Date"] = targetDate ? { date: { start: targetDate } } : { date: null };
   if (type !== undefined) properties["Type"] = type ? { select: { name: type } } : { select: null };
   if (impact !== undefined) properties["Impact"] = impact ? { select: { name: impact } } : { select: null };
@@ -140,8 +144,12 @@ async function handleUpdateFull(req, res) {
   if (tags !== undefined) properties["Tags"] = { multi_select: Array.isArray(tags) ? tags.filter(Boolean).map(name => ({ name })) : String(tags || "").split(",").map(x => x.trim()).filter(Boolean).map(name => ({ name })) };
   if (blocksLaunch !== undefined) properties["Blocks Launch"] = { checkbox: !!blocksLaunch };
   if (driveLink !== undefined) properties["Drive Link"] = driveLink ? { url: driveLink } : { url: null };
-  const result = await updatePage(pageId, properties);
-  res.status(200).json({ ok: true, pageId: result.id });
+  // Pages send the responsible person as `owner` (ONG) or `collaborators`
+  // (Tareas, project boards); both mean the same field.
+  const person = owner !== undefined ? owner : collaborators;
+  const fitted = await fitToActionsSchema(properties, person);
+  const result = await updatePage(pageId, fitted.properties);
+  res.status(200).json({ ok: true, pageId: result.id, skipped: fitted.skipped });
 }
 
 async function handleUpdateArea(req, res) {
@@ -180,7 +188,7 @@ async function handleCalendar(req, res) {
     const props = p.properties;
     const taskName = text(props["Task Name"]);
     const project = select(props["Project"]) || "Personal";
-    const person = text(props["Collaborators"]);
+    const person = personText(props);
     const targetDate = props["Target Date"]?.date?.start;
     const completionDate = props["Completion Date"]?.date?.start;
     const status = select(props["Status"]);
@@ -224,25 +232,29 @@ async function handleCalendarCreate(req, res) {
     "Target Date": { date: { start: date } },
   };
   if (project) properties.Project = { select: { name: project } };
-  if (person) properties.Collaborators = richText(person);
-  const page = await createPage(DB_ACTIONS, properties);
-  res.status(200).json({ ok: true, pageId: page.id });
+  const fitted = await fitToActionsSchema(properties, person || undefined);
+  const page = await createPage(DB_ACTIONS, fitted.properties);
+  res.status(200).json({ ok: true, pageId: page.id, skipped: fitted.skipped });
 }
 
 async function handleCalendarUpdate(req, res) {
   const { pageId, type = "deadline", title, date, person, status } = req.body || {};
   if (!pageId || !title || !title.trim() || !date) { res.status(400).json({ error: "pageId, title and date are required" }); return; }
-  const properties = type === "meeting" ? {
-    "Meeting Name": { title: [{ text: { content: title.trim() } }] },
-    Date: { date: { start: date } },
-    ...(status ? { Status: { select: { name: status } } } : {}),
-  } : {
+  if (type === "meeting") {
+    const result = await updatePage(pageId, {
+      "Meeting Name": { title: [{ text: { content: title.trim() } }] },
+      Date: { date: { start: date } },
+      ...(status ? { Status: { select: { name: status } } } : {}),
+    });
+    res.status(200).json({ ok: true, pageId: result.id });
+    return;
+  }
+  const fitted = await fitToActionsSchema({
     "Task Name": { title: [{ text: { content: title.trim() } }] },
     "Target Date": { date: { start: date } },
-    ...(person !== undefined ? { Collaborators: richText(person) } : {}),
-  };
-  const result = await updatePage(pageId, properties);
-  res.status(200).json({ ok: true, pageId: result.id });
+  }, person);
+  const result = await updatePage(pageId, fitted.properties);
+  res.status(200).json({ ok: true, pageId: result.id, skipped: fitted.skipped });
 }
 
 async function handleCalendarArchive(req, res) {

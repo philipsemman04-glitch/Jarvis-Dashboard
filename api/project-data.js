@@ -18,7 +18,7 @@
 // card→area links, so both datasets filter together when an area is
 // clicked.
 
-const { richText } = require("./_notion");
+const { richText, fitToSchema, personText } = require("./_notion");
 
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -229,13 +229,15 @@ async function handleCreateTask(req, res) {
   if (b.urgency) properties.Urgency = selectProp(b.urgency);
   if (b.wave) properties.Ola = selectProp(b.wave);
   if (b.description) properties.Description = rich(b.description);
-  if (b.owner) properties.Owner = rich(b.owner);
   if (b.driveLink) properties["Drive Link"] = { url: b.driveLink };
   if (b.targetDate) properties["Target Date"] = { date: { start: b.targetDate } };
   if (Array.isArray(b.tags) && b.tags.length) properties.Tags = { multi_select: b.tags.map(name => ({ name })) };
   if (b.blocksLaunch !== undefined) properties["Blocks Launch"] = { checkbox: !!b.blocksLaunch };
-  const page = await notionCreatePage(DB_ACTIONS, properties);
-  res.status(200).json({ ok: true, taskId: page.id, notionUrl: page.url });
+  // Only fields Master Actions really has; the owner goes to its real
+  // person field.
+  const fitted = await fitToSchema(DB_ACTIONS, properties, b.owner || undefined);
+  const page = await notionCreatePage(DB_ACTIONS, fitted.properties);
+  res.status(200).json({ ok: true, taskId: page.id, notionUrl: page.url, skipped: fitted.skipped });
 }
 
 module.exports = async (req, res) => {
@@ -314,9 +316,9 @@ module.exports = async (req, res) => {
         status: select(p.properties["Status"]),
         priority: select(p.properties["Priority"]),
         priorityLevel: select(p.properties["Priority Level"]),
-        collaborators: text(p.properties["Collaborators"]),
+        collaborators: personText(p.properties),
         description: text(p.properties["Description"]),
-        owner: text(p.properties["Owner"]),
+        owner: personText(p.properties),
         driveLink: url(p.properties["Drive Link"]),
         impact: select(p.properties["Impact"]),
         urgency: select(p.properties["Urgency"]),

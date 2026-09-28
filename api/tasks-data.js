@@ -7,6 +7,7 @@ const {
   getDate,
   getRelationIds,
   todayISO,
+  personText,
 } = require("./_notion");
 
 /**
@@ -59,8 +60,8 @@ module.exports = async (req, res) => {
         // The real "Priority Level" field wins; it's only derived from P0–P3
         // when empty, so the list matches what the task detail shows.
         priorityLevel: getSelect(props, "Priority Level") || ({ P0: "Critical", P1: "High", P2: "Medium", P3: "Low" }[getSelect(props, "Priority") || "P3"] || "Low"),
-        collaborators: getRichText(props, "Collaborators"),
-        owner: getRichText(props, "Owner"),
+        collaborators: personText(props),
+        owner: personText(props),
         completionDate: getDate(props, "Completion Date"),
         urgency: getSelect(props, "Urgency"),
         impact: getSelect(props, "Impact"),
