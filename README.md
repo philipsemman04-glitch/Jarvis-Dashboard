@@ -38,6 +38,8 @@ needs overriding if Aurelio's workspace structure changes.
 | Variable | Required? | What it is |
 |---|---|---|
 | `NOTION_TOKEN` | **Yes** | The secret token from your Notion integration (Settings → Connections → Developer portal → your integration → Access token) |
+| `JARVIS_USER` | **Yes** | Login username for the whole site (see "Access control" below) |
+| `JARVIS_PASSWORD` | **Yes** | Login password for the whole site — use a long, random one |
 | `NOTION_DB_ACTIONS` | No (has a default) | Master Actions database ID |
 | `NOTION_DB_DECISIONS` | No (has a default) | Decision Log database ID |
 | `NOTION_DB_BUDGET` | No (has a default) | Budgets/Costs/KPIs database ID |
@@ -46,6 +48,13 @@ needs overriding if Aurelio's workspace structure changes.
 | `NOTION_DB_LEARNING` | No (has a default) | Learning Library database ID |
 | `NOTION_DB_HABITS` | No (has a default) | Points to **"Rutina — Registro Diario"**, not the plainer "Habits" database — see note below |
 | `NOTION_DB_GOALS` | No (has a default) | Personal Goals database ID |
+
+**Access control:** `middleware.js` (Vercel Routing Middleware) runs before
+every page and every `/api/*` call and requires the `JARVIS_USER` /
+`JARVIS_PASSWORD` login (HTTP Basic Auth — the browser asks once, then
+sends it automatically). If either variable is missing, the site refuses
+all requests, so set both **before** deploying. Middleware does not count
+toward the Hobby plan's 12-function limit.
 
 **Finding a database ID yourself, if you ever need to:** open the database
 as a full page in Notion, look at the URL — it's the 32-character string
