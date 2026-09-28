@@ -46,7 +46,10 @@
     const el = document.createElement("div");
     el.className = "jarvis-toast";
     el.id = id;
-    el.innerHTML = `<span class="spin"></span><span class="msg">${message}</span>`;
+    el.innerHTML = `<span class="spin"></span><span class="msg"></span>`;
+    // textContent, not innerHTML: messages often include Notion error text
+    // or user-entered names, which must never be interpreted as HTML.
+    el.querySelector(".msg").textContent = message;
     stack.appendChild(el);
     requestAnimationFrame(() => el.classList.add("show"));
     return id;
@@ -56,7 +59,8 @@
     const el = document.getElementById(id);
     if (!el) return;
     el.className = "jarvis-toast show " + className;
-    el.innerHTML = `<span class="dot">${icon}</span><span class="msg">${message}</span>`;
+    el.innerHTML = `<span class="dot">${icon}</span><span class="msg"></span>`;
+    el.querySelector(".msg").textContent = message;
     if (autoDismissMs) {
       setTimeout(() => {
         el.classList.remove("show");

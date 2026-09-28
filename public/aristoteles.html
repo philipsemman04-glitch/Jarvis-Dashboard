@@ -191,6 +191,11 @@ let allData = null;
 let activeSection = null;
 
 function emptyNote(t){ return `<div class="empty-note">${t}</div>`; }
+// Document names and links come from Notion: escape before innerHTML, and
+// only ever navigate to http(s) URLs.
+function esc(value){ return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+function safeUrl(value){ try{ const u = new URL(String(value || ""), location.origin); return /^https?:$/.test(u.protocol) ? u.href : "#"; }catch(e){ return "#"; } }
+function goTo(url){ const safe = safeUrl(url); if(safe !== "#") window.location.href = safe; }
 
 function renderSections(sections){
   const el = document.getElementById("sections-grid");
@@ -236,10 +241,10 @@ function renderRecent(recent){
   const el = document.getElementById("recent-docs");
   if(!recent.length){ el.innerHTML = emptyNote("Sin documentos todavía."); return; }
   el.innerHTML = recent.map(d => `
-    <div class="recent-row" data-url="${d.notionUrl}">
-      <div><div class="rn">${d.name}</div><div class="rd">${d.seccion} · ${new Date(d.lastEditedTime).toLocaleDateString('es-MX',{day:'numeric',month:'short'})}</div></div>
+    <div class="recent-row" data-url="${esc(d.notionUrl)}">
+      <div><div class="rn">${esc(d.name)}</div><div class="rd">${esc(d.seccion)} · ${new Date(d.lastEditedTime).toLocaleDateString('es-MX',{day:'numeric',month:'short'})}</div></div>
     </div>`).join("");
-  el.querySelectorAll("[data-url]").forEach(row => row.addEventListener("click", () => window.location.href = row.dataset.url));
+  el.querySelectorAll("[data-url]").forEach(row => row.addEventListener("click", () => goTo(row.dataset.url)));
 }
 
 function openSection(sectionName){
@@ -262,11 +267,11 @@ function renderSectionDocs(){
   const el = document.getElementById("section-docs");
   if(!docs.length){ el.innerHTML = emptyNote("Sin documentos en esta sección todavía."); return; }
   el.innerHTML = docs.map(d => `
-    <div class="doc-row" data-url="${d.notionUrl}">
-      <span class="dn">${d.name}</span>
-      <span class="estado-pill ${d.estado}">${d.estado}</span>
+    <div class="doc-row" data-url="${esc(d.notionUrl)}">
+      <span class="dn">${esc(d.name)}</span>
+      <span class="estado-pill ${esc(d.estado)}">${esc(d.estado)}</span>
     </div>`).join("");
-  el.querySelectorAll("[data-url]").forEach(row => row.addEventListener("click", () => window.location.href = row.dataset.url));
+  el.querySelectorAll("[data-url]").forEach(row => row.addEventListener("click", () => goTo(row.dataset.url)));
 }
 
 async function openNewDocPrompt(prefillSection){
@@ -286,7 +291,7 @@ async function openNewDocPrompt(prefillSection){
     if(!res.ok || result.error) throw new Error(result.error || "Error desconocido");
     jarvisToast.success(t, "Documento creado");
     await loadData();
-    if(result.notionUrl) window.location.href = result.notionUrl;
+    if(result.notionUrl) goTo(result.notionUrl);
   }catch(e){ jarvisToast.error(t, "No se pudo crear el documento: " + e.message); }
 }
 async function createSection(){
@@ -314,7 +319,7 @@ document.getElementById("global-search").addEventListener("keydown", (e) => {
   if(e.key === "Enter" && e.target.value.trim()){
     const q = e.target.value.trim().toLowerCase();
     const match = allData.docs.find(d => d.name.toLowerCase().includes(q));
-    if(match) window.location.href = match.notionUrl;
+    if(match) goTo(match.notionUrl);
     else {
       const sectionMatch = allData.sections.find(s => s.name.toLowerCase().includes(q));
       if(sectionMatch) openSection(sectionMatch.name);

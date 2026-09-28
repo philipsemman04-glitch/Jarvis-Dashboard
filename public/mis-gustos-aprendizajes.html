@@ -407,6 +407,10 @@ let activeTopic = null;
 let quoteIdx = Math.floor(Date.now()/86400000) % QUOTES.length;
 
 function emptyNote(t){ return `<div class="empty-note">${t}</div>`; }
+// Everything below that comes from Notion goes through esc() before being
+// put into innerHTML, and links through safeUrl() (http/https only).
+function esc(value){ return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+function safeUrl(value){ try{ const u = new URL(String(value || ""), location.origin); return /^https?:$/.test(u.protocol) ? u.href : "#"; }catch(e){ return "#"; } }
 function toneStyle(tone){ return `background:${TONE_BG[tone]||TONE_BG.blue};color:${TONE_FG[tone]||TONE_FG.blue}`; }
 function relDate(iso){
   const d = new Date(iso), now = new Date();
@@ -449,16 +453,16 @@ function renderDashboard(d){
   renderStats(d);
 
   const el = document.getElementById("topics-row");
-  el.innerHTML = (d.topics||[]).slice(0,6).map((t,i) => `<div class="main-topic-card" data-topic="${t.name}"><div class="topic-art" style="background:linear-gradient(135deg,${["#174c7a","#50225f","#2c4770","#4d3b24","#5b4420","#19466b"][i%6]},#101623)"></div><div class="topic-card-body"><h4>${t.name}</h4><p>${t.count} referencias</p><div class="topic-progress"><i style="width:${Math.min(100,20+t.count*3)}%"></i></div></div></div>`).join("") + `<div class="main-topic-card" id="add-topic-btn"><div class="topic-art"></div><div class="topic-card-body"><h4>＋ Nuevo tema</h4><p>Crear tema</p></div></div>`;
+  el.innerHTML = (d.topics||[]).slice(0,6).map((t,i) => `<div class="main-topic-card" data-topic="${esc(t.name)}"><div class="topic-art" style="background:linear-gradient(135deg,${["#174c7a","#50225f","#2c4770","#4d3b24","#5b4420","#19466b"][i%6]},#101623)"></div><div class="topic-card-body"><h4>${esc(t.name)}</h4><p>${t.count} referencias</p><div class="topic-progress"><i style="width:${Math.min(100,20+t.count*3)}%"></i></div></div></div>`).join("") + `<div class="main-topic-card" id="add-topic-btn"><div class="topic-art"></div><div class="topic-card-body"><h4>＋ Nuevo tema</h4><p>Crear tema</p></div></div>`;
   el.querySelectorAll("[data-topic]").forEach(c => c.addEventListener("click", () => openTopic(c.dataset.topic)));
-  document.getElementById("add-topic-btn").addEventListener("click", createTopic);document.getElementById("add-topic-side").onclick=createTopic;document.getElementById("topic-list-count").textContent=`(${d.topics.length})`;document.getElementById("topic-list-side").innerHTML=d.topics.map((t,i)=>`<div class="topic-list-row" data-topic="${t.name}" title="Abrir ${t.name}"><span class="topic-dot" style="background:${["#5a8ff0","#ec6ba3","#9b7ee8","#42d392","#f0c95d"][i%5]}"></span><span>${t.name}</span><span class="topic-row-bar"><i style="width:${Math.max(8,Math.min(100,(t.count/Math.max(1,d.topics[0]?.count||1))*100))}%"></i></span><b>${t.count}</b><button class="topic-edit-mini" data-rename-topic="${t.name}" title="Renombrar">✎</button><button class="topic-delete-mini" data-delete-topic="${t.name}" title="Eliminar">×</button></div>`).join("");document.querySelectorAll("#topic-list-side [data-topic]").forEach(r=>r.onclick=e=>{if(!e.target.closest("button"))openTopic(r.dataset.topic)});document.querySelectorAll("[data-rename-topic]").forEach(b=>b.onclick=e=>{e.stopPropagation();renameTopicDirect(b.dataset.renameTopic)});document.querySelectorAll("[data-delete-topic]").forEach(b=>b.onclick=e=>{e.stopPropagation();deleteTopic(b.dataset.deleteTopic)});
+  document.getElementById("add-topic-btn").addEventListener("click", createTopic);document.getElementById("add-topic-side").onclick=createTopic;document.getElementById("topic-list-count").textContent=`(${d.topics.length})`;document.getElementById("topic-list-side").innerHTML=d.topics.map((t,i)=>`<div class="topic-list-row" data-topic="${esc(t.name)}" title="Abrir ${esc(t.name)}"><span class="topic-dot" style="background:${["#5a8ff0","#ec6ba3","#9b7ee8","#42d392","#f0c95d"][i%5]}"></span><span>${esc(t.name)}</span><span class="topic-row-bar"><i style="width:${Math.max(8,Math.min(100,(t.count/Math.max(1,d.topics[0]?.count||1))*100))}%"></i></span><b>${t.count}</b><button class="topic-edit-mini" data-rename-topic="${esc(t.name)}" title="Renombrar">✎</button><button class="topic-delete-mini" data-delete-topic="${esc(t.name)}" title="Eliminar">×</button></div>`).join("");document.querySelectorAll("#topic-list-side [data-topic]").forEach(r=>r.onclick=e=>{if(!e.target.closest("button"))openTopic(r.dataset.topic)});document.querySelectorAll("[data-rename-topic]").forEach(b=>b.onclick=e=>{e.stopPropagation();renameTopicDirect(b.dataset.renameTopic)});document.querySelectorAll("[data-delete-topic]").forEach(b=>b.onclick=e=>{e.stopPropagation();deleteTopic(b.dataset.deleteTopic)});
 
   const recentEl = document.getElementById("recent-list");
   recentEl.innerHTML = d.recent.length ? d.recent.map((r,i) => `
-    <div class="ref-row" data-id="${r.id}">
+    <div class="ref-row" data-id="${esc(r.id)}">
       <div class="ref-icon" style="${toneStyle(TOPIC_TONES[i % TOPIC_TONES.length])}">${TIPO_ICON[r.tipo] || "📎"}</div>
-      <div style="min-width:0;"><div class="ref-name">${r.referencia}</div><div class="ref-meta">${r.tipo || ""}${r.autor ? " · " + r.autor : ""}</div></div>
-      <div class="ref-right">${r.temas.slice(0,1).map(t=>`<span class="mini-tag" style="${toneStyle(TOPIC_TONES[i % TOPIC_TONES.length])}">${t}</span>`).join("")}<span class="ref-date">${relDate(r.createdTime)}</span></div>
+      <div style="min-width:0;"><div class="ref-name">${esc(r.referencia)}</div><div class="ref-meta">${esc(r.tipo || "")}${r.autor ? " · " + esc(r.autor) : ""}</div></div>
+      <div class="ref-right">${r.temas.slice(0,1).map(t=>`<span class="mini-tag" style="${toneStyle(TOPIC_TONES[i % TOPIC_TONES.length])}">${esc(t)}</span>`).join("")}<span class="ref-date">${relDate(r.createdTime)}</span></div>
     </div>`).join("") : emptyNote("Sin referencias guardadas todavía.");
   recentEl.querySelectorAll("[data-id]").forEach(row => row.addEventListener("click", () => openReferenceDetail(row.dataset.id)));
 
@@ -481,10 +485,10 @@ function renderDashboard(d){
         const sx = tx + 62 * Math.cos(subAngle), sy = ty + 62 * Math.sin(subAngle);
         svg += `<line x1="${tx}" y1="${ty}" x2="${sx}" y2="${sy}" stroke="${color}" stroke-opacity="0.2" stroke-width="1"/>
           <circle cx="${sx}" cy="${sy}" r="3" fill="${color}"/>
-          <text x="${sx}" y="${sy - 7}" text-anchor="middle" font-family="Inter" font-size="8.5" fill="var(--faint)">${tag.length>12?tag.slice(0,11)+'…':tag}</text>`;
+          <text x="${sx}" y="${sy - 7}" text-anchor="middle" font-family="Inter" font-size="8.5" fill="var(--faint)">${esc(tag.length>12?tag.slice(0,11)+'…':tag)}</text>`;
       });
-      svg += `<circle cx="${tx}" cy="${ty}" r="${nodeR}" fill="#151c2b" stroke="${color}" stroke-width="2" style="cursor:pointer;" data-topic="${topic.topic}"/>
-        <text x="${tx}" y="${ty+4}" text-anchor="middle" font-family="Inter" font-size="9.5" font-weight="600" fill="var(--text)" style="cursor:pointer; pointer-events:none;">${topic.topic.length>10?topic.topic.slice(0,9)+'…':topic.topic}</text>`;
+      svg += `<circle cx="${tx}" cy="${ty}" r="${nodeR}" fill="#151c2b" stroke="${color}" stroke-width="2" style="cursor:pointer;" data-topic="${esc(topic.topic)}"/>
+        <text x="${tx}" y="${ty+4}" text-anchor="middle" font-family="Inter" font-size="9.5" font-weight="600" fill="var(--text)" style="cursor:pointer; pointer-events:none;">${esc(topic.topic.length>10?topic.topic.slice(0,9)+'…':topic.topic)}</text>`;
     });
     mapEl.innerHTML = `<div style="display:flex; justify-content:center;"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${svg}</svg></div>
       <div style="text-align:center; font-size:10.5px; color:var(--faint); margin-top:6px;">Haz clic en un nodo para explorar sus conexiones</div>`;
@@ -498,7 +502,7 @@ function renderDashboard(d){
   if(!cloudItems.length){ cloudEl.innerHTML = `<div class="cloud-empty"><strong>No hay temas cargados todavía</strong><span>Agrega un tema o asigna uno a una referencia de Notion para verlo aquí.</span><button class="btn-gold" onclick="createTopic()">＋ Nuevo tema</button></div>`; }
   else {
     const max = Math.max(...cloudItems.map(t=>t.weight),1);
-    cloudEl.innerHTML = cloudItems.map((t,i) => `<span data-topic="${t.word}" title="Abrir ${t.word} · ${t.weight} referencias" style="font-size:${12+(t.weight/max)*23}px; color:${["#f0a23f","#42d392","#9b7ee8","#5a8ff0","#ec6ba3"][i%5]};">${t.word}</span>`).join("");cloudEl.querySelectorAll("[data-topic]").forEach(word => word.onclick=()=>openTopic(word.dataset.topic));
+    cloudEl.innerHTML = cloudItems.map((t,i) => `<span data-topic="${esc(t.word)}" title="Abrir ${esc(t.word)} · ${Number(t.weight)||0} referencias" style="font-size:${12+((Number(t.weight)||0)/max)*23}px; color:${["#f0a23f","#42d392","#9b7ee8","#5a8ff0","#ec6ba3"][i%5]};">${esc(t.word)}</span>`).join("");cloudEl.querySelectorAll("[data-topic]").forEach(word => word.onclick=()=>openTopic(word.dataset.topic));
   }
 
   document.querySelectorAll("[data-cloud-view]").forEach(btn=>btn.onclick=()=>{document.querySelectorAll("[data-cloud-view]").forEach(b=>b.classList.toggle("active",b===btn));const view=btn.dataset.cloudView;if(view==="list"){document.querySelector(".topic-list-side")?.scrollIntoView({behavior:"smooth",block:"center"});}else if(view==="map"){document.getElementById("knowledge-map")?.scrollIntoView({behavior:"smooth",block:"center"});}});
@@ -633,13 +637,13 @@ function renderTopicBoard(){
   }
   el.innerHTML = colNames.map(col => `
     <div class="board-col">
-      <div class="board-col-head"><span>${col}</span><span>${columns[col].length}</span></div>
+      <div class="board-col-head"><span>${esc(col)}</span><span>${columns[col].length}</span></div>
       ${columns[col].map(r => `
-        <div class="board-card" data-id="${r.id}">
-          <div class="tp">${TIPO_ICON[r.tipo]||''} ${r.tipo||''}</div>
-          <div class="nm">${r.referencia}</div>
+        <div class="board-card" data-id="${esc(r.id)}">
+          <div class="tp">${TIPO_ICON[r.tipo]||''} ${esc(r.tipo||'')}</div>
+          <div class="nm">${esc(r.referencia)}</div>
         </div>`).join("")}
-      <div class="add-card-link" data-newcard="${col}">+ Nueva referencia</div>
+      <div class="add-card-link" data-newcard="${esc(col)}">+ Nueva referencia</div>
     </div>`).join("") + `<div class="add-col-btn" id="add-col-btn">+ Nueva columna</div>`;
 
   el.querySelectorAll("[data-id]").forEach(c => c.addEventListener("click", () => openReferenceDetail(c.dataset.id)));
@@ -688,8 +692,8 @@ function openCreateReference(prefillColumna){
     <div class="modal-field"><label>Título</label><input id="m-referencia" placeholder="ej. Never Split the Difference"></div>
     <div class="modal-field"><label>Autor</label><input id="m-autor" placeholder="ej. Chris Voss"></div>
     <div class="modal-field"><label>Tipo</label><select id="m-tipo">${TIPOS.map(t=>`<option value="${t}">${t}</option>`).join("")}</select></div>
-    <div class="modal-field"><label>Tema</label><select id="m-tema">${(allData?.topics||[]).map(t=>`<option value="${t.name}" ${t.name===activeTopic?'selected':''}>${t.name}</option>`).join("")}</select></div>
-    <div class="modal-field"><label>Columna (autor, concepto, persona — lo que tenga sentido)</label><input id="m-columna" value="${prefillColumna||''}" placeholder="ej. Chris Voss"></div>
+    <div class="modal-field"><label>Tema</label><select id="m-tema">${(allData?.topics||[]).map(t=>`<option value="${esc(t.name)}" ${t.name===activeTopic?'selected':''}>${esc(t.name)}</option>`).join("")}</select></div>
+    <div class="modal-field"><label>Columna (autor, concepto, persona — lo que tenga sentido)</label><input id="m-columna" value="${esc(prefillColumna||'')}" placeholder="ej. Chris Voss"></div>
     <div class="modal-field"><label>Enlace</label><input id="m-enlace" placeholder="https://…"></div>
     <div class="modal-field"><label>Por qué me interesa / Notas</label><textarea id="m-notas" rows="3"></textarea></div>
     <button class="btn-gold" style="width:100%; justify-content:center;" onclick="submitCreateReference()">Guardar</button>`;
@@ -732,32 +736,32 @@ async function openReferenceDetail(pageId){
     modal.innerHTML = `
       <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
         <div>
-          <div style="font-size:10.5px; color:var(--gold-2); text-transform:uppercase;">${r.tipo||''}</div>
-          <h2 style="font-family:var(--serif); font-size:19px;">${r.referencia}</h2>
-          ${r.autor ? `<div style="font-size:12.5px; color:var(--muted); margin-top:2px;">${r.autor}</div>` : ''}
+          <div style="font-size:10.5px; color:var(--gold-2); text-transform:uppercase;">${esc(r.tipo||'')}</div>
+          <h2 style="font-family:var(--serif); font-size:19px;">${esc(r.referencia)}</h2>
+          ${r.autor ? `<div style="font-size:12.5px; color:var(--muted); margin-top:2px;">${esc(r.autor)}</div>` : ''}
         </div>
         <span style="cursor:pointer; color:var(--faint); font-size:18px;" onclick="closeRefModal()">✕</span>
       </div>
       <div class="modal-field"><label>Tema</label>
-        <select id="m-tema">${(allData?.topics||[]).map(t=>`<option value="${t.name}" ${r.temas.includes(t.name)?'selected':''}>${t.name}</option>`).join("")}</select></div>
-      <div class="modal-field"><label>Columna</label><input id="m-columna" value="${r.columna||''}"></div>
+        <select id="m-tema">${(allData?.topics||[]).map(t=>`<option value="${esc(t.name)}" ${r.temas.includes(t.name)?'selected':''}>${esc(t.name)}</option>`).join("")}</select></div>
+      <div class="modal-field"><label>Columna</label><input id="m-columna" value="${esc(r.columna||'')}"></div>
       <div class="modal-field"><label>Estado</label>
         <select id="m-estado">${["Por consumir","Consumiendo","Terminado","⭐ Hall of Fame"].map(s=>`<option ${s===r.estado?'selected':''}>${s}</option>`).join("")}</select></div>
-      <div class="modal-field"><label>Enlace</label><input id="m-enlace" value="${r.enlace||''}"></div>
-      <div class="modal-field"><label>Tags (separados por coma)</label><input id="m-tags" value="${(r.tags||[]).join(', ')}"></div>
+      <div class="modal-field"><label>Enlace</label><input id="m-enlace" value="${esc(r.enlace||'')}"></div>
+      <div class="modal-field"><label>Tags (separados por coma)</label><input id="m-tags" value="${esc((r.tags||[]).join(', '))}"></div>
       <div class="modal-field"><label>Fecha agregada</label><input value="${new Date(r.createdTime||Date.now()).toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'})}" disabled style="opacity:0.7;"></div>
       <div class="modal-field"><label>Importancia</label>
         <div id="m-stars" style="display:flex; gap:4px; font-size:20px; cursor:pointer;">
           ${[1,2,3,4,5].map(n => `<span data-star="${n}" style="color:${n<=(r.importancia||0)?'var(--gold-2)':'var(--line-strong)'};">★</span>`).join("")}
         </div>
-        <input type="hidden" id="m-importancia" value="${r.importancia||0}">
+        <input type="hidden" id="m-importancia" value="${Number(r.importancia)||0}">
       </div>
-      <div class="modal-field"><label>Por qué me interesa / Notas</label><textarea id="m-notas" rows="3">${r.porQueMeInteresa||''}</textarea></div>
+      <div class="modal-field"><label>Por qué me interesa / Notas</label><textarea id="m-notas" rows="3">${esc(r.porQueMeInteresa||'')}</textarea></div>
       <label style="font-size:10px; color:var(--faint); display:block; margin-bottom:8px; font-weight:800; letter-spacing:.07em;">📎 Archivos / imágenes</label>
       <div id="ref-attachments" style="margin-bottom:8px;">
         ${r.attachments && r.attachments.length ? r.attachments.map(a => `
           <div style="display:flex; align-items:center; gap:8px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--line);">
-            <span>📄</span><a href="${a.url}" target="_blank" style="color:var(--gold-2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.name}</a>
+            <span>📄</span><a href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener" style="color:var(--gold-2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(a.name)}</a>
           </div>`).join("") : `<div style="font-size:11.5px; color:var(--faint);">Sin archivos todavía.</div>`}
       </div>
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
@@ -767,7 +771,7 @@ async function openReferenceDetail(pageId){
       </div>
       <label style="font-size:10px; color:var(--faint); display:block; margin-bottom:8px; font-weight:800; letter-spacing:.07em;">Comentarios</label>
       <div style="margin-bottom:10px; max-height:140px; overflow-y:auto;">
-        ${r.comments.length ? r.comments.map(c=>`<div style="font-size:12px; padding:7px 0; border-bottom:1px solid var(--line);">${c.text}</div>`).join("") : emptyNote("Sin comentarios.")}
+        ${r.comments.length ? r.comments.map(c=>`<div style="font-size:12px; padding:7px 0; border-bottom:1px solid var(--line);">${esc(c.text)}</div>`).join("") : emptyNote("Sin comentarios.")}
       </div>
       <div style="display:flex; gap:8px; margin-bottom:16px;">
         <input id="m-comment" placeholder="Escribe un comentario…" style="flex:1; background:rgba(255,255,255,.04); border:1px solid var(--line); color:var(--text); padding:9px 10px; border-radius:10px; font-size:12.5px;">
@@ -788,7 +792,7 @@ async function openReferenceDetail(pageId){
       });
     });
   }catch(e){
-    modal.innerHTML = emptyNote("No se pudo cargar: " + e.message);
+    modal.innerHTML = emptyNote("No se pudo cargar: " + esc(e.message));
   }
 }
 async function deleteReference(pageId){
@@ -954,14 +958,14 @@ function renderNotifications(){
     listEl.innerHTML = '<div class="notif-empty">Sin notificaciones pendientes.<br>¡Todo bajo control! ✨</div>';
   } else {
     listEl.innerHTML = items.map(n => `
-      <div class="notif-item" data-nid="${n.id}">
+      <div class="notif-item" data-nid="${esc(n.id)}">
         <div class="notif-ico ${n.tone}">${n.icon}</div>
         <div class="notif-body">
-          <div class="notif-title">${n.title}</div>
-          <div class="notif-text">${n.text}</div>
-          <div class="notif-time">${notifRelDay(n.time)}</div>
+          <div class="notif-title">${esc(n.title)}</div>
+          <div class="notif-text">${esc(n.text)}</div>
+          <div class="notif-time">${esc(notifRelDay(n.time))}</div>
         </div>
-        <button class="notif-dismiss" data-dismiss="${n.id}" title="Descartar" type="button">✕</button>
+        <button class="notif-dismiss" data-dismiss="${esc(n.id)}" title="Descartar" type="button">✕</button>
       </div>`).join("");
     listEl.querySelectorAll("[data-dismiss]").forEach(btn => btn.addEventListener("click", () => {
       const id = btn.dataset.dismiss;

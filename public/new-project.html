@@ -55,7 +55,7 @@ async function createProject(){
     });
     const data = await res.json();
     if(!data.ok) throw new Error(data.error || 'Error desconocido');
-    status.innerHTML = `✓ Proyecto creado (${data.areasCreated} áreas). Un paso manual queda pendiente: ${data.remainingManualStep}`;
+    status.textContent = `✓ Proyecto creado (${data.areasCreated} áreas). Un paso manual queda pendiente: ${data.remainingManualStep}`;
     status.className = 'status ok';
   }catch(err){
     status.textContent = 'No se pudo crear: ' + err.message;

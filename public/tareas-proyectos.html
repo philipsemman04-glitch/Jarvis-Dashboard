@@ -214,10 +214,12 @@ const STATUS_BUCKETS = {
 STATUS_BUCKETS["active"] = [...STATUS_BUCKETS["not-started"], ...STATUS_BUCKETS["in-progress"], ...STATUS_BUCKETS["in-review"]];
 
 function esc(value){ return String(value ?? "").replace(/[&<>"\']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","\'":"&#39;"}[c])); }
+// Only http(s) links may come from Notion data — blocks javascript: URLs.
+function safeUrl(value){ try{ const u = new URL(String(value || ""), location.origin); return /^https?:$/.test(u.protocol) ? u.href : "#"; }catch(e){ return "#"; } }
 function projectMark(project){ return esc((project || "?").trim().slice(0,1).toUpperCase()); }
 function priorityTag(p){
   const cls = { P0:"p0", P1:"p1", P2:"p2", P3:"p3" }[p] || "p3";
-  return `<span class="tag ${cls}">${p}</span>`;
+  return `<span class="tag ${cls}">${esc(p)}</span>`;
 }
 const PRIO_LEVEL_LABEL = { Critical:"🔴 Crítica", High:"🟠 Alta", Medium:"🟡 Media", Low:"🟢 Baja" };
 const PRIO_LEVEL_CLASS = { Critical:"p0", High:"p1", Medium:"p2", Low:"p3" };
@@ -349,7 +351,7 @@ function renderAreaFilterOptions(){
   const scoped = activeProject === "all" ? allTasks : allTasks.filter(t => t.project === activeProject);
   const areas = [...new Set(scoped.map(t => t.area).filter(Boolean))].sort();
   sel.innerHTML = `<option value="all">Toda área</option>` +
-    areas.map(a => `<option value="${a}">${a}</option>`).join("");
+    areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join("");
   if(areas.includes(prevValue)) sel.value = prevValue;
 }
 
@@ -360,7 +362,7 @@ function renderPersonFilterOptions(){
   allTasks.forEach(t => (t.collaborators||"").split(",").map(s=>s.trim()).filter(Boolean).forEach(p=>people.add(p)));
   const sorted = [...people].sort();
   sel.innerHTML = `<option value="all">Todo responsable</option>` +
-    sorted.map(p => `<option value="${p}">${p}</option>`).join("");
+    sorted.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join("");
   if(sorted.includes(prevValue)) sel.value = prevValue;
 }
 
@@ -399,7 +401,7 @@ async function openTaskDetail(pageId){
     if(t.error) throw new Error(t.error);
     modal.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
-        <h2 style="font-family:var(--serif); font-size:19px; font-weight:600; flex:1;">${t.taskName}</h2>
+        <h2 style="font-family:var(--serif); font-size:19px; font-weight:600; flex:1;">${esc(t.taskName)}</h2>
         <span style="cursor:pointer; color:var(--text-faint); font-size:18px; padding:0 4px;" onclick="closeTaskModal()">✕</span>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
@@ -424,21 +426,21 @@ async function openTaskDetail(pageId){
         </div>
         <div>
           <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Responsable</label>
-          <input id="td-collaborators" value="${t.collaborators||''}" placeholder="Nombre…" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
+          <input id="td-collaborators" value="${esc(t.collaborators||'')}" placeholder="Nombre…" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
         </div>
         <div>
           <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Fecha límite</label>
-          <input id="td-date" type="date" value="${t.targetDate||''}" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
+          <input id="td-date" type="date" value="${esc(t.targetDate||'')}" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
         </div>
       </div>
       <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Descripción / Notas</label>
-      <textarea id="td-description" rows="4" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:10px; border-radius:8px; font-size:12.5px; margin-bottom:16px; resize:vertical;">${t.description||''}</textarea>
+      <textarea id="td-description" rows="4" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:10px; border-radius:8px; font-size:12.5px; margin-bottom:16px; resize:vertical;">${esc(t.description||'')}</textarea>
 
       <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:8px;">📎 Archivos y referencias</label>
       <div id="td-attachments" style="margin-bottom:8px;">
         ${t.attachments && t.attachments.length ? t.attachments.map(a => `
           <div style="display:flex; align-items:center; gap:8px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border-soft);">
-            <span>📄</span><a href="${a.url}" target="_blank" style="color:var(--gold-bright); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.name}</a>
+            <span>📄</span><a href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener" style="color:var(--gold-bright); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(a.name)}</a>
           </div>`).join("") : `<div style="font-size:11.5px; color:var(--text-faint);">Sin archivos todavía.</div>`}
       </div>
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
@@ -449,7 +451,7 @@ async function openTaskDetail(pageId){
 
       <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:8px;">Comentarios</label>
       <div id="td-comments" style="margin-bottom:10px; max-height:160px; overflow-y:auto;">
-        ${t.comments.length ? t.comments.map(c => `<div style="font-size:12px; padding:8px 0; border-bottom:1px solid var(--border-soft);">${c.text}<div style="font-size:10px; color:var(--text-faint); margin-top:3px;">${new Date(c.createdTime).toLocaleString()}</div></div>`).join("") : `<div class="empty-state" style="padding:10px 0;">Sin comentarios todavía.</div>`}
+        ${t.comments.length ? t.comments.map(c => `<div style="font-size:12px; padding:8px 0; border-bottom:1px solid var(--border-soft);">${esc(c.text)}<div style="font-size:10px; color:var(--text-faint); margin-top:3px;">${new Date(c.createdTime).toLocaleString()}</div></div>`).join("") : `<div class="empty-state" style="padding:10px 0;">Sin comentarios todavía.</div>`}
       </div>
       <div style="display:flex; gap:8px; margin-bottom:16px;">
         <input id="td-comment-input" placeholder="Escribe un comentario…" style="flex:1; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:9px 10px; border-radius:8px; font-size:12.5px;">
@@ -503,7 +505,7 @@ async function openTaskDetail(pageId){
       }catch(e){ window.jarvisToast?.error(t, "No se pudo comentar: " + e.message); }
     });
   }catch(e){
-    modal.innerHTML = `<div class="empty-state">No se pudo cargar la tarea: ${e.message}</div>`;
+    modal.innerHTML = `<div class="empty-state">No se pudo cargar la tarea: ${esc(e.message)}</div>`;
   }
 }
 function closeTaskModal(){ document.getElementById("task-modal-backdrop").style.display = "none"; }
@@ -572,7 +574,7 @@ function refreshNewTaskAreaOptions(){
   const project = projectSelect.value;
   const areas = [...new Set(allTasks.filter(t => t.project === project && t.area).map(t => t.area))].sort();
   newTaskAreaSelect.innerHTML = `<option value="">Sin área</option>` +
-    areas.map(a => `<option value="${a}">${a}</option>`).join("");
+    areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join("");
 }
 projectSelect.addEventListener("change", refreshNewTaskAreaOptions);
 

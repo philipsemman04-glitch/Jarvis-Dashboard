@@ -237,6 +237,8 @@ body{background:radial-gradient(900px 520px at 65% -10%,#0c3658 0%,transparent 6
 <div id="cover-editor-backdrop"><div class="cover-editor"><h3>Editar portada</h3><p id="cover-editor-name">Ajusta la imagen y su posición vertical.</p><div class="cover-preview" id="cover-preview"></div><label for="cover-file">Cambiar portada</label><input id="cover-file" type="file" accept="image/*"><label for="cover-y">Posición vertical: <output id="cover-y-value">50%</output></label><input id="cover-y" type="range" min="0" max="100" value="50"><div class="cover-actions"><button type="button" onclick="closeCoverEditor()">Cancelar</button><button class="save" type="button" onclick="saveCoverEditor()">Guardar portada</button></div></div></div>
 
 <script>
+// Only http(s) links may come from Notion data — blocks javascript: URLs.
+function safeUrl(value){ try{ const u = new URL(String(value || ""), location.origin); return /^https?:$/.test(u.protocol) ? u.href : "#"; }catch(e){ return "#"; } }
 function esc(value){
   return String(value ?? "").replace(/[&<>"']/g, character => ({
     "&":"&amp;",
@@ -379,7 +381,7 @@ function renderAreaNav(){
   const el = document.getElementById("area-nav");
   const chips = [["all","Todas las áreas"], ...allBoardData.map(c => [c.area, `${c.area} (${getOpenPeriodTasks().filter(t => t.area === c.area).length})`])];
   el.innerHTML = chips.map(([key,label]) =>
-    `<div class="area-nav-item ${filters.area===key?"active":""}" data-area="${key}">${label}</div>`).join("");
+    `<div class="area-nav-item ${filters.area===key?"active":""}" data-area="${esc(key)}">${esc(label)}</div>`).join("");
   el.querySelectorAll(".area-nav-item").forEach(chip => {
     chip.addEventListener("click", () => {
       filters.area = chip.dataset.area;
@@ -400,8 +402,8 @@ function renderFilterBar(){
   el.innerHTML = `
     <select id="f-status"><option value="all">Status · All</option>${STATUS_OPTIONS.map(s=>`<option value="${s}" ${filters.status===s?"selected":""}>${s}</option>`).join("")}</select>
     <select id="f-plevel"><option value="all">Priority · All</option>${["P0","P1","P2","P3"].map(p=>`<option value="${p}" ${filters.priority===p?"selected":""}>${p}</option>`).join("")}</select>
-    <select id="f-person"><option value="all">Responsible · All</option>${uniquePeople().map(p=>`<option value="${p}" ${filters.person===p?"selected":""}>${p}</option>`).join("")}</select>
-    <select id="f-area"><option value="all">Area · All</option>${areas.map(a=>`<option value="${a}" ${filters.area===a?"selected":""}>${a}</option>`).join("")}</select>
+    <select id="f-person"><option value="all">Responsible · All</option>${uniquePeople().map(p=>`<option value="${esc(p)}" ${filters.person===p?"selected":""}>${esc(p)}</option>`).join("")}</select>
+    <select id="f-area"><option value="all">Area · All</option>${areas.map(a=>`<option value="${esc(a)}" ${filters.area===a?"selected":""}>${esc(a)}</option>`).join("")}</select>
     <span class="filter-clear" id="f-clear">✕ Clear Filters</span>
     <span class="filter-count">${totalShown} of ${totalAll} tasks</span>`;
   document.getElementById("f-status").addEventListener("change", e => { filters.status=e.target.value; applyFilters(); });
@@ -453,22 +455,24 @@ function priorityLabel(task){
 function renderBoard(board){
   const el = document.getElementById("board-cols");
   el.innerHTML = board.map(col => `
-    <div class="board-col" data-area="${col.area}">
+    <div class="board-col" data-area="${esc(col.area)}">
       <div class="board-col-head">
-        <span class="name">${col.area}</span>
-        ${col.areaId ? `<span class="area-actions"><span onclick="renameArea('${col.areaId}','${col.area.replace(/'/g,"\\'")}')" title="Renombrar">✎</span><span onclick="archiveArea('${col.areaId}','${col.area.replace(/'/g,"\\'")}')" title="Archivar">🗑</span></span>` : ""}
+        <span class="name">${esc(col.area)}</span>
+        ${col.areaId ? `<span class="area-actions"><span data-rename-area="${esc(col.areaId)}" data-area-name="${esc(col.area)}" title="Renombrar">✎</span><span data-archive-area="${esc(col.areaId)}" data-area-name="${esc(col.area)}" title="Archivar">🗑</span></span>` : ""}
         <span>${col.tasks.length}</span>
       </div>
-      <div class="board-col-body" data-dropzone="${col.area}">
+      <div class="board-col-body" data-dropzone="${esc(col.area)}">
         ${col.tasks.length ? col.tasks.map(t => `
-          <div class="board-card" draggable="true" data-id="${t.id}">
-            <div class="prio-row"><span class="prio-dot ${t.priority}"></span><span class="priority-pill">${esc(priorityLabel(t))}</span></div>
+          <div class="board-card" draggable="true" data-id="${esc(t.id)}">
+            <div class="prio-row"><span class="prio-dot ${esc(t.priority)}"></span><span class="priority-pill">${esc(priorityLabel(t))}</span></div>
             <div class="name">${esc(t.taskName || "Untitled task")}</div>
             <div class="meta"><span>${esc(t.targetDate || "No date")}</span><span class="status-pill ${statusPillClass(t.status)}">${esc(t.status || "No status")}</span></div><div class="card-owner">${esc(t.collaborators || "Unassigned")}</div>
           </div>`).join("") : `<div class="board-empty">${Object.values(filters).some(v=>v!=="all") ? "Sin tareas que coincidan" : "Sin tareas abiertas"}</div>`}
       </div>
     </div>`).join("");
 
+  el.querySelectorAll("[data-rename-area]").forEach(b => b.addEventListener("click", () => renameArea(b.dataset.renameArea, b.dataset.areaName)));
+  el.querySelectorAll("[data-archive-area]").forEach(b => b.addEventListener("click", () => archiveArea(b.dataset.archiveArea, b.dataset.areaName)));
   el.querySelectorAll(".board-card").forEach(card => {
     card.addEventListener("click", () => openTaskDetail(card.dataset.id));
     card.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", card.dataset.id); card.style.opacity="0.4"; });
@@ -498,7 +502,7 @@ function renderCriticalList(board){
   const list = getOpenPeriodTasks().filter(t => t.priority === "P0")
     .sort((a,b) => (a.targetDate||"9999").localeCompare(b.targetDate||"9999")).slice(0,8);
   if(!list.length){ el.innerHTML = emptyNote("Sin tareas P0 abiertas."); return; }
-  el.innerHTML = list.map((t,i) => `<div class="crit-item" data-id="${t.id}"><span class="n">${i+1}.</span><span>${t.taskName}</span></div>`).join("");
+  el.innerHTML = list.map((t,i) => `<div class="crit-item" data-id="${esc(t.id)}"><span class="n">${i+1}.</span><span>${esc(t.taskName)}</span></div>`).join("");
   el.querySelectorAll(".crit-item").forEach(item => item.addEventListener("click", () => openTaskDetail(item.dataset.id)));
 }
 
@@ -514,8 +518,8 @@ function renderCards(cards, hasCards, label){
   filtered.forEach(c => { const k = c.tipo || 'Sin tipo'; (groups[k] = groups[k] || []).push(c); });
   el.innerHTML = Object.entries(groups).map(([tipo, items]) => `
     <div class="card-group">
-      <h4>${tipo} (${items.length})</h4>
-      ${items.map(c => `<div class="card-item"><span>${c.name}</span>${c.estado ? `<span>${c.estado}</span>` : ''}</div>`).join('')}
+      <h4>${esc(tipo)} (${items.length})</h4>
+      ${items.map(c => `<div class="card-item"><span>${esc(c.name)}</span>${c.estado ? `<span>${esc(c.estado)}</span>` : ''}</div>`).join('')}
     </div>`).join('');
 }
 
@@ -530,7 +534,7 @@ async function openTaskDetail(pageId){
     if(t.error) throw new Error(t.error);
     modal.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
-        <h2 style="font-family:var(--serif); font-size:19px; font-weight:600; flex:1;">${t.taskName}</h2>
+        <h2 style="font-family:var(--serif); font-size:19px; font-weight:600; flex:1;">${esc(t.taskName)}</h2>
         <span style="cursor:pointer; color:var(--text-faint); font-size:18px;" onclick="closeTaskModal()">✕</span>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
@@ -545,17 +549,17 @@ async function openTaskDetail(pageId){
           <select id="td-priority" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
             ${["P0","P1","P2","P3"].map(p => `<option value="${p}" ${p===t.priority?"selected":""}>${p}</option>`).join("")}</select></div>
         <div><label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Responsable</label>
-          <input id="td-collaborators" value="${t.collaborators||''}" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;"></div>
+          <input id="td-collaborators" value="${esc(t.collaborators||'')}" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;"></div>
         <div><label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Fecha límite</label>
-          <input id="td-date" type="date" value="${t.targetDate||''}" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;"></div>
+          <input id="td-date" type="date" value="${esc(t.targetDate||'')}" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;"></div>
       </div>
       <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Descripción / Notas</label>
-      <textarea id="td-description" rows="4" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:10px; border-radius:8px; font-size:12.5px; margin-bottom:16px; resize:vertical;">${t.description||''}</textarea>
+      <textarea id="td-description" rows="4" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:10px; border-radius:8px; font-size:12.5px; margin-bottom:16px; resize:vertical;">${esc(t.description||'')}</textarea>
       <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:8px;">📎 Archivos y referencias</label>
       <div id="td-attachments" style="margin-bottom:8px;">
         ${t.attachments && t.attachments.length ? t.attachments.map(a => `
           <div style="display:flex; align-items:center; gap:8px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border-soft);">
-            <span>📄</span><a href="${a.url}" target="_blank" style="color:var(--gold-bright); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.name}</a>
+            <span>📄</span><a href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener" style="color:var(--gold-bright); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(a.name)}</a>
           </div>`).join("") : `<div style="font-size:11.5px; color:var(--text-faint);">Sin archivos todavía.</div>`}
       </div>
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
@@ -565,7 +569,7 @@ async function openTaskDetail(pageId){
       </div>
       <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:8px;">Comentarios</label>
       <div id="td-comments" style="margin-bottom:10px; max-height:160px; overflow-y:auto;">
-        ${t.comments.length ? t.comments.map(c => `<div style="font-size:12px; padding:8px 0; border-bottom:1px solid var(--border-soft);">${c.text}<div style="font-size:10px; color:var(--text-faint); margin-top:3px;">${new Date(c.createdTime).toLocaleString()}</div></div>`).join("") : emptyNote("Sin comentarios todavía.")}
+        ${t.comments.length ? t.comments.map(c => `<div style="font-size:12px; padding:8px 0; border-bottom:1px solid var(--border-soft);">${esc(c.text)}<div style="font-size:10px; color:var(--text-faint); margin-top:3px;">${new Date(c.createdTime).toLocaleString()}</div></div>`).join("") : emptyNote("Sin comentarios todavía.")}
       </div>
       <div style="display:flex; gap:8px; margin-bottom:16px;">
         <input id="td-comment-input" placeholder="Escribe un comentario…" style="flex:1; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:9px 10px; border-radius:8px; font-size:12.5px;">
@@ -576,7 +580,7 @@ async function openTaskDetail(pageId){
         <div onclick="closeTaskModal()" style="color:var(--text-faint); font-size:12px; cursor:pointer; padding:10px;">Cerrar</div>
       </div>`;
   }catch(e){
-    modal.innerHTML = emptyNote("No se pudo cargar la tarea: " + e.message);
+    modal.innerHTML = emptyNote("No se pudo cargar la tarea: " + esc(e.message));
   }
 }
 function closeTaskModal(){ document.getElementById("task-modal-backdrop").style.display = "none"; }
@@ -720,7 +724,7 @@ function renderIntegrations(label){
       <div class="integ-card"><div class="ic">📊</div><div class="nm">Google Ads</div><div class="badge">No conectado</div><button disabled>Conectar cuenta</button></div>
       <div class="integ-card"><div class="ic">📈</div><div class="nm">Google Analytics</div><div class="badge">No conectado</div><button disabled>Conectar cuenta</button></div>
       <div class="integ-card"><div class="ic">👥</div><div class="nm">Base de Leads (CRM)</div><div class="badge">No conectado</div><button disabled>Conectar base</button></div>
-      <div class="integ-card"><div class="ic">🏛️</div><div class="nm">Plataforma ${label}</div><div class="badge">No conectado</div><button disabled>Conectar plataforma</button></div>
+      <div class="integ-card"><div class="ic">🏛️</div><div class="nm">Plataforma ${esc(label)}</div><div class="badge">No conectado</div><button disabled>Conectar plataforma</button></div>
     </div>`;
 }
 
@@ -765,7 +769,7 @@ async function loadData(){
     else logoEl.textContent = safeProjectIcon || "◆";
     const projectBanner = document.getElementById("project-banner");
     const coverCfg = getCoverConfig(currentProjectKey);
-    projectBanner.style.backgroundImage = `url("${data.project.coverUrl || coverCfg?.src || PROJECT_COVERS[data.project.label] || ''}")`;
+    projectBanner.style.backgroundImage = `url("${String(data.project.coverUrl || coverCfg?.src || PROJECT_COVERS[data.project.label] || '').replace(/["\\\r\n]/g, '')}")`;
     projectBanner.style.backgroundPosition = `center ${coverCfg?.y ?? 50}%`;
     document.getElementById("project-banner-kicker").textContent = `Jarvis · ${data.project.label}`;
     renderIntegrations(data.project.label);
@@ -778,7 +782,7 @@ async function loadData(){
     applyFilters();
     renderCriticalList(allBoardData);
     const areaSelect = document.getElementById("new-task-area");
-    areaSelect.innerHTML = allBoardData.map(c => `<option value="${c.area}">${c.area}</option>`).join("");
+    areaSelect.innerHTML = allBoardData.map(c => `<option value="${esc(c.area)}">${esc(c.area)}</option>`).join("");
     syncNote.textContent = data.error ? `Conectado parcialmente — ${data.error}` : "Synced with Notion";
   }catch(err){
     console.warn("Live data unavailable:", err.message);

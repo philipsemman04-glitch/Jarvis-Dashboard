@@ -57,6 +57,21 @@
     }
   `;
 
+  // Workspace names, icons and routes come from Notion — escape everything
+  // before it goes into innerHTML, and only allow http(s)/relative links.
+  function esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function safeUrl(value) {
+    if (!value) return "";
+    try {
+      const u = new URL(String(value || ""), window.location.origin);
+      return u.protocol === "http:" || u.protocol === "https:" ? u.href : "";
+    } catch (e) {
+      return "";
+    }
+  }
+
   function iconFor(name) {
     // Falls back to the Notion-stored emoji already fetched per workspace —
     // this is only used for the two hardcoded, non-Notion nav items.
@@ -93,15 +108,15 @@
             ? `/project-command-center.html?project=${encodeURIComponent(canonical)}`
         : (w.route || `/coming-soon.html?${new URLSearchParams({ name: w.name, icon: w.icon || "" })}`);
       const icon = String(w.icon || "📁");
-      const iconMarkup = icon.startsWith("http") ? `<img src="${icon}" alt="" style="width:16px;height:16px;object-fit:contain;border-radius:4px">` : icon;
-      return `<a class="sb-item ${isActive(href) ? "active" : ""} ${comingSoon ? "coming-soon" : ""}" href="${href}">
-        <span class="sb-icon">${iconMarkup}</span><span>${w.displayName || w.name}</span>
+      const iconMarkup = icon.startsWith("http") ? `<img src="${esc(safeUrl(icon))}" alt="" style="width:16px;height:16px;object-fit:contain;border-radius:4px">` : esc(icon);
+      return `<a class="sb-item ${isActive(href) ? "active" : ""} ${comingSoon ? "coming-soon" : ""}" href="${esc(safeUrl(href) || "#")}">
+        <span class="sb-icon">${iconMarkup}</span><span>${esc(w.displayName || w.name)}</span>
       </a>`;
     }
 
     return `
       <div class="sb-logo">
-        <div class="sb-logo-mark">${appLogoUrl ? `<img src="${appLogoUrl}" alt="Jarvis" style="width:100%;height:100%;object-fit:contain;border-radius:8px">` : "◈"}</div>
+        <div class="sb-logo-mark">${safeUrl(appLogoUrl) ? `<img src="${esc(safeUrl(appLogoUrl))}" alt="Jarvis" style="width:100%;height:100%;object-fit:contain;border-radius:8px">` : "◈"}</div>
         <div class="sb-logo-text"><h1>JARVIS</h1><p>Command Center</p></div>
       </div>
       <div class="sb-section-label">Menú Principal</div>
