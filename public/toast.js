@@ -56,8 +56,9 @@
   }
 
   function update(id, className, icon, message, autoDismissMs) {
-    const el = document.getElementById(id);
-    if (!el) return;
+    // Called without a loading toast (id null): show a fresh one instead of
+    // silently doing nothing.
+    const el = document.getElementById(id) || document.getElementById(loading(""));
     el.className = "jarvis-toast show " + className;
     el.innerHTML = `<span class="dot">${icon}</span><span class="msg"></span>`;
     el.querySelector(".msg").textContent = message;
@@ -72,5 +73,7 @@
   function success(id, message) { update(id, "success", "✓", message, 2200); }
   function error(id, message) { update(id, "error", "✕", message, 4500); }
 
-  window.jarvisToast = { loading, success, error };
+  function info(message) { update(null, "", "ℹ", message, 3000); }
+
+  window.jarvisToast = { loading, success, error, info };
 })();

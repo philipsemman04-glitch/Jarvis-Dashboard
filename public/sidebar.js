@@ -11,8 +11,7 @@
  *      truth, so a row added in Notion shows up here too with no code change
  *   4. Highlights whichever page is currently open
  *
- * index.html (the Home picker) intentionally does NOT include this script —
- * it IS the workspace switcher, so a sidebar next to it would be redundant.
+ * Included on every page, including index.html (the Home picker).
  */
 (function () {
   const CSS = `

@@ -542,24 +542,24 @@ function renderBriefs(){
   document.getElementById("brief-list").innerHTML = weeks.map(w => `
     <div class="brief-row"><span>${w}</span><span class="link" data-brief="${w}">Ver</span></div>`).join("");
   document.querySelectorAll("[data-brief]").forEach(l => l.addEventListener("click", () => {
-    window.jarvisToast?.error(null, "Los briefs históricos se generarán con Pennyworth AI en la siguiente fase.");
+    window.jarvisToast?.info("Los briefs históricos se generarán con Pennyworth AI en la siguiente fase.");
   }));
 }
 document.getElementById("brief-generate").addEventListener("click", () => {
-  window.jarvisToast?.error(null, "El Brief semanal se generará con Pennyworth AI en la siguiente fase — los datos ya están listos para alimentarlo.");
+  window.jarvisToast?.info("El Brief semanal se generará con Pennyworth AI en la siguiente fase — los datos ya están listos para alimentarlo.");
 });
 document.getElementById("brief-history").addEventListener("click", () => {
   document.getElementById("brief-list").scrollIntoView({ behavior:"smooth", block:"center" });
 });
 document.getElementById("edit-universe")?.addEventListener("click", () => {
-  window.jarvisToast?.error(null, "Toca cualquier nodo del universo para abrir y editar ese tema.");
+  window.jarvisToast?.info("Toca cualquier nodo del universo para abrir y editar ese tema.");
 });
 document.getElementById("cloud-see-all").addEventListener("click", () => {
   document.getElementById("tag-cloud").scrollIntoView({ behavior:"smooth", block:"center" });
 });
 document.getElementById("filtros-pill").addEventListener("click", () => {
   document.getElementById("global-search")?.focus();
-  window.jarvisToast?.error(null, "Usa la búsqueda de la vista de tema para filtrar referencias.");
+  window.jarvisToast?.info("Usa la búsqueda de la vista de tema para filtrar referencias.");
 });
 document.getElementById("qa-new-note").addEventListener("click", () => openCreateReference());
 document.getElementById("qa-new-topic").addEventListener("click", () => createTopic());
@@ -742,8 +742,8 @@ async function openReferenceDetail(pageId){
         </div>
         <span style="cursor:pointer; color:var(--faint); font-size:18px;" onclick="closeRefModal()">✕</span>
       </div>
-      <div class="modal-field"><label>Tema</label>
-        <select id="m-tema">${(allData?.topics||[]).map(t=>`<option value="${esc(t.name)}" ${r.temas.includes(t.name)?'selected':''}>${esc(t.name)}</option>`).join("")}</select></div>
+      <div class="modal-field"><label>Temas <span style="font-weight:400; text-transform:none; letter-spacing:0;">(Ctrl / ⌘ + clic para elegir varios)</span></label>
+        <select id="m-tema" multiple size="${Math.min(6, Math.max(3, (allData?.topics||[]).length))}">${(allData?.topics||[]).map(t=>`<option value="${esc(t.name)}" ${r.temas.includes(t.name)?'selected':''}>${esc(t.name)}</option>`).join("")}</select></div>
       <div class="modal-field"><label>Columna</label><input id="m-columna" value="${esc(r.columna||'')}"></div>
       <div class="modal-field"><label>Estado</label>
         <select id="m-estado">${["Por consumir","Consumiendo","Terminado","⭐ Hall of Fame"].map(s=>`<option ${s===r.estado?'selected':''}>${s}</option>`).join("")}</select></div>
@@ -850,7 +850,8 @@ async function saveRefDetail(pageId){
       method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({
         action:"update-reference", pageId,
-        temas: [document.getElementById("m-tema").value],
+        // All selected topics — previously only the first was kept.
+        temas: Array.from(document.getElementById("m-tema").selectedOptions).map(o => o.value),
         columna: document.getElementById("m-columna").value,
         estado: document.getElementById("m-estado").value,
         enlace: document.getElementById("m-enlace").value,

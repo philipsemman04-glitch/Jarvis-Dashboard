@@ -12,7 +12,7 @@ const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const DB_HABITS = process.env.NOTION_DB_HABITS_TRACKER || "d6385a58-5315-47a7-a79d-af1002c479e3";
 const DB_HABIT_LOG = process.env.NOTION_DB_HABIT_LOG || "d6ab476f-5034-4f79-b8a4-b9b202f9df1d";
 
-function todayISO() { return new Date().toISOString().slice(0, 10); }
+const { todayISO } = require("./_notion"); // Aurelio's local date, not UTC
 function headers() { return { Authorization: `Bearer ${NOTION_TOKEN}`, "Notion-Version": NOTION_VERSION, "Content-Type": "application/json" }; }
 
 async function findTodayLogEntry(habitId, date) {
@@ -76,7 +76,7 @@ async function handleDelete(req, res) {
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
-  if (!NOTION_TOKEN) { res.status(200).json({ ok: false, error: "NOTION_TOKEN not set" }); return; }
+  if (!NOTION_TOKEN) { res.status(500).json({ ok: false, error: "NOTION_TOKEN not set" }); return; }
   try {
     const action = req.body?.action;
     if (action === "toggle") return await handleToggle(req, res);
@@ -85,6 +85,6 @@ module.exports = async (req, res) => {
     res.status(400).json({ ok: false, error: "action must be 'toggle', 'create', or 'delete'" });
   } catch (err) {
     console.error(err);
-    res.status(200).json({ ok: false, error: err.message });
+    res.status(500).json({ ok: false, error: err.message });
   }
 };

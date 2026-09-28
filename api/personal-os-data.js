@@ -7,25 +7,19 @@
 // Every number here is computed from real rows — no invented percentages,
 // no categories beyond what the person actually created.
 
-const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 
 const DB_HABITS = process.env.NOTION_DB_HABITS_TRACKER || "d6385a58-5315-47a7-a79d-af1002c479e3";
 const DB_HABIT_LOG = process.env.NOTION_DB_HABIT_LOG || "d6ab476f-5034-4f79-b8a4-b9b202f9df1d";
 const DB_ACTIONS = process.env.NOTION_DB_ACTIONS || "de671725-0aef-44f7-9ec4-a577b1c7e254";
 
+const { queryDatabase, todayISO } = require("./_notion");
+
+// Paginated: Notion returns at most 100 rows per request, and the habit
+// log passes that within a few weeks — without paging, streaks and the
+// consistency calendar silently lose older days.
 async function notionQuery(dataSourceId, body = {}) {
-  const res = await fetch(`https://api.notion.com/v1/data_sources/${dataSourceId}/query`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${NOTION_TOKEN}`,
-      "Notion-Version": NOTION_VERSION,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`Notion query failed (${res.status}) for ${dataSourceId}: ${await res.text()}`);
-  return res.json();
+  return { results: await queryDatabase(dataSourceId, body) };
 }
 
 function text(prop) {
@@ -42,7 +36,7 @@ function relationIds(prop) { return (prop?.relation || []).map(r => r.id); }
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store, max-age=0");
   if (!NOTION_TOKEN) {
-    res.status(200).json({ error: "NOTION_TOKEN not set", habits: [], pendingTasks: [], completedTasks: [] });
+    res.status(500).json({ error: "NOTION_TOKEN not set", habits: [], pendingTasks: [], completedTasks: [] });
     return;
   }
   try {
@@ -52,10 +46,13 @@ module.exports = async (req, res) => {
       notionQuery(DB_ACTIONS, { filter: { property: "Project", select: { equals: "Personal" } } }),
     ]);
 
+    const today = todayISO();
     const habits = (habitsRes.results || []).map(p => ({
       id: p.id,
       name: text(p.properties["Habit"]),
-      doneToday: checkbox(p.properties["Done Today?"]),
+      // "Done Today?" is never reset at midnight, so it only counts when
+      // it was ticked today; the habit log (checked below) is the main source.
+      doneToday: checkbox(p.properties["Done Today?"]) && p.properties["Last Completed Date"]?.date?.start === today,
       streak: number(p.properties["Current Streak"]) ?? 0,
     }));
 
@@ -66,10 +63,13 @@ module.exports = async (req, res) => {
       const date = p.properties["Date"]?.date?.start;
       if (!date) return;
       habitIds.forEach(hid => {
-        (logByHabit[hid] = logByHabit[hid] || []).push(date);
+        (logByHabit[hid] = logByHabit[hid] || []).push(date.slice(0, 10));
       });
     });
-    habits.forEach(h => { h.completedDates = logByHabit[h.id] || []; });
+    habits.forEach(h => {
+      h.completedDates = logByHabit[h.id] || [];
+      if (h.completedDates.some(d => d.slice(0, 10) === today)) h.doneToday = true;
+    });
 
     const allTasks = (tasksRes.results || []).map(p => ({
       id: p.id,
@@ -101,6 +101,6 @@ module.exports = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(200).json({ error: err.message, habits: [], pendingTasks: [], completedTasks: [] });
+    res.status(500).json({ error: err.message, habits: [], pendingTasks: [], completedTasks: [] });
   }
 };

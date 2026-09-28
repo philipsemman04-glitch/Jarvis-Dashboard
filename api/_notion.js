@@ -13,8 +13,8 @@
  * 2025-09-03 — the old endpoint only accepts a database (container) ID,
  * not a data source ID, and returns a plain "could not find database"
  * 404 if you pass the wrong one. Every database ID hardcoded across this
- * codebase (in ong-data.js, tasks-data.js, create-task.js, project-data.js,
- * etc.) is actually a data source ID, confirmed against the live schema —
+ * codebase (in tasks-data.js, task-api.js, project-data.js, etc.) is
+ * actually a data source ID, confirmed against the live schema —
  * so the fix is entirely here, not in any of those files or their IDs.
  */
 
@@ -85,6 +85,34 @@ async function updatePage(pageId, properties) {
   return res.json();
 }
 
+/* ---------- Small helpers for writing ---------- */
+
+/**
+ * Build a rich_text property value. Notion rejects any single text block
+ * longer than 2000 characters, so long content (meeting transcripts,
+ * descriptions, notes) is split across several blocks — up to Notion's
+ * 100-block limit (~200,000 characters). Reading code already joins all
+ * blocks back together.
+ */
+function richText(value) {
+  const chars = Array.from(String(value ?? "")); // code points, so emoji aren't split
+  const blocks = [];
+  for (let i = 0; i < chars.length && blocks.length < 100; i += 2000) {
+    blocks.push({ text: { content: chars.slice(i, i + 2000).join("") } });
+  }
+  return { rich_text: blocks };
+}
+
+/**
+ * Today's date (YYYY-MM-DD) in Aurelio's time zone, not the server's UTC —
+ * otherwise habits and completions logged in the evening land on the
+ * next day. Override with JARVIS_TIMEZONE if he moves.
+ */
+const TIMEZONE = process.env.JARVIS_TIMEZONE || "America/Mexico_City";
+function todayISO() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+}
+
 /* ---------- Small helpers for reading common Notion property shapes ---------- */
 
 function getTitle(props, key) {
@@ -115,6 +143,8 @@ module.exports = {
   queryDatabase,
   createPage,
   updatePage,
+  richText,
+  todayISO,
   getTitle,
   getRichText,
   getSelect,

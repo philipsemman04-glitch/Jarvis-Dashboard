@@ -6,6 +6,7 @@ const {
   getCheckbox,
   getDate,
   getRelationIds,
+  todayISO,
 } = require("./_notion");
 
 /**
@@ -27,6 +28,7 @@ const DB_ACTIONS = process.env.NOTION_DB_ACTIONS || "de671725-0aef-44f7-9ec4-a57
 const DB_ENTITIES = process.env.NOTION_DB_ENTITIES || "f964fea0-c3d9-478b-8790-7eaa70a19b00";
 
 module.exports = async (req, res) => {
+  res.setHeader("Cache-Control", "no-store, max-age=0");
   try {
     const [pages, entityPages] = await Promise.all([
       queryDatabase(DB_ACTIONS, {
@@ -38,7 +40,7 @@ module.exports = async (req, res) => {
     const entityNameById = {};
     entityPages.forEach((p) => { entityNameById[p.id] = getTitle(p.properties, "Entity Name"); });
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayISO(); // Aurelio's local date, so "vencida" flips at his midnight
 
     const tasks = pages.map((p) => {
       const props = p.properties;
@@ -54,7 +56,12 @@ module.exports = async (req, res) => {
         area: entityIds.length ? (entityNameById[entityIds[0]] || null) : null,
         status: status || "No iniciado",
         priority: getSelect(props, "Priority") || "P3",
-        priorityLevel: ({ P0: "Critical", P1: "High", P2: "Medium", P3: "Low" }[getSelect(props, "Priority") || "P3"] || "Low"),
+        // The real "Priority Level" field wins; it's only derived from P0–P3
+        // when empty, so the list matches what the task detail shows.
+        priorityLevel: getSelect(props, "Priority Level") || ({ P0: "Critical", P1: "High", P2: "Medium", P3: "Low" }[getSelect(props, "Priority") || "P3"] || "Low"),
+        collaborators: getRichText(props, "Collaborators"),
+        owner: getRichText(props, "Owner"),
+        completionDate: getDate(props, "Completion Date"),
         urgency: getSelect(props, "Urgency"),
         impact: getSelect(props, "Impact"),
         type: getSelect(props, "Type"),

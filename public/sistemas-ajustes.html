@@ -136,7 +136,7 @@ async function loadBranding(){
 async function saveAppLogo(){
   const file=document.getElementById("app-logo-file").files?.[0];
   if(!file){ alert("Selecciona un logo primero."); return; }
-  if(file.size>8*1024*1024){ alert("El logo debe pesar menos de 8MB."); return; }
+  if(file.size>2*1024*1024){ alert("El logo debe pesar menos de 2MB."); return; }
   const t=window.jarvisToast?.loading("Guardando logo de Jarvis…");
   try{
     const dataBase64=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});
@@ -167,8 +167,8 @@ async function saveBranding(id){
     const coverFile = document.getElementById("brand-cover-file").files?.[0];
     let iconDataBase64 = null;
     let coverDataBase64 = null;
-    if(file){ if(file.size > 8 * 1024 * 1024) throw new Error("El icono debe pesar menos de 8MB."); iconDataBase64 = await new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file); }); }
-    if(coverFile){ if(coverFile.size > 12 * 1024 * 1024) throw new Error("La portada debe pesar menos de 12MB."); coverDataBase64 = await new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(coverFile); }); }
+    if(file){ if(file.size > 2 * 1024 * 1024) throw new Error("El icono debe pesar menos de 2MB."); iconDataBase64 = await new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file); }); }
+    if(coverFile){ if(coverFile.size > 3 * 1024 * 1024) throw new Error("La portada debe pesar menos de 3MB."); coverDataBase64 = await new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(coverFile); }); }
     const res = await fetch("/api/workspaces-data", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ workspaceId:id, name:document.getElementById("brand-name").value, icon:file ? undefined : document.getElementById("brand-icon").value, iconFilename:file?.name || "", iconContentType:file?.type || "image/png", iconDataBase64, coverFilename:coverFile?.name || "", coverContentType:coverFile?.type || "image/jpeg", coverDataBase64, description:document.getElementById("brand-description").value, coverUrl:coverFile ? undefined : document.getElementById("brand-cover").value, accentColor:document.getElementById("brand-color").value }) });
     const result = await res.json(); if(!res.ok || result.error) throw new Error(result.error || "Error desconocido");
     window.jarvisToast?.success(t, "Branding guardado"); closeBrandEditor(); loadBranding();
@@ -177,6 +177,7 @@ async function saveBranding(id){
 document.getElementById("brand-modal-backdrop").addEventListener("click", e => { if(e.target.id === "brand-modal-backdrop") closeBrandEditor(); });
 loadBranding();
 </script>
+<script src="/toast.js"></script>
 <script src="/sidebar.js"></script>
 </body>
 </html>

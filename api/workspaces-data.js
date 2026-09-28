@@ -1,4 +1,4 @@
-const { queryDatabase, getTitle, getRichText, getSelect, getNumber } = require("./_notion");
+const { queryDatabase, getTitle, getRichText, getSelect, getNumber, richText } = require("./_notion");
 
 /**
  * GET /api/workspaces-data
@@ -31,7 +31,6 @@ const NOTION_TOKEN = process.env.NOTION_TOKEN;
 function notionHeaders() {
   return { Authorization: `Bearer ${NOTION_TOKEN}`, "Notion-Version": NOTION_VERSION, "Content-Type": "application/json" };
 }
-function richText(value) { return { rich_text: [{ text: { content: String(value || "") } }] }; }
 
 async function uploadWorkspaceIcon(pageId, filename, contentType, dataBase64, schemaProps) {
   const buffer = Buffer.from(String(dataBase64).replace(/^data:[^;]+;base64,/, ""), "base64");
@@ -154,7 +153,7 @@ module.exports = async (req, res) => {
       }
       return await updateWorkspace(req, res);
     }
-    catch (err) { console.error(err); res.status(200).json({ ok: false, error: err.message }); return; }
+    catch (err) { console.error(err); res.status(500).json({ ok: false, error: err.message }); return; }
   }
   try {
     const [wsPages, actionPages, cardPages, docPages, refPages] = await Promise.all([

@@ -13,7 +13,7 @@
 // GET  /api/task-api?action=detail&pageId=X
 // POST /api/task-api  body: { action: "create"|"update-status"|"update-full"|"update-area"|"comment", ... }
 
-const { createPage, updatePage, queryDatabase, getTitle } = require("./_notion");
+const { createPage, updatePage, queryDatabase, getTitle, richText, todayISO } = require("./_notion");
 
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -36,6 +36,18 @@ function fileList(prop) {
     name: f.name,
     url: f.type === "file" ? f.file?.url : f.external?.url,
   }));
+}
+
+// Completion Date should record when a task was actually finished — so it
+// is only set on the transition INTO "Terminado" (and cleared if the task
+// is reopened), never re-stamped every time a finished task is edited.
+async function completionDateChange(pageId, newStatus) {
+  const r = await fetch(`https://api.notion.com/v1/pages/${pageId}`, { headers: headers() });
+  if (!r.ok) throw new Error(`Notion page fetch failed (${r.status}): ${await r.text()}`);
+  const current = (await r.json()).properties?.["Status"]?.select?.name || null;
+  if (newStatus === "Terminado" && current !== "Terminado") return { "Completion Date": { date: { start: todayISO() } } };
+  if (newStatus !== "Terminado" && current === "Terminado") return { "Completion Date": { date: null } };
+  return {};
 }
 
 async function handleDetail(req, res) {
@@ -78,7 +90,7 @@ async function handleCreate(req, res) {
   if (priorityLevel) properties["Priority Level"] = { select: { name: priorityLevel } };
   if (project && project !== "Sin proyecto") properties["Project"] = { select: { name: project } };
   if (targetDate) properties["Target Date"] = { date: { start: targetDate } };
-  if (description) properties["Description"] = { rich_text: [{ text: { content: description } }] };
+  if (description) properties["Description"] = richText(description);
 
   let areaMatched = null, areaWarning = null;
   if (area && area.trim() && project) {
@@ -99,25 +111,27 @@ async function handleCreate(req, res) {
 async function handleUpdateStatus(req, res) {
   const { pageId, status } = req.body || {};
   if (!pageId || !status) { res.status(400).json({ error: "pageId and status are required" }); return; }
-  const properties = { Status: { select: { name: status } } };
-  if (status === "Terminado") properties["Completion Date"] = { date: { start: new Date().toISOString().slice(0, 10) } };
+  const properties = { Status: { select: { name: status } }, ...(await completionDateChange(pageId, status)) };
   const result = await updatePage(pageId, properties);
   res.status(200).json({ ok: true, pageId: result.id });
 }
 
 async function handleUpdateFull(req, res) {
-  const { pageId, taskName, description, status, priority, priorityLevel, collaborators, targetDate, type, impact, urgency, wave, tags, blocksLaunch, driveLink } = req.body || {};
+  const { pageId, taskName, description, status, priority, priorityLevel, collaborators, owner, targetDate, type, impact, urgency, wave, tags, blocksLaunch, driveLink } = req.body || {};
   if (!pageId) { res.status(400).json({ error: "pageId is required" }); return; }
   const properties = {};
   if (taskName !== undefined) properties["Task Name"] = { title: [{ text: { content: taskName } }] };
-  if (description !== undefined) properties["Description"] = { rich_text: [{ text: { content: description } }] };
-  if (status !== undefined) {
+  if (description !== undefined) properties["Description"] = richText(description);
+  if (status) {
     properties["Status"] = { select: { name: status } };
-    if (status === "Terminado") properties["Completion Date"] = { date: { start: new Date().toISOString().slice(0, 10) } };
+    Object.assign(properties, await completionDateChange(pageId, status));
   }
-  if (priority !== undefined) properties["Priority"] = { select: { name: priority } };
+  // Empty value = "Sin prioridad" in the form → clears the field instead of
+  // defaulting to P0.
+  if (priority !== undefined) properties["Priority"] = priority ? { select: { name: priority } } : { select: null };
   if (priorityLevel !== undefined) properties["Priority Level"] = priorityLevel ? { select: { name: priorityLevel } } : { select: null };
-  if (collaborators !== undefined) properties["Collaborators"] = { rich_text: [{ text: { content: collaborators } }] };
+  if (collaborators !== undefined) properties["Collaborators"] = richText(collaborators);
+  if (owner !== undefined) properties["Owner"] = richText(owner);
   if (targetDate !== undefined) properties["Target Date"] = targetDate ? { date: { start: targetDate } } : { date: null };
   if (type !== undefined) properties["Type"] = type ? { select: { name: type } } : { select: null };
   if (impact !== undefined) properties["Impact"] = impact ? { select: { name: impact } } : { select: null };
@@ -131,12 +145,22 @@ async function handleUpdateFull(req, res) {
 }
 
 async function handleUpdateArea(req, res) {
-  const { pageId, area } = req.body || {};
+  const { pageId, area, project } = req.body || {};
   if (!pageId || !area) { res.status(400).json({ error: "pageId and area are required" }); return; }
-  const entityPages = await queryDatabase(DB_ENTITIES, {});
+  // Dropping a task on the "Sin área" column removes its area.
+  if (area.trim() === "Sin área") {
+    const result = await updatePage(pageId, { "Related Entity": { relation: [] } });
+    res.status(200).json({ ok: true, pageId: result.id });
+    return;
+  }
+  // Area names repeat across projects (every scaffolded project gets
+  // "Legal", "Content", …), so only match areas of the task's own project.
+  const entityPages = await queryDatabase(DB_ENTITIES, project ? { filter: { property: "Empresa", select: { equals: project } } } : {});
   const target = area.trim().toLowerCase();
-  const match = entityPages.find((p) => getTitle(p.properties, "Entity Name").toLowerCase() === target);
-  if (!match) { res.status(404).json({ error: `No area named "${area}" found.` }); return; }
+  const matches = entityPages.filter((p) => getTitle(p.properties, "Entity Name").toLowerCase() === target);
+  if (!matches.length) { res.status(404).json({ error: `No area named "${area}" found${project ? ` in ${project}` : ""}.` }); return; }
+  if (matches.length > 1 && !project) { res.status(409).json({ error: `Several projects have an area named "${area}" — project is required.` }); return; }
+  const match = matches[0];
   const result = await updatePage(pageId, { "Related Entity": { relation: [{ id: match.id }] } });
   res.status(200).json({ ok: true, pageId: result.id });
 }
@@ -200,7 +224,7 @@ async function handleCalendarCreate(req, res) {
     "Target Date": { date: { start: date } },
   };
   if (project) properties.Project = { select: { name: project } };
-  if (person) properties.Collaborators = { rich_text: [{ text: { content: person } }] };
+  if (person) properties.Collaborators = richText(person);
   const page = await createPage(DB_ACTIONS, properties);
   res.status(200).json({ ok: true, pageId: page.id });
 }
@@ -215,7 +239,7 @@ async function handleCalendarUpdate(req, res) {
   } : {
     "Task Name": { title: [{ text: { content: title.trim() } }] },
     "Target Date": { date: { start: date } },
-    ...(person !== undefined ? { Collaborators: { rich_text: [{ text: { content: person || "" } }] } } : {}),
+    ...(person !== undefined ? { Collaborators: richText(person) } : {}),
   };
   const result = await updatePage(pageId, properties);
   res.status(200).json({ ok: true, pageId: result.id });
@@ -263,7 +287,7 @@ async function handleDecisionCreate(req, res) {
     Status: { status: { name: status || "Pending" } },
   };
   if (impact) properties["Impact"] = { select: { name: impact } };
-  if (context) properties["Context"] = { rich_text: [{ text: { content: context } }] };
+  if (context) properties["Context"] = richText(context);
   const page = await createPage(DB_DECISIONS, properties);
   res.status(200).json({ ok: true, pageId: page.id });
 }
@@ -274,9 +298,9 @@ async function handleDecisionUpdate(req, res) {
   const properties = {};
   if (status) properties["Status"] = { status: { name: status } };
   if (impact !== undefined) properties["Impact"] = impact ? { select: { name: impact } } : { select: null };
-  if (context !== undefined) properties["Context"] = { rich_text: [{ text: { content: context || "" } }] };
-  if (optionsConsidered !== undefined) properties["Options Considered"] = { rich_text: [{ text: { content: optionsConsidered || "" } }] };
-  if (finalDecision !== undefined) properties["Final Decision"] = { rich_text: [{ text: { content: finalDecision || "" } }] };
+  if (context !== undefined) properties["Context"] = richText(context);
+  if (optionsConsidered !== undefined) properties["Options Considered"] = richText(optionsConsidered);
+  if (finalDecision !== undefined) properties["Final Decision"] = richText(finalDecision);
   const result = await updatePage(pageId, properties);
   res.status(200).json({ ok: true, pageId: result.id });
 }
@@ -318,17 +342,17 @@ async function handleMeetingUpdate(req, res) {
   if (name !== undefined) properties["Meeting Name"] = { title: [{ text: { content: name || "" } }] };
   if (date !== undefined) properties["Date"] = date ? { date: { start: date } } : { date: null };
   if (endDate !== undefined) properties["End Date"] = endDate ? { date: { start: endDate } } : { date: null };
-  if (platform !== undefined) properties["Platform"] = { rich_text: [{ text: { content: platform || "" } }] };
-  if (recurrence !== undefined) properties["Recurrence"] = { rich_text: [{ text: { content: recurrence || "" } }] };
-  if (duration !== undefined) properties["Duration"] = { rich_text: [{ text: { content: duration || "" } }] };
+  if (platform !== undefined) properties["Platform"] = richText(platform);
+  if (recurrence !== undefined) properties["Recurrence"] = richText(recurrence);
+  if (duration !== undefined) properties["Duration"] = richText(duration);
   if (status) properties["Status"] = { select: { name: status } };
-  if (summary !== undefined) properties["Summary"] = { rich_text: [{ text: { content: summary || "" } }] };
-  if (decisions !== undefined) properties["Decisions"] = { rich_text: [{ text: { content: decisions || "" } }] };
-  if (notes !== undefined) properties["Notes"] = { rich_text: [{ text: { content: notes || "" } }] };
-  if (evaluation !== undefined) properties["Evaluation"] = { rich_text: [{ text: { content: evaluation || "" } }] };
+  if (summary !== undefined) properties["Summary"] = richText(summary);
+  if (decisions !== undefined) properties["Decisions"] = richText(decisions);
+  if (notes !== undefined) properties["Notes"] = richText(notes);
+  if (evaluation !== undefined) properties["Evaluation"] = richText(evaluation);
   if (rating !== undefined) properties["Rating"] = { number: rating === null ? null : Number(rating) };
-  if (transcript !== undefined) properties["Transcript"] = { rich_text: [{ text: { content: transcript || "" } }] };
-  if (topics !== undefined) properties["Topics"] = { rich_text: [{ text: { content: topics || "" } }] };
+  if (transcript !== undefined) properties["Transcript"] = richText(transcript);
+  if (topics !== undefined) properties["Topics"] = richText(topics);
   const pageRes = await fetch(`https://api.notion.com/v1/pages/${pageId}`, { headers: headers() });
   if (!pageRes.ok) throw new Error(`Meeting fetch failed (${pageRes.status}): ${await pageRes.text()}`);
   const page = await pageRes.json();
@@ -338,14 +362,44 @@ async function handleMeetingUpdate(req, res) {
   res.status(200).json({ ok: true, pageId: result.id });
 }
 
+function writableValue(prop) {
+  switch (prop?.type) {
+    case "title": return { title: (prop.title || []).map(t => ({ text: { content: t.plain_text } })) };
+    case "rich_text": return { rich_text: (prop.rich_text || []).map(t => ({ text: { content: t.plain_text } })) };
+    case "number": return { number: prop.number };
+    case "checkbox": return { checkbox: !!prop.checkbox };
+    case "url": return { url: prop.url };
+    case "email": return { email: prop.email };
+    case "phone_number": return { phone_number: prop.phone_number };
+    case "select": return { select: prop.select ? { name: prop.select.name } : null };
+    case "status": return prop.status ? { status: { name: prop.status.name } } : null;
+    case "multi_select": return { multi_select: (prop.multi_select || []).map(o => ({ name: o.name })) };
+    case "date": return { date: prop.date ? { start: prop.date.start, end: prop.date.end || null } : null };
+    case "relation": return { relation: (prop.relation || []).map(r => ({ id: r.id })) };
+    case "people": return { people: (prop.people || []).map(p => ({ id: p.id })) };
+    case "files": {
+      const external = (prop.files || []).filter(f => f.type === "external");
+      return external.length ? { files: external.map(f => ({ type: "external", name: f.name, external: { url: f.external.url } })) } : null;
+    }
+    default: return null; // formula, rollup, created_time, unique_id, … are read-only
+  }
+}
+
 async function handleMeetingDuplicate(req, res) {
   const { pageId } = req.body || {};
   if (!pageId) { res.status(400).json({ error: "pageId is required" }); return; }
   const pages = await queryDatabase(DB_MEETINGS, {});
   const source = pages.find((p) => p.id === pageId);
   if (!source) { res.status(404).json({ error: "Meeting not found" }); return; }
-  const properties = { ...source.properties };
-  if (properties["Meeting Name"]?.title) properties["Meeting Name"] = { title: [{ text: { content: `${text(properties["Meeting Name"])} (copy)` } }] };
+  // Notion returns read-only property types (formulas, rollups, created
+  // time, …) and Notion-hosted files that can't be re-submitted — copy only
+  // the writable ones, converted back into the shape Notion accepts.
+  const properties = {};
+  for (const [key, prop] of Object.entries(source.properties || {})) {
+    const writable = writableValue(prop);
+    if (writable) properties[key] = writable;
+  }
+  if (properties["Meeting Name"]) properties["Meeting Name"] = { title: [{ text: { content: `${text(source.properties["Meeting Name"])} (copy)` } }] };
   const page = await createPage(DB_MEETINGS, properties);
   res.status(200).json({ ok: true, pageId: page.id });
 }
@@ -361,7 +415,7 @@ async function handleComment(req, res) {
   const { pageId, text: commentText } = req.body || {};
   if (!pageId || !commentText || !commentText.trim()) { res.status(400).json({ ok: false, error: "pageId and text are required" }); return; }  const r = await fetch("https://api.notion.com/v1/comments", {
     method: "POST", headers: headers(),
-    body: JSON.stringify({ parent: { page_id: pageId }, rich_text: [{ text: { content: commentText.trim() } }] }),
+    body: JSON.stringify({ parent: { page_id: pageId }, rich_text: richText(commentText.trim()).rich_text }),
   });
   if (!r.ok) throw new Error(`Notion comment failed (${r.status}): ${await r.text()}`);
   res.status(200).json({ ok: true });
@@ -415,7 +469,7 @@ async function handleUpload(req, res) {
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store, max-age=0");
-  if (!NOTION_TOKEN) { res.status(200).json({ error: "NOTION_TOKEN not set" }); return; }
+  if (!NOTION_TOKEN) { res.status(500).json({ ok: false, error: "NOTION_TOKEN not set" }); return; }
   try {
     if (req.method === "GET" && req.query?.action === "detail") return await handleDetail(req, res);
     if (req.method === "GET" && req.query?.action === "calendar") return await handleCalendar(req, res);
@@ -441,7 +495,9 @@ module.exports = async (req, res) => {
     }
     res.status(400).json({ error: "Unknown or missing action" });
   } catch (err) {
+    // A real error status (not 200), so every page's `if (!r.ok)` check
+    // shows the failure instead of a false "Guardado".
     console.error(err);
-    res.status(200).json({ ok: false, error: err.message });
+    res.status(500).json({ ok: false, error: err.message });
   }
 };

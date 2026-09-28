@@ -10,6 +10,8 @@
 // Body: { action: "comment", pageId, text }
 // Body: { action: "delete-reference", pageId }
 
+const { richText } = require("./_notion");
+
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const DB_REFERENCIAS = process.env.NOTION_DB_REFERENCIAS || "7456b43c-50ef-4e15-bea4-ab2f824add71";
@@ -23,14 +25,14 @@ function buildProperties(body) {
   const { referencia, autor, columna, tipo, temas, tags, enlace, estado, porQueMeInteresa, importancia } = body;
   const properties = {};
   if (referencia !== undefined) properties["Referencia"] = { title: [{ text: { content: referencia } }] };
-  if (autor !== undefined) properties["Autor"] = { rich_text: [{ text: { content: autor || "" } }] };
-  if (columna !== undefined) properties["Columna"] = { rich_text: [{ text: { content: columna || "" } }] };
+  if (autor !== undefined) properties["Autor"] = richText(autor);
+  if (columna !== undefined) properties["Columna"] = richText(columna);
   if (tipo !== undefined) properties["Tipo"] = tipo ? { select: { name: tipo } } : { select: null };
   if (temas !== undefined) properties["Tema"] = { multi_select: (temas || []).map((t) => ({ name: t })) };
   if (tags !== undefined) properties["Tags"] = { multi_select: (tags || []).map((t) => ({ name: t })) };
   if (enlace !== undefined) properties["Enlace"] = enlace ? { url: enlace } : { url: null };
   if (estado !== undefined) properties["Estado"] = estado ? { select: { name: estado } } : { select: null };
-  if (porQueMeInteresa !== undefined) properties["Por qué me interesa"] = { rich_text: [{ text: { content: porQueMeInteresa || "" } }] };
+  if (porQueMeInteresa !== undefined) properties["Por qué me interesa"] = richText(porQueMeInteresa);
   if (importancia !== undefined) properties["Importancia"] = importancia ? { number: Number(importancia) } : { number: null };
   return properties;
 }
@@ -133,7 +135,7 @@ async function handleComment(req, res) {
   if (!pageId || !text || !text.trim()) { res.status(400).json({ ok: false, error: "pageId and text are required" }); return; }
   const r = await fetch("https://api.notion.com/v1/comments", {
     method: "POST", headers: headers(),
-    body: JSON.stringify({ parent: { page_id: pageId }, rich_text: [{ text: { content: text.trim() } }] }),
+    body: JSON.stringify({ parent: { page_id: pageId }, rich_text: richText(text.trim()).rich_text }),
   });
   if (!r.ok) throw new Error(`Notion comment failed (${r.status}): ${await r.text()}`);
   res.status(200).json({ ok: true });
@@ -223,7 +225,7 @@ async function handleUpload(req, res) {
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") { res.status(405).json({ error: "Use POST" }); return; }
-  if (!NOTION_TOKEN) { res.status(200).json({ ok: false, error: "NOTION_TOKEN not set" }); return; }
+  if (!NOTION_TOKEN) { res.status(500).json({ ok: false, error: "NOTION_TOKEN not set" }); return; }
   try {
     const action = req.body?.action;
     if (action === "create-reference") return await handleCreateReference(req, res);
@@ -239,6 +241,6 @@ module.exports = async (req, res) => {
     res.status(400).json({ ok: false, error: "Unknown or missing action" });
   } catch (err) {
     console.error(err);
-    res.status(200).json({ ok: false, error: err.message });
+    res.status(500).json({ ok: false, error: err.message });
   }
 };

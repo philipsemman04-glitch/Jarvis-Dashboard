@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
     return;
   }
   if (!NOTION_TOKEN) {
-    res.status(200).json({ ok: false, error: "NOTION_TOKEN not set" });
+    res.status(500).json({ ok: false, error: "NOTION_TOKEN not set" });
     return;
   }
 
@@ -107,6 +107,6 @@ module.exports = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(200).json({ ok: false, error: err.message });
+    res.status(500).json({ ok: false, error: err.message });
   }
 };

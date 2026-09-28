@@ -18,6 +18,8 @@
 // card→area links, so both datasets filter together when an area is
 // clicked.
 
+const { richText } = require("./_notion");
+
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 
@@ -126,7 +128,12 @@ function multi(prop) { return (prop?.multi_select || []).map(x => x.name); }
 function fileList(prop) { return (prop?.files || []).map(f => ({ name: f.name, url: f.type === "file" ? f.file?.url : f.external?.url })).filter(f => f.url); }
 
 async function handleAristoteles(req, res) {
-  const docsRes = await notionQuery(DB_ARISTOTELES_DOCS, {});
+  const [docsRes, schemaRes] = await Promise.all([
+    notionQueryAll(DB_ARISTOTELES_DOCS, {}),
+    fetch(`https://api.notion.com/v1/data_sources/${DB_ARISTOTELES_DOCS}`, {
+      headers: { Authorization: `Bearer ${NOTION_TOKEN}`, "Notion-Version": NOTION_VERSION },
+    }).then(r => (r.ok ? r.json() : null)).catch(() => null),
+  ]);
   const docs = (docsRes.results || []).map(p => ({
     id: p.id,
     notionUrl: p.url,
@@ -140,7 +147,19 @@ async function handleAristoteles(req, res) {
   const docCountBySeccion = {};
   docs.forEach(d => { if (d.seccion) docCountBySeccion[d.seccion] = (docCountBySeccion[d.seccion] || 0) + 1; });
 
-  const sections = ARISTOTELES_SECTIONS.map(s => ({
+  // The 15 standard sections first (Aurelio's own order and descriptions),
+  // then any section created later with "Nueva sección" — those only exist
+  // as options on the Notion "Sección" field (or on documents), so without
+  // this they were saved in Notion but never appeared on the page.
+  const knownNames = new Set(ARISTOTELES_SECTIONS.map(s => s.name));
+  const extraNames = [
+    ...(schemaRes?.properties?.["Sección"]?.select?.options || []).map(o => o.name),
+    ...docs.map(d => d.seccion).filter(Boolean),
+  ].filter((name, i, all) => !knownNames.has(name) && all.indexOf(name) === i);
+  const sections = [
+    ...ARISTOTELES_SECTIONS,
+    ...extraNames.map(name => ({ name, icon: "📁", desc: "" })),
+  ].map(s => ({
     ...s,
     count: docCountBySeccion[s.name] || 0,
   }));
@@ -200,7 +219,7 @@ async function handleCreateTask(req, res) {
     "Task Name": { title: [{ text: { content: String(b.taskName).trim() } }] },
     "Project": { select: { name: b.project || "One Night Guest" } },
   };
-  const rich = (v) => ({ rich_text: [{ text: { content: String(v || "") } }] });
+  const rich = (v) => richText(v);
   const selectProp = (v) => v ? { select: { name: v } } : { select: null };
   if (b.status) properties.Status = selectProp(b.status);
   if (b.priority) properties.Priority = selectProp(b.priority);
@@ -226,7 +245,7 @@ module.exports = async (req, res) => {
   // correctly saved in Notion can still not show up on the board.
   res.setHeader("Cache-Control", "no-store, max-age=0");
   if (!NOTION_TOKEN) {
-    res.status(200).json({ error: "NOTION_TOKEN not set", areas: [], tasks: [], cards: [] });
+    res.status(500).json({ error: "NOTION_TOKEN not set", areas: [], tasks: [], cards: [] });
     return;
   }
   try {
@@ -365,6 +384,6 @@ module.exports = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(200).json({ error: err.message, areas: [], tasks: [], cards: [] });
+    res.status(500).json({ error: err.message, areas: [], tasks: [], cards: [] });
   }
 };
