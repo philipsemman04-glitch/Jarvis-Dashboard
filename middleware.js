@@ -7,11 +7,11 @@
  * automatically re-sends the credentials on every same-origin request —
  * including the pages' fetch("/api/...") calls — so no page code changes.
  *
- * Set in Vercel → Settings → Environment Variables:
+ * OFF by default — Jarvis is used by one person, so no login is required.
+ * To turn it on, set both in Vercel → Settings → Environment Variables:
  *   JARVIS_USER      — login username
  *   JARVIS_PASSWORD  — login password (use a long, random one)
- *
- * Fails closed: if either variable is missing, every request is refused.
+ * With neither set, every request passes straight through.
  */
 
 export const config = {
@@ -41,12 +41,7 @@ function unauthorized() {
 export default function middleware(request) {
   const user = process.env.JARVIS_USER;
   const password = process.env.JARVIS_PASSWORD;
-  if (!user || !password) {
-    return new Response("Jarvis está bloqueado: configura JARVIS_USER y JARVIS_PASSWORD en Vercel.", {
-      status: 503,
-      headers: { "Cache-Control": "no-store" },
-    });
-  }
+  if (!user || !password) return; // login not enabled — let the request through
 
   const header = request.headers.get("authorization") || "";
   const [scheme, encoded] = header.split(" ");

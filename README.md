@@ -1,13 +1,14 @@
 # Jarvis Dashboard
 
 Aurelio's personal command center: a set of dashboards backed by live data
-from his Notion workspace, deployed on Vercel. Built for a single user —
-the whole site sits behind one login.
+from his Notion workspace, deployed on Vercel. Built for a single user,
+with no login by default (an optional one can be switched on — see
+"Access control").
 
 ## How it's structured
 
 ```
-middleware.js              → login gate for every page and /api route (see "Access control")
+middleware.js              → optional login gate, off unless enabled (see "Access control")
 /public                    → the dashboard pages (static HTML/CSS/JS, UI in Spanish)
     index.html               → Home: workspace cards
     ong-command-center.html  → One Night Guest board + Penny AI chat
@@ -52,18 +53,18 @@ The token is never sent to the browser.
 | Variable | Required? | What it is |
 |---|---|---|
 | `NOTION_TOKEN` | **Yes** | Secret token of the Notion integration |
-| `JARVIS_USER` | **Yes** | Login username for the whole site |
-| `JARVIS_PASSWORD` | **Yes** | Login password — use a long, random one |
+| `JARVIS_USER` / `JARVIS_PASSWORD` | No | Only if you want a login on the site — see "Access control" |
 | `JARVIS_TIMEZONE` | No (default `America/Mexico_City`) | Aurelio's time zone, used for "today" (habit log, completion dates, overdue tasks) |
 | `BUILT_IN_FORGE_API_URL` / `BUILT_IN_FORGE_API_KEY` (or `OPENAI_API_BASE` / `OPENAI_API_KEY`) | For Penny AI | OpenAI-compatible chat endpoint and key |
 | `JARVIS_AI_MODEL` | No | Model name sent to that endpoint |
 | `NOTION_DB_*` | No (have defaults) | Override a database ID if the workspace changes — see the top of each `/api` file |
 
-**Access control:** `middleware.js` (Vercel Routing Middleware) runs before
-every page and every `/api/*` call and requires the `JARVIS_USER` /
-`JARVIS_PASSWORD` login (HTTP Basic Auth — the browser asks once, then
-sends it automatically). If either variable is missing, the site refuses
-all requests, so set both **before** deploying.
+**Access control:** off by default — Jarvis has one user, so the site opens
+without a login. Note that the `/api` endpoints read and write the Notion
+workspace, so anyone who has the site URL can use them. To add a login
+later, set both `JARVIS_USER` and `JARVIS_PASSWORD`: `middleware.js` then
+requires them on every page and `/api/*` call (HTTP Basic Auth — the
+browser asks once and remembers it).
 
 **Finding a database ID:** open the database as a full page in Notion; it's
 the 32-character string in the URL before any `?v=`.
