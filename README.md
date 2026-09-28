@@ -78,6 +78,20 @@ integration. Everything nested under it inherits access. The Settings page
 
 Push to GitHub → Vercel deploys. No build step.
 
+### 4. Notion fields the code relies on
+
+Master Actions writes go through `fitToSchema()`, so a missing field is
+skipped instead of failing the whole save — but the feature behind it
+silently stops working. These fields were (re)added on 2026-09-28 after an
+audit of the live workspace; keep them if you restructure Notion:
+
+- **Master Actions:** `Owner` (text — the "Responsable"), `Completion Date`
+  (date, set when a task becomes "Terminado"), `Related Entity` (relation →
+  Master Entities — the task's area on the boards).
+- **Meetings:** `Notes`, `Transcript`, `Evaluation`, `Platform`, `Duration`,
+  `Recurrence`, `Topics` (text), `Rating` (number), `Attachments` (files),
+  `End Date` (date).
+
 ## Conventions
 
 - **Writes report real errors.** API failures return HTTP 4xx/5xx with
