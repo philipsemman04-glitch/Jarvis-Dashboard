@@ -235,7 +235,7 @@ body{background:radial-gradient(900px 520px at 65% -10%,#0c3658 0%,transparent 6
         <div class="board-head-actions">
           <span class="area-scroll-btn" onclick="document.getElementById('area-nav').scrollBy({left:-200, behavior:'smooth'})">‹</span>
           <span class="area-scroll-btn" onclick="document.getElementById('area-nav').scrollBy({left:200, behavior:'smooth'})">›</span>
-          <span class="period-control">Period <select id="period-select"><option value="all">Terminadas: total</option><option value="week">Terminadas: esta semana</option><option value="month">Terminadas: este mes</option></select></span><span class="board-hint">Drag tasks between columns to change their area</span>
+          <span class="period-control">Period <select id="period-select"><option value="all">Total</option><option value="week">Esta semana</option><option value="month">Este mes</option></select></span><span class="board-hint">Drag tasks between columns to change their area</span>
           <span class="add-area-btn" onclick="addArea()">+ Area</span>
         </div>
       </div>
@@ -387,13 +387,13 @@ function isInSelectedPeriod(task){
   const end = new Date(start); end.setDate(start.getDate() + 7);
   return date >= start && date < end;
 }
-// Open tasks are never hidden by date (most have none); the period only
-// scopes finished tasks, by the day they were finished. See /task-logic.js.
+// Total = every task; this week / this month = tasks created or finished in
+// that period (see /task-logic.js).
 function getPeriodTasks(){
-  return allTasks.filter(t => !JarvisTasks.isDone(t) || JarvisTasks.inPeriod(t.completedOn, selectedPeriod));
+  return allTasks.filter(t => JarvisTasks.taskInPeriod(t, selectedPeriod));
 }
 function getOpenPeriodTasks(){
-  return allTasks.filter(JarvisTasks.isActive);
+  return getPeriodTasks().filter(JarvisTasks.isActive);
 }
 // Status "all" = open tasks; "todas" = every status, including Terminado/Cancelado;
 // picking one status (even Terminado) shows exactly that status.
@@ -478,12 +478,13 @@ function renderStats(board){
   const unavailable = !projectDataLoaded;
   const sum = JarvisTasks.summarize(allTasks, selectedPeriod);
   const v = n => unavailable ? "—" : n;
+  const activeNote = sum.isTotal ? "Tareas activas" : "Activas creadas " + JarvisTasks.PERIOD_LABEL[selectedPeriod];
   document.getElementById("stat-row").innerHTML = [
-    { icon:"🔴", bg:"var(--red-dim)", label:"Crítica · P0", value: v(sum.P0), sub:"Tareas activas" },
-    { icon:"🟠", bg:"var(--amber-dim)", label:"Alta · P1", value: v(sum.P1), sub:"Tareas activas" },
-    { icon:"🟡", bg:"var(--amber-dim)", label:"Media · P2", value: v(sum.P2), sub:"Tareas activas" },
-    { icon:"🔵", bg:"var(--blue-dim)", label:"Baja · P3–P4", value: v(sum.low), sub: sum.none ? `Activas · incluye ${sum.none} sin prioridad` : "Tareas activas" },
-    { icon:"✅", bg:"var(--green-dim)", label:"Terminadas", value: v(sum.doneInPeriod), sub: JarvisTasks.PERIOD_LABEL[selectedPeriod] + (selectedPeriod === "all" ? "" : ` · ${sum.done} en total`) },
+    { icon:"🔴", bg:"var(--red-dim)", label:"Crítica · P0", value: v(sum.P0), sub: activeNote },
+    { icon:"🟠", bg:"var(--amber-dim)", label:"Alta · P1", value: v(sum.P1), sub: activeNote },
+    { icon:"🟡", bg:"var(--amber-dim)", label:"Media · P2", value: v(sum.P2), sub: activeNote },
+    { icon:"🔵", bg:"var(--blue-dim)", label:"Baja · P3–P4", value: v(sum.low), sub: activeNote + (sum.none ? ` · incl. ${sum.none} sin prioridad` : "") },
+    { icon:"✅", bg:"var(--green-dim)", label:"Terminadas", value: v(sum.doneInPeriod), sub: JarvisTasks.PERIOD_LABEL[selectedPeriod] + (sum.isTotal ? (sum.doneUndated ? ` · ${sum.doneUndated} sin fecha de término` : "") : ` · ${sum.done} en total`) },
     { icon:"📈", bg:"var(--blue-dim)", label:"Progreso", value: v(`${sum.progress}%`), sub:"Terminadas / total (sin canceladas)" },
   ].map(c=>`
     <div class="stat-card">
@@ -491,7 +492,7 @@ function renderStats(board){
       <div class="value">${c.value}</div><div class="sub">${c.sub || ""}</div>
     </div>`).join("");
   const rec = document.getElementById("reconcile");
-  if(rec) rec.textContent = unavailable ? "" : JarvisTasks.reconcileText(sum);
+  if(rec) rec.textContent = unavailable ? "" : JarvisTasks.reconcileText(sum, selectedPeriod);
 }
 
 function statusPillClass(status){

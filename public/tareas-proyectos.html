@@ -175,7 +175,7 @@
     <div class="reconcile" id="reconcile" style="font-size:11px;color:var(--text-faint);margin:-6px 2px 14px"></div>
 
     <div class="tasks-toolbar"><div><h3>Projects</h3><small>Choose a project or view every linked workspace.</small></div></div><div class="project-tabs" id="project-filters"></div>
-    <div class="filter-row2"><div class="status-group"><span class="filter-label">Status</span><div class="status-pills"><div class="chip active" data-status="active">● Active</div><div class="chip" data-status="not-started">● Not Started</div><div class="chip" data-status="in-progress">● In Progress</div><div class="chip" data-status="in-review">● In Review</div><div class="chip" data-status="completed">● Completed</div></div></div><div class="select-group"><label class="filter-label">Terminadas en<select class="select-filter" id="date-range-filter"><option value="all">▣ All Time</option><option value="week">This Week</option><option value="month">This Month</option><option value="lastmonth">Last Month</option></select></label><label class="filter-label">Prioridad<select class="select-filter" id="priority-filter"><option value="all">≋ Todas</option><option value="P0">P0 · Crítica</option><option value="P1">P1 · Alta</option><option value="P2">P2 · Media</option><option value="P3">P3 · Baja</option><option value="P4">P4 · Futuro</option><option value="none">Sin prioridad</option></select></label><select id="priority-level-filter" hidden><option value="all"></option></select><label class="filter-label">Area<select class="select-filter" id="area-filter"><option value="all">▦ All</option></select></label><label class="filter-label">Responsible<select class="select-filter" id="person-filter"><option value="all">♙ All</option></select></label><button class="clear-filters" id="clear-filters">⟳ Clear Filters</button></div></div>
+    <div class="filter-row2"><div class="status-group"><span class="filter-label">Status</span><div class="status-pills"><div class="chip active" data-status="active">● Active</div><div class="chip" data-status="not-started">● Not Started</div><div class="chip" data-status="in-progress">● In Progress</div><div class="chip" data-status="in-review">● In Review</div><div class="chip" data-status="completed">● Completed</div></div></div><div class="select-group"><label class="filter-label">Periodo<select class="select-filter" id="date-range-filter"><option value="all">▣ All Time</option><option value="week">This Week</option><option value="month">This Month</option><option value="lastmonth">Last Month</option></select></label><label class="filter-label">Prioridad<select class="select-filter" id="priority-filter"><option value="all">≋ Todas</option><option value="P0">P0 · Crítica</option><option value="P1">P1 · Alta</option><option value="P2">P2 · Media</option><option value="P3">P3 · Baja</option><option value="P4">P4 · Futuro</option><option value="none">Sin prioridad</option></select></label><select id="priority-level-filter" hidden><option value="all"></option></select><label class="filter-label">Area<select class="select-filter" id="area-filter"><option value="all">▦ All</option></select></label><label class="filter-label">Responsible<select class="select-filter" id="person-filter"><option value="all">♙ All</option></select></label><button class="clear-filters" id="clear-filters">⟳ Clear Filters</button></div></div>
 
     <div id="quick-add">
       <input type="text" id="new-task-name" placeholder="Nombre de la tarea…">
@@ -278,17 +278,19 @@ function renderStats(){
     if(pLevel !== "all" && (JarvisTasks.priorityOf(t) || "none") !== pLevel) return false;
     return true;
   });
+  const inPeriod = scoped.filter(t => JarvisTasks.taskInPeriod(t, dateRange));
 
-  const sum = JarvisTasks.summarize(scoped, "all");
-  const completedCount = dateRange === "all" ? sum.done : scoped.filter(t => JarvisTasks.isDone(t) && dateInRange(t.completedOn, dateRange)).length;
+  const sum = JarvisTasks.summarize(scoped, dateRange);
+  const activeCount = inPeriod.filter(JarvisTasks.isActive).length;
+  const completedCount = sum.doneInPeriod;
   document.getElementById("stat-row").innerHTML = `
-    <div class="stat-card"><div class="stat-num gold">${sum.active}</div><div class="stat-lbl">Activas</div></div>
+    <div class="stat-card"><div class="stat-num gold">${activeCount}</div><div class="stat-lbl">Activas${sum.isTotal ? "" : " (creadas en el periodo)"}</div></div>
     <div class="stat-card"><div class="stat-num red">${sum.P0}</div><div class="stat-lbl">Crítica · P0</div></div>
     <div class="stat-card"><div class="stat-num amber">${sum.P1}</div><div class="stat-lbl">Alta · P1</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--gold-bright)">${sum.P2}</div><div class="stat-lbl">Media · P2</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--green)">${sum.low}</div><div class="stat-lbl">Baja · P3–P4${sum.none ? ` (incl. ${sum.none} sin prioridad)` : ""}</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--green)">${completedCount}</div><div class="stat-lbl">Terminadas${dateRange!=='all'?' (periodo)':''}</div></div>`;
-  document.getElementById("reconcile").textContent = JarvisTasks.reconcileText(sum);
+  document.getElementById("reconcile").textContent = JarvisTasks.reconcileText(sum, dateRange);
 }
 
 function countsForCurrentFilters(){
@@ -300,6 +302,7 @@ function countsForCurrentFilters(){
     if(priority !== "all" && (JarvisTasks.priorityOf(t) || "none") !== priority) return;
     if(pLevel !== "all" && t.priorityLevel !== pLevel) return;
     if(!STATUS_BUCKETS[activeStatus].includes(t.status)) return;
+    if(!JarvisTasks.taskInPeriod(t, document.getElementById("date-range-filter").value)) return;
     counts[t.project] = (counts[t.project] || 0) + 1;
     allCount++;
   });
@@ -337,7 +340,7 @@ function applyFilters(){
     if(areaFilter !== "all" && t.area !== areaFilter) return false;
     if(personFilter !== "all" && (t.collaborators||"").indexOf(personFilter) === -1) return false;
     if(!STATUS_BUCKETS[activeStatus].includes(t.status)) return false;
-    if(activeStatus === "completed" && dateRange !== "all" && !dateInRange(t.completedOn, dateRange)) return false;
+    if(!JarvisTasks.taskInPeriod(t, dateRange)) return false;
     return true;
   });
 

@@ -9,6 +9,7 @@ const {
   todayISO,
   personText,
   completedOn,
+  createdOn,
 } = require("./_notion");
 
 /**
@@ -65,6 +66,7 @@ module.exports = async (req, res) => {
         owner: personText(props),
         completionDate: getDate(props, "Completion Date"),
         completedOn: completedOn(p),
+        createdOn: createdOn(p),
         urgency: getSelect(props, "Urgency"),
         impact: getSelect(props, "Impact"),
         type: getSelect(props, "Type"),

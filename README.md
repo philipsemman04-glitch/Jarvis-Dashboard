@@ -105,9 +105,14 @@ totals can be checked against Notion at a glance.
 - **Priority** = the `Priority` field (P0 Crítica, P1 Alta, P2 Media, P3 Baja,
   P4 Futuro). `Priority Level` is written in step with it on every save but
   never read.
-- **Period (week / month)** only filters *finished* tasks, by the day they were
-  finished: `Completion Date`, or the last edit for tasks finished directly in
-  Notion. Open tasks are never hidden by date.
+- **Period** — *Total* (default) shows every task. *Week* / *Month* show the
+  work of that period on the board, the area tabs and the priority boxes:
+  open tasks **created** in it and tasks **finished** in it. "Finished" uses
+  `Completion Date` (set by Jarvis when a task becomes Terminado); a finished
+  task without it is placed by its creation date when that falls in the
+  period, and otherwise counts in *Total* only. Due dates are not used — most
+  tasks have none. The line under the boxes says how many tasks are shown out
+  of the Notion total.
 
 ## Conventions
 

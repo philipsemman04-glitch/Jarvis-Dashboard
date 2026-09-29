@@ -118,14 +118,19 @@ function localDateISO(date) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(date));
 }
 
-// The day a task was finished, for "completed this week / month". Completion
-// Date is set by Jarvis when a task becomes "Terminado"; tasks finished
-// directly in Notion (or before the field existed) don't have it, so for those
-// the page's last edit is used — a finished task is rarely edited afterwards.
+// The day a task was finished (its "Completion Date", set by Jarvis when a
+// task becomes "Terminado"). Tasks finished directly in Notion without that
+// date return null: they count as finished in "Total" only, never in a
+// week or month — a guessed date would put them in the wrong period.
 function completedOn(page) {
   const status = page.properties?.Status?.select?.name;
   if (status !== "Terminado") return null;
-  return page.properties?.["Completion Date"]?.date?.start?.slice(0, 10) || localDateISO(page.last_edited_time);
+  return page.properties?.["Completion Date"]?.date?.start?.slice(0, 10) || null;
+}
+
+// The day the task was created in Notion, in Aurelio's time zone.
+function createdOn(page) {
+  return page.created_time ? localDateISO(page.created_time) : null;
 }
 
 /* ---------- Writing only fields that really exist ---------- */
@@ -210,6 +215,7 @@ module.exports = {
   todayISO,
   localDateISO,
   completedOn,
+  createdOn,
   fitToSchema,
   personText,
   getTitle,
