@@ -93,6 +93,22 @@ audit of the live workspace; keep them if you restructure Notion:
   `Recurrence`, `Topics` (text), `Rating` (number), `Attachments` (files),
   `End Date` (date).
 
+## How tasks are counted (every page)
+
+All task pages load `public/task-logic.js`, so the same Notion data always
+gives the same numbers. Every board shows a line such as
+"254 tareas en Notion = 236 activas + 15 terminadas + 3 canceladas" so the
+totals can be checked against Notion at a glance.
+
+- **Active** = any status except `Terminado` and `Cancelado`.
+- **Completed** = `Terminado`; `Cancelado` is counted separately.
+- **Priority** = the `Priority` field (P0 Crítica, P1 Alta, P2 Media, P3 Baja,
+  P4 Futuro). `Priority Level` is written in step with it on every save but
+  never read.
+- **Period (week / month)** only filters *finished* tasks, by the day they were
+  finished: `Completion Date`, or the last edit for tasks finished directly in
+  Notion. Open tasks are never hidden by date.
+
 ## Conventions
 
 - **Writes report real errors.** API failures return HTTP 4xx/5xx with

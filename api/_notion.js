@@ -110,7 +110,22 @@ function richText(value) {
  */
 const TIMEZONE = process.env.JARVIS_TIMEZONE || "America/Mexico_City";
 function todayISO() {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  return localDateISO(new Date());
+}
+
+// A timestamp's calendar date in Aurelio's time zone (YYYY-MM-DD).
+function localDateISO(date) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(date));
+}
+
+// The day a task was finished, for "completed this week / month". Completion
+// Date is set by Jarvis when a task becomes "Terminado"; tasks finished
+// directly in Notion (or before the field existed) don't have it, so for those
+// the page's last edit is used — a finished task is rarely edited afterwards.
+function completedOn(page) {
+  const status = page.properties?.Status?.select?.name;
+  if (status !== "Terminado") return null;
+  return page.properties?.["Completion Date"]?.date?.start?.slice(0, 10) || localDateISO(page.last_edited_time);
 }
 
 /* ---------- Writing only fields that really exist ---------- */
@@ -193,6 +208,8 @@ module.exports = {
   updatePage,
   richText,
   todayISO,
+  localDateISO,
+  completedOn,
   fitToSchema,
   personText,
   getTitle,

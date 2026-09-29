@@ -137,6 +137,24 @@
   @media(max-width:900px){.shell{padding:22px 18px 40px}.stat-row{grid-template-columns:repeat(3,1fr)}}
 
 </style>
+<style>
+/* Phones: each task becomes a compact card instead of a wide table row, so the page fits the screen. */
+@media(max-width:650px){
+  html,body{overflow-x:clip}
+  .table-head{display:none}
+  .task-list{min-width:0!important}
+  .task-row .task-name{white-space:normal}
+  .task-row{grid-template-columns:22px minmax(0,1fr) auto!important;row-gap:6px}
+  .task-row .task-main{grid-column:2/4}
+  .task-row .task-meta{grid-column:2/4!important}
+  .task-row > *:nth-child(n+3){grid-column:auto}
+  .task-row .task-project-cell{grid-column:2}
+  .task-row .status-select{grid-column:3!important;max-width:150px}
+  .task-row .task-owner,.task-row .task-prio-name{display:none}
+  .topbar{flex-wrap:wrap;gap:8px}.topbar-actions{flex-wrap:wrap;min-width:0}.top-search{width:150px}
+}
+</style>
+<script src="/task-logic.js"></script>
 </head>
 <body>
   <div class="topbar">
@@ -154,26 +172,21 @@
 <div class="shell">
 <section class="workspace-banner" style="background-image:url('/assets/covers/tareas-proyectos-cover-v2.jpg')"><div class="workspace-banner-content"><div><div class="workspace-banner-kicker">JARVIS · TAREAS &amp; PROYECTOS</div><div class="workspace-banner-title">Tareas &amp; Proyectos</div><div class="workspace-banner-subtitle">Different projects. A bigger picture.<br>Same direction.</div><div class="workspace-banner-signature">— Jarvis</div><button class="edit-cover-btn" id="edit-cover-btn">✎ Edit Cover</button></div></div></section>
     <div class="stat-row" id="stat-row"></div>
+    <div class="reconcile" id="reconcile" style="font-size:11px;color:var(--text-faint);margin:-6px 2px 14px"></div>
 
     <div class="tasks-toolbar"><div><h3>Projects</h3><small>Choose a project or view every linked workspace.</small></div></div><div class="project-tabs" id="project-filters"></div>
-    <div class="filter-row2"><div class="status-group"><span class="filter-label">Status</span><div class="status-pills"><div class="chip active" data-status="active">● Active</div><div class="chip" data-status="not-started">● Not Started</div><div class="chip" data-status="in-progress">● In Progress</div><div class="chip" data-status="in-review">● In Review</div><div class="chip" data-status="completed">● Completed</div></div></div><div class="select-group"><label class="filter-label">Time Period<select class="select-filter" id="date-range-filter"><option value="all">▣ All Time</option><option value="week">This Week</option><option value="month">This Month</option><option value="lastmonth">Last Month</option></select></label><label class="filter-label">P-Level<select class="select-filter" id="priority-filter"><option value="all">≋ All</option><option value="P0">P0</option><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option></select></label><label class="filter-label">Priority<select class="select-filter" id="priority-level-filter"><option value="all">⌃ All</option><option value="Critical">Critical</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option></select></label><label class="filter-label">Area<select class="select-filter" id="area-filter"><option value="all">▦ All</option></select></label><label class="filter-label">Responsible<select class="select-filter" id="person-filter"><option value="all">♙ All</option></select></label><button class="clear-filters" id="clear-filters">⟳ Clear Filters</button></div></div>
+    <div class="filter-row2"><div class="status-group"><span class="filter-label">Status</span><div class="status-pills"><div class="chip active" data-status="active">● Active</div><div class="chip" data-status="not-started">● Not Started</div><div class="chip" data-status="in-progress">● In Progress</div><div class="chip" data-status="in-review">● In Review</div><div class="chip" data-status="completed">● Completed</div></div></div><div class="select-group"><label class="filter-label">Terminadas en<select class="select-filter" id="date-range-filter"><option value="all">▣ All Time</option><option value="week">This Week</option><option value="month">This Month</option><option value="lastmonth">Last Month</option></select></label><label class="filter-label">Prioridad<select class="select-filter" id="priority-filter"><option value="all">≋ Todas</option><option value="P0">P0 · Crítica</option><option value="P1">P1 · Alta</option><option value="P2">P2 · Media</option><option value="P3">P3 · Baja</option><option value="P4">P4 · Futuro</option><option value="none">Sin prioridad</option></select></label><select id="priority-level-filter" hidden><option value="all"></option></select><label class="filter-label">Area<select class="select-filter" id="area-filter"><option value="all">▦ All</option></select></label><label class="filter-label">Responsible<select class="select-filter" id="person-filter"><option value="all">♙ All</option></select></label><button class="clear-filters" id="clear-filters">⟳ Clear Filters</button></div></div>
 
     <div id="quick-add">
       <input type="text" id="new-task-name" placeholder="Nombre de la tarea…">
       <select id="new-task-project"></select>
       <select id="new-task-area"><option value="">Sin área</option></select>
       <select id="new-task-priority">
-        <option value="P0">P0</option>
-        <option value="P1">P1</option>
-        <option value="P2" selected>P2</option>
-        <option value="P3">P3</option>
-      </select>
-      <select id="new-task-priority-level">
-        <option value="">Sin prioridad</option>
-        <option value="Critical">🔴 Crítica</option>
-        <option value="High">🟠 Alta</option>
-        <option value="Medium">🟡 Media</option>
-        <option value="Low">🟢 Baja</option>
+        <option value="P0">P0 · Crítica</option>
+        <option value="P1">P1 · Alta</option>
+        <option value="P2" selected>P2 · Media</option>
+        <option value="P3">P3 · Baja</option>
+        <option value="P4">P4 · Futuro</option>
       </select>
       <input type="date" id="new-task-date">
       <div class="save-btn" id="save-task-btn">Guardar</div>
@@ -218,7 +231,8 @@ function esc(value){ return String(value ?? "").replace(/[&<>"\']/g, c => ({"&":
 function safeUrl(value){ try{ const u = new URL(String(value || ""), location.origin); return /^https?:$/.test(u.protocol) ? u.href : "#"; }catch(e){ return "#"; } }
 function projectMark(project){ return esc((project || "?").trim().slice(0,1).toUpperCase()); }
 function priorityTag(p){
-  const cls = { P0:"p0", P1:"p1", P2:"p2", P3:"p3" }[p] || "p3";
+  if(!/^P[0-4]$/.test(p || "")) return `<span class="tag p3">—</span>`;
+  const cls = { P0:"p0", P1:"p1", P2:"p2", P3:"p3", P4:"p3" }[p];
   return `<span class="tag ${cls}">${esc(p)}</span>`;
 }
 const PRIO_LEVEL_LABEL = { Critical:"🔴 Crítica", High:"🟠 Alta", Medium:"🟡 Media", Low:"🟢 Baja" };
@@ -261,24 +275,20 @@ function renderStats(){
   const scoped = allTasks.filter(t => {
     if(project !== "all" && t.project !== project) return false;
     if(area !== "all" && t.area !== area) return false;
-    if(pLevel !== "all" && t.priority !== pLevel) return false;
+    if(pLevel !== "all" && (JarvisTasks.priorityOf(t) || "none") !== pLevel) return false;
     return true;
   });
 
-  const activeCount = scoped.filter(t => STATUS_BUCKETS.active.includes(t.status)).length;
-  const completedScoped = scoped.filter(t => t.status === "Terminado");
-  const completedCount = dateRange === "all" ? completedScoped.length : completedScoped.filter(t => dateInRange(t.completionDate, dateRange)).length;
-
-  const byLevel = { Critical:0, High:0, Medium:0, Low:0 };
-  scoped.forEach(t => { if(STATUS_BUCKETS.active.includes(t.status) && byLevel[t.priorityLevel] !== undefined) byLevel[t.priorityLevel]++; });
-
+  const sum = JarvisTasks.summarize(scoped, "all");
+  const completedCount = dateRange === "all" ? sum.done : scoped.filter(t => JarvisTasks.isDone(t) && dateInRange(t.completedOn, dateRange)).length;
   document.getElementById("stat-row").innerHTML = `
-    <div class="stat-card"><div class="stat-num gold">${activeCount}</div><div class="stat-lbl">Total Active</div></div>
-    <div class="stat-card"><div class="stat-num red">${byLevel.Critical}</div><div class="stat-lbl">Critical</div></div>
-    <div class="stat-card"><div class="stat-num amber">${byLevel.High}</div><div class="stat-lbl">High</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--gold-bright)">${byLevel.Medium}</div><div class="stat-lbl">Medium</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--green)">${byLevel.Low}</div><div class="stat-lbl">Low</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--green)">${completedCount}</div><div class="stat-lbl">Completadas${dateRange!=='all'?' (periodo)':''}</div></div>`;
+    <div class="stat-card"><div class="stat-num gold">${sum.active}</div><div class="stat-lbl">Activas</div></div>
+    <div class="stat-card"><div class="stat-num red">${sum.P0}</div><div class="stat-lbl">Crítica · P0</div></div>
+    <div class="stat-card"><div class="stat-num amber">${sum.P1}</div><div class="stat-lbl">Alta · P1</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--gold-bright)">${sum.P2}</div><div class="stat-lbl">Media · P2</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)">${sum.low}</div><div class="stat-lbl">Baja · P3–P4${sum.none ? ` (incl. ${sum.none} sin prioridad)` : ""}</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)">${completedCount}</div><div class="stat-lbl">Terminadas${dateRange!=='all'?' (periodo)':''}</div></div>`;
+  document.getElementById("reconcile").textContent = JarvisTasks.reconcileText(sum);
 }
 
 function countsForCurrentFilters(){
@@ -287,7 +297,7 @@ function countsForCurrentFilters(){
   const counts = {};
   let allCount = 0;
   allTasks.forEach(t => {
-    if(priority !== "all" && t.priority !== priority) return;
+    if(priority !== "all" && (JarvisTasks.priorityOf(t) || "none") !== priority) return;
     if(pLevel !== "all" && t.priorityLevel !== pLevel) return;
     if(!STATUS_BUCKETS[activeStatus].includes(t.status)) return;
     counts[t.project] = (counts[t.project] || 0) + 1;
@@ -322,12 +332,12 @@ function applyFilters(){
 
   let filtered = allTasks.filter(t => {
     if(activeProject !== "all" && t.project !== activeProject) return false;
-    if(priority !== "all" && t.priority !== priority) return false;
+    if(priority !== "all" && (JarvisTasks.priorityOf(t) || "none") !== priority) return false;
     if(pLevel !== "all" && t.priorityLevel !== pLevel) return false;
     if(areaFilter !== "all" && t.area !== areaFilter) return false;
     if(personFilter !== "all" && (t.collaborators||"").indexOf(personFilter) === -1) return false;
     if(!STATUS_BUCKETS[activeStatus].includes(t.status)) return false;
-    if(activeStatus === "completed" && dateRange !== "all" && !dateInRange(t.completionDate, dateRange)) return false;
+    if(activeStatus === "completed" && dateRange !== "all" && !dateInRange(t.completedOn, dateRange)) return false;
     return true;
   });
 
@@ -379,7 +389,7 @@ function renderTaskList(tasks){
       <div class="task-main"><div class="task-name ${t.status==='Terminado'?'done':''}">${esc(t.taskName || "(sin título)")}</div><div class="task-meta">${t.area ? `<span class="tag" style="background:var(--panel-alt);color:var(--text-dim)">${esc(t.area)}</span>` : ""}${priorityTag(t.priority)}${priorityLevelTag(t.priorityLevel)}</div></div>
       <div class="task-project-cell"><span class="project-mark">${projectMark(t.project)}</span><span>${esc(t.project || "Sin proyecto")}</span></div>
       <div>${priorityTag(t.priority)}</div>
-      <div>${priorityLevelTag(t.priorityLevel) || `<span class="tag p3">—</span>`}</div>
+      <div class="task-prio-name">${JarvisTasks.priorityOf(t) ? esc(JarvisTasks.LABEL[t.priority]) : "—"}</div>
       <select class="status-select ${statusClass(t.status)}">${STATUS_OPTIONS.map(s => `<option value="${s}" ${s===t.status?"selected":""}>${s}</option>`).join("")}</select>
       <div class="task-owner">${esc(t.collaborators || "—")}</div>
       <div class="task-date">${esc(t.targetDate || "—")}</div>`;
@@ -399,6 +409,7 @@ async function openTaskDetail(pageId){
     const res = await fetch(`/api/task-api?action=detail&pageId=${pageId}`);
     const t = await res.json();
     if(t.error) throw new Error(t.error);
+    const listed = allTasks.find(x => x.id === pageId) || {};
     modal.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
         <h2 style="font-family:var(--serif); font-size:19px; font-weight:600; flex:1;">${esc(t.taskName)}</h2>
@@ -412,16 +423,15 @@ async function openTaskDetail(pageId){
           </select>
         </div>
         <div>
-          <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Prioridad (Crítica/Alta/Media/Baja)</label>
-          <select id="td-priority-level" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
-            <option value="">Sin prioridad</option>
-            ${Object.entries(PRIO_LEVEL_LABEL).map(([k,v]) => `<option value="${k}" ${k===t.priorityLevel?"selected":""}>${v}</option>`).join("")}
+          <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Prioridad</label>
+          <select id="td-priority" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
+            <option value="">Sin prioridad</option>${JarvisTasks.PRIORITIES.map(p => `<option value="${p.key}" ${p.key===JarvisTasks.priorityOf(t)?"selected":""}>${p.key} · ${p.label}</option>`).join("")}
           </select>
         </div>
         <div>
-          <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">P-Level (P0-P3)</label>
-          <select id="td-priority" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
-            <option value="">Sin prioridad</option>${["P0","P1","P2","P3"].map(p => `<option value="${p}" ${p===t.priority?"selected":""}>${p}</option>`).join("")}
+          <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Área</label>
+          <select id="td-area" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
+            ${["Sin área", ...new Set(allTasks.filter(x => x.project === listed.project && x.area).map(x => x.area))].map(a => `<option value="${esc(a)}" ${a === (listed.area || "Sin área") ? "selected" : ""}>${esc(a)}</option>`).join("")}
           </select>
         </div>
         <div>
@@ -475,13 +485,17 @@ async function openTaskDetail(pageId){
             pageId,
             status: document.getElementById("td-status").value,
             priority: document.getElementById("td-priority").value,
-            priorityLevel: document.getElementById("td-priority-level").value || null,
             collaborators: document.getElementById("td-collaborators").value,
             targetDate: document.getElementById("td-date").value || null,
             description: document.getElementById("td-description").value,
           })
         });
         if(!r.ok) throw new Error("Error " + r.status);
+        const area = document.getElementById("td-area").value;
+        if(area !== (listed.area || "Sin área")){
+          const ra = await fetch("/api/task-api", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ action:"update-area", pageId, area, project: listed.project }) });
+          if(!ra.ok) throw new Error((await ra.json().catch(() => ({}))).error || "No se pudo cambiar el área");
+        }
         window.jarvisToast?.success(t, "Guardado");
         closeTaskModal();
         loadData();
@@ -591,7 +605,6 @@ document.getElementById("save-task-btn").addEventListener("click", async () => {
   const project = projectSelect.value;
   const area = newTaskAreaSelect.value || undefined;
   const priority = document.getElementById("new-task-priority").value;
-  const priorityLevel = document.getElementById("new-task-priority-level").value || undefined;
   const targetDate = document.getElementById("new-task-date").value || undefined;
   const btn = document.getElementById("save-task-btn");
   const original = btn.textContent;
@@ -599,7 +612,7 @@ document.getElementById("save-task-btn").addEventListener("click", async () => {
   try{
     const res = await fetch("/api/task-api", {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ action:"create", taskName, project, area, priority, priorityLevel, targetDate })
+      body: JSON.stringify({ action:"create", taskName, project, area, priority, targetDate })
     });
     if(!res.ok) throw new Error("No se pudo crear la tarea");
     const result = await res.json();

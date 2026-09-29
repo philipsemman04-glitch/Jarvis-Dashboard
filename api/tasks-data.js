@@ -8,6 +8,7 @@ const {
   getRelationIds,
   todayISO,
   personText,
+  completedOn,
 } = require("./_notion");
 
 /**
@@ -63,6 +64,7 @@ module.exports = async (req, res) => {
         collaborators: personText(props),
         owner: personText(props),
         completionDate: getDate(props, "Completion Date"),
+        completedOn: completedOn(p),
         urgency: getSelect(props, "Urgency"),
         impact: getSelect(props, "Impact"),
         type: getSelect(props, "Type"),

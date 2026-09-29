@@ -84,6 +84,14 @@ async function handleDetail(req, res) {
   });
 }
 
+// "Priority" (P0–P4) is the one priority Jarvis shows; "Priority Level" is
+// kept in step with it so Notion never holds two disagreeing priorities.
+const LEVEL_FOR_PRIORITY = { P0: "Critical", P1: "High", P2: "Medium", P3: "Low", P4: "Low" };
+function levelFor(priority, priorityLevel) {
+  if (priorityLevel !== undefined && priorityLevel !== null && priorityLevel !== "") return priorityLevel;
+  return priority === undefined ? undefined : (LEVEL_FOR_PRIORITY[priority] || "");
+}
+
 async function handleCreate(req, res) {
   const { taskName, project, priority, priorityLevel, targetDate, area, description } = req.body || {};
   if (!taskName || !taskName.trim()) { res.status(400).json({ error: "taskName is required" }); return; }
@@ -92,7 +100,8 @@ async function handleCreate(req, res) {
     Status: { select: { name: "No iniciado" } },
   };
   if (priority) properties["Priority"] = { select: { name: priority } };
-  if (priorityLevel) properties["Priority Level"] = { select: { name: priorityLevel } };
+  const level = levelFor(priority, priorityLevel);
+  if (level) properties["Priority Level"] = { select: { name: level } };
   if (project && project !== "Sin proyecto") properties["Project"] = { select: { name: project } };
   if (targetDate) properties["Target Date"] = { date: { start: targetDate } };
   if (description) properties["Description"] = richText(description);
@@ -123,7 +132,7 @@ async function handleUpdateStatus(req, res) {
 }
 
 async function handleUpdateFull(req, res) {
-  const { pageId, taskName, description, status, priority, priorityLevel, collaborators, owner, targetDate, type, impact, urgency, wave, tags, blocksLaunch, driveLink } = req.body || {};
+  const { pageId, taskName, description, status, priority, priorityLevel: rawLevel, collaborators, owner, targetDate, type, impact, urgency, wave, tags, blocksLaunch, driveLink } = req.body || {};
   if (!pageId) { res.status(400).json({ error: "pageId is required" }); return; }
   const properties = {};
   if (taskName !== undefined) properties["Task Name"] = { title: [{ text: { content: taskName } }] };
@@ -135,6 +144,7 @@ async function handleUpdateFull(req, res) {
   // Empty value = "Sin prioridad" in the form → clears the field instead of
   // defaulting to P0.
   if (priority !== undefined) properties["Priority"] = priority ? { select: { name: priority } } : { select: null };
+  const priorityLevel = priority !== undefined ? levelFor(priority, undefined) : rawLevel;
   if (priorityLevel !== undefined) properties["Priority Level"] = priorityLevel ? { select: { name: priorityLevel } } : { select: null };
   if (targetDate !== undefined) properties["Target Date"] = targetDate ? { date: { start: targetDate } } : { date: null };
   if (type !== undefined) properties["Type"] = type ? { select: { name: type } } : { select: null };

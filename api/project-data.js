@@ -18,7 +18,7 @@
 // card→area links, so both datasets filter together when an area is
 // clicked.
 
-const { richText, fitToSchema, personText } = require("./_notion");
+const { richText, fitToSchema, personText, completedOn } = require("./_notion");
 
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -328,6 +328,7 @@ module.exports = async (req, res) => {
         wave: select(p.properties["Ola"]),
         blocksLaunch: !!p.properties["Blocks Launch"]?.checkbox,
         targetDate: p.properties["Target Date"]?.date?.start || null,
+        completedOn: completedOn(p),
         areaId: taskAreaIds[0] || null,
         area: taskAreaIds[0] ? (areas.find(a => a.id === taskAreaIds[0])?.name || "Sin área") : "Sin área",
       };
