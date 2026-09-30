@@ -476,7 +476,9 @@ function applyFilters(){ renderFilterBar(); renderStats(getFilteredBoard()); ren
 
 function renderStats(board){
   const unavailable = !projectDataLoaded;
-  const sum = JarvisTasks.summarize(allTasks, selectedPeriod);
+  // The boxes describe what is being viewed: the selected area (and person).
+  const scope = allTasks.filter(t => (filters.area === "all" || t.area === filters.area) && (filters.person === "all" || (t.collaborators||"").indexOf(filters.person) !== -1));
+  const sum = JarvisTasks.summarize(scope, selectedPeriod);
   const v = n => unavailable ? "—" : n;
   const activeNote = sum.isTotal ? "Tareas activas" : "Activas creadas " + JarvisTasks.PERIOD_LABEL[selectedPeriod];
   document.getElementById("stat-row").innerHTML = [
@@ -492,7 +494,7 @@ function renderStats(board){
       <div class="value">${c.value}</div><div class="sub">${c.sub || ""}</div>
     </div>`).join("");
   const rec = document.getElementById("reconcile");
-  if(rec) rec.textContent = unavailable ? "" : JarvisTasks.reconcileText(sum, selectedPeriod);
+  if(rec) rec.textContent = unavailable ? "" : (filters.area === "all" ? "" : filters.area + " — ") + JarvisTasks.reconcileText(sum, selectedPeriod).replace("tareas en Notion", filters.area === "all" ? "tareas en Notion" : "tareas");
 }
 
 function statusPillClass(status){
