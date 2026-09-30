@@ -9,8 +9,13 @@
 // Body: { action: "rename-topic", oldName, newName }
 // Body: { action: "comment", pageId, text }
 // Body: { action: "delete-reference", pageId }
+// Body: { action: "topic-save", name, oldName?, description?, cover/icon upload } — see _topics.js
+// Body: { action: "topic-columns", topic, op, column?, newName?, columns? }
+// Body: { action: "delete-topic", name }
+// Body: { action: "remove-file", pageId, index }
 
 const { richText } = require("./_notion");
+const topics = require("./_topics");
 
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -115,21 +120,6 @@ async function handleRenameTopic(req, res) {
   res.status(200).json({ ok: true });
 }
 
-async function handleDeleteTopic(req, res) {
-  const { name } = req.body || {};
-  if (!name || !name.trim()) { res.status(400).json({ ok: false, error: "name is required" }); return; }
-  const schemaRes = await fetch(`https://api.notion.com/v1/data_sources/${DB_REFERENCIAS}`, { headers: headers() });
-  if (!schemaRes.ok) throw new Error(`Notion schema fetch failed (${schemaRes.status}): ${await schemaRes.text()}`);
-  const schema = await schemaRes.json();
-  const options = schema.properties?.["Tema"]?.multi_select?.options || [];
-  const target = options.find(o => o.name.toLowerCase() === name.trim().toLowerCase());
-  if (!target) { res.status(404).json({ ok: false, error: `Topic "${name}" was not found.` }); return; }
-  const updatedOptions = options.filter(o => o.id !== target.id).map(o => ({ id: o.id, name: o.name, color: o.color }));
-  const patchRes = await fetch(`https://api.notion.com/v1/data_sources/${DB_REFERENCIAS}`, { method: "PATCH", headers: headers(), body: JSON.stringify({ properties: { "Tema": { multi_select: { options: updatedOptions } } } }) });
-  if (!patchRes.ok) throw new Error(`Notion topic delete failed (${patchRes.status}): ${await patchRes.text()}`);
-  res.status(200).json({ ok: true });
-}
-
 async function handleComment(req, res) {
   const { pageId, text } = req.body || {};
   if (!pageId || !text || !text.trim()) { res.status(400).json({ ok: false, error: "pageId and text are required" }); return; }
@@ -223,6 +213,21 @@ async function handleUpload(req, res) {
   res.status(200).json({ ok: true, uploadId: upload.id });
 }
 
+// Removes one attachment (by its position) from a reference.
+async function handleRemoveFile(req, res) {
+  const { pageId, index } = req.body || {};
+  if (!pageId || index === undefined) { res.status(400).json({ error: "pageId and index are required" }); return; }
+  const pageRes = await fetch(`https://api.notion.com/v1/pages/${pageId}`, { headers: headers() });
+  if (!pageRes.ok) throw new Error(`Notion page fetch failed (${pageRes.status}): ${await pageRes.text()}`);
+  const files = (await pageRes.json()).properties["Attachments"]?.files || [];
+  // The other files are sent back as Notion returned them — the same way
+  // handleUpload keeps existing attachments when adding one.
+  const keep = files.filter((_, i) => i !== Number(index));
+  const r = await fetch(`https://api.notion.com/v1/pages/${pageId}`, { method: "PATCH", headers: headers(), body: JSON.stringify({ properties: { Attachments: { files: keep } } }) });
+  if (!r.ok) throw new Error(`Notion update failed (${r.status}): ${await r.text()}`);
+  res.status(200).json({ ok: true });
+}
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") { res.status(405).json({ error: "Use POST" }); return; }
   if (!NOTION_TOKEN) { res.status(500).json({ ok: false, error: "NOTION_TOKEN not set" }); return; }
@@ -233,14 +238,17 @@ module.exports = async (req, res) => {
     if (action === "delete-reference") return await handleDeleteReference(req, res);
     if (action === "create-topic") return await handleCreateTopic(req, res);
     if (action === "rename-topic") return await handleRenameTopic(req, res);
-    if (action === "delete-topic") return await handleDeleteTopic(req, res);
+    if (action === "delete-topic") { await topics.deleteTopic(req.body?.name); return res.status(200).json({ ok: true }); }
+    if (action === "topic-save") return res.status(200).json({ ok: true, topic: await topics.saveTopic(req.body || {}) });
+    if (action === "topic-columns") return res.status(200).json({ ok: true, columns: await topics.saveColumns(req.body || {}) });
     if (action === "comment") return await handleComment(req, res);
     if (action === "upload") return await handleUpload(req, res);
+    if (action === "remove-file") return await handleRemoveFile(req, res);
     if (action === "create-aristoteles-doc") return await handleCreateAristotelesDoc(req, res);
     if (action === "create-aristoteles-section") return await handleCreateAristotelesSection(req, res);
     res.status(400).json({ ok: false, error: "Unknown or missing action" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ ok: false, error: err.message });
+    res.status(err.status || 500).json({ ok: false, error: err.message });
   }
 };

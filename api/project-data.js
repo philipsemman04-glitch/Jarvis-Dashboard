@@ -18,7 +18,7 @@
 // card→area links, so both datasets filter together when an area is
 // clicked.
 
-const { richText, fitToSchema, personText, completedOn, createdOn } = require("./_notion");
+const { richText, fitToSchema, personText, completedOn, createdOn, todayISO } = require("./_notion");
 
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -223,7 +223,13 @@ async function handleCreateTask(req, res) {
   const selectProp = (v) => v ? { select: { name: v } } : { select: null };
   if (b.status) properties.Status = selectProp(b.status);
   if (b.priority) properties.Priority = selectProp(b.priority);
-  if (b.priorityLevel) properties["Priority Level"] = selectProp(b.priorityLevel);
+  // Priority Level follows Priority (see /public/task-logic.js).
+  const level = b.priorityLevel || { P0: "Critical", P1: "High", P2: "Medium", P3: "Low", P4: "Low" }[b.priority];
+  if (level) properties["Priority Level"] = selectProp(level);
+  // The task's area (a Master Entities page) — so tasks created from a board
+  // land in the area they were created in, not in "Sin área".
+  if (b.areaId) properties["Related Entity"] = { relation: [{ id: b.areaId }] };
+  if (b.status === "Terminado") properties["Completion Date"] = { date: { start: todayISO() } };
   if (b.type) properties.Type = selectProp(b.type);
   if (b.impact) properties.Impact = selectProp(b.impact);
   if (b.urgency) properties.Urgency = selectProp(b.urgency);

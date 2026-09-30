@@ -1,1066 +1,811 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mis Gustos & Conocimiento — Jarvis</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mis Gustos & Conocimiento · Jarvis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#05070c; --panel:#0b0f17; --panel-2:#101623; --panel-3:#151c2b;
-    --line:rgba(255,255,255,.07); --line-strong:rgba(255,255,255,.12);
-    --gold:#d6ad63; --gold-2:#f0cf8d; --gold-soft:rgba(214,173,99,.14);
-    --text:#f4f1e8; --muted:#a8adba; --faint:#697182;
-    --green:#42d392; --green-soft:rgba(66,211,146,.14);
-    --blue:#5a8ff0; --blue-soft:rgba(90,143,240,.16);
-    --purple:#9b7ee8; --purple-soft:rgba(155,126,232,.16);
-    --amber:#f0a23f; --amber-soft:rgba(240,162,63,.16);
-    --red:#e45f5b; --red-soft:rgba(228,95,91,.16);
-    --pink:#ec6ba3; --pink-soft:rgba(236,107,163,.16);
-    --radius:18px; --shadow:0 18px 50px rgba(0,0,0,.38);
-    --serif:'Fraunces',serif; --sans:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{min-height:100vh;color:var(--text);font-family:var(--sans);background:radial-gradient(circle at 18% 0%, rgba(91,63,123,.22), transparent 28%),radial-gradient(circle at 82% 8%, rgba(46,82,132,.18), transparent 26%),linear-gradient(180deg,#04060a 0%,#070a10 48%,#05070c 100%);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-  button,input,select,textarea{font:inherit} button{cursor:pointer} a{color:inherit;text-decoration:none}
-  ::-webkit-scrollbar{width:10px;height:10px} ::-webkit-scrollbar-thumb{background:#1b2333;border-radius:999px;border:2px solid #05070c}
-
-  .main{min-width:0;max-width:1560px;margin:0 auto;padding:18px 22px 96px}
-
-  /* ---------- header ---------- */
-  .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
-  .page-head h2{font-family:var(--serif);font-size:24px;font-weight:600;display:flex;align-items:center;gap:10px}
-  .page-head p{font-size:12px;color:var(--muted);margin-top:4px}
-  .mockup-actions-head{justify-content:flex-end;margin-top:-8px;margin-bottom:8px}.head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-  .top-pill{min-height:40px;display:inline-flex;align-items:center;gap:8px;background:rgba(12,16,25,.88);border:1px solid var(--line);border-radius:12px;padding:9px 12px;color:#d4d8e1;font-size:12px;font-weight:700;cursor:pointer}
-  .top-pill small{display:block;color:var(--faint);font-size:10px;font-weight:600;margin-top:2px}
-  .icon-btn{position:relative;width:40px;height:40px;border-radius:12px;background:rgba(12,16,25,.88);border:1px solid var(--line);display:grid;place-items:center;color:#d4d8e1;cursor:pointer}
-  .icon-btn .badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:800;border-radius:999px;min-width:16px;padding:2px 4px;text-align:center}
-  .btn-gold{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#e2bd72,#c89a4e);color:#221a0c;border:none;border-radius:12px;padding:10px 16px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(201,154,78,.25)}
-  .btn-gold:hover{filter:brightness(1.07)}
-
-  /* ---------- tabs ---------- */
-  .tab-bar{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
-  .tab-bar button{background:transparent;border:none;color:var(--muted);font-size:12.5px;font-weight:700;padding:10px 14px;cursor:pointer;position:relative;white-space:nowrap}
-  .tab-bar button:hover{color:var(--text)}
-  .tab-bar button.active{color:var(--gold-2)}
-  .tab-bar button.active::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:var(--gold);border-radius:2px}
-
-  /* ---------- layout ---------- */
-  .layout{display:block}.col-side{display:none}.col-main > .panel:nth-of-type(2),.col-main > .three-col{display:none}
-  .panel{background:linear-gradient(180deg,rgba(13,18,28,.96),rgba(9,13,21,.96));border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:0 14px 34px rgba(0,0,0,.24);margin-bottom:14px}
-  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-  .panel-head h3{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#e7e3d8}
-  .link{color:var(--gold-2);font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
-  .link:hover{text-decoration:underline}
-
-  /* ---------- stat cards ---------- */
-  .stat-row{display:none}
-  .stat-card{background:linear-gradient(180deg,rgba(13,18,28,.96),rgba(9,13,21,.96));border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center}
-  .stat-ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:16px;flex-shrink:0}
-  .stat-lbl{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
-  .stat-num{font-family:var(--serif);font-size:24px;font-weight:700;line-height:1.15}
-  .stat-sub{font-size:10px;color:var(--green);font-weight:700}
-
-  /* ---------- topics grid ---------- */
-  .topics-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.mockup-cloud-panel{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:14px}.cloud-view-controls{display:flex;gap:0;margin-left:auto}.cloud-view-controls button{background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);padding:6px 10px;font-size:10px;cursor:pointer}.cloud-view-controls button:first-child{border-radius:7px 0 0 7px}.cloud-view-controls button:last-child{border-radius:0 7px 7px 0}.cloud-view-controls button.active{color:var(--gold-2);border-color:var(--gold);background:var(--gold-soft)}.mockup-cloud{min-height:370px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid rgba(255,255,255,.06);border-radius:12px;background:radial-gradient(circle at 50% 48%,rgba(32,78,128,.24),transparent 55%),rgba(255,255,255,.015);padding:18px}.mockup-cloud .cloud{max-width:680px;min-height:310px;gap:8px 13px}.mockup-cloud .cloud span{font-weight:800;cursor:pointer;display:inline-block;transition:transform .15s,text-shadow .15s}.mockup-cloud .cloud span:hover{transform:scale(1.08);text-shadow:0 0 18px currentColor}.cloud-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;color:var(--muted);min-height:250px}.cloud-empty strong{color:var(--text);font-size:14px}.cloud-empty span{font-size:11px;color:var(--faint)}.topic-list-side{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02);padding:14px}.topic-list-side h4{font-size:14px;margin-bottom:12px}.topic-list-row{cursor:pointer;transition:background .15s;padding-left:5px;padding-right:5px;border-radius:6px}.topic-list-row:hover{background:rgba(90,143,240,.12)}.topic-list-row{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:11px}.topic-list-row:last-child{border-bottom:0}.topic-dot{width:9px;height:9px;border-radius:50%}.topic-bar{height:5px;border-radius:5px;background:var(--blue);margin-left:auto;width:50px}.topic-side-add{width:100%;margin-top:12px;background:transparent;border:0;color:var(--gold-2);font-size:11px;font-weight:800;cursor:pointer}.main-topic-cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.main-topic-card{border:1px solid var(--line);transition:transform .15s,border-color .15s}.main-topic-card:hover{transform:translateY(-2px);border-color:var(--gold)}border-radius:12px;overflow:hidden;background:rgba(255,255,255,.025);cursor:pointer}.main-topic-card .topic-art{height:74px;background:linear-gradient(135deg,#153c62,#2a194a);}.main-topic-card .topic-card-body{padding:10px}.main-topic-card h4{font-size:12px}.main-topic-card p{font-size:10px;color:var(--faint);margin-top:4px}.topic-progress{height:5px;background:var(--panel-3);border-radius:5px;margin-top:8px;overflow:hidden}.topic-progress i{display:block;height:100%;background:var(--blue);border-radius:5px}@media(max-width:1100px){.mockup-cloud-panel{grid-template-columns:1fr}.main-topic-cards{grid-template-columns:repeat(3,1fr)}}
-  .topic-card{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:13px;padding:13px 14px;cursor:pointer;transition:border-color .15s, transform .15s}
-  .topic-card:hover{border-color:rgba(214,173,99,.35);transform:translateY(-1px)}
-  .topic-ico{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:16px;flex-shrink:0}
-  .topic-nm{font-size:12.5px;font-weight:700;line-height:1.3}
-  .topic-ct{font-size:10px;color:var(--faint);margin-top:2px}
-  .topic-card.add-new{border-style:dashed;justify-content:center;color:var(--muted);font-weight:800;font-size:12px}
-
-  /* ---------- references list ---------- */
-  .ref-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
-  .ref-row:last-child{border-bottom:none}
-  .ref-row:hover .ref-name{color:var(--gold-2)}
-  .ref-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:15px;flex-shrink:0;background:var(--panel-3)}
-  .ref-name{font-size:12.5px;font-weight:700;line-height:1.35}
-  .ref-meta{font-size:10px;color:var(--faint);margin-top:2px}
-  .ref-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
-  .mini-tag{font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap}
-  .ref-date{font-size:9.5px;color:var(--faint)}
-  .refs-footer{text-align:center;margin-top:12px}
-
-  /* ---------- Pennyworth ---------- */
-  .penny-card{background:linear-gradient(160deg,rgba(91,63,123,.28),rgba(13,18,28,.97) 55%);border:1px solid rgba(155,126,232,.22);border-radius:var(--radius);padding:16px;box-shadow:0 14px 34px rgba(0,0,0,.24);margin-bottom:14px}
-  .penny-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-  .penny-avatar{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a2f52,#171226);border:1px solid rgba(214,173,99,.4);display:grid;place-items:center;font-size:22px;flex-shrink:0}
-  .penny-name{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--gold-2)}
-  .penny-name .pro{font-size:8px;background:var(--gold-soft);border:1px solid rgba(214,173,99,.3);border-radius:5px;padding:2px 5px;margin-left:5px;vertical-align:middle}
-  .penny-sub{font-size:10.5px;color:var(--muted);margin-top:2px}
-  .penny-desc{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:12px}
-  .penny-input-row{display:flex;gap:8px;margin-bottom:10px}
-  .penny-input{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:11px;padding:10px 12px;color:var(--text);font-size:12px;outline:none}
-  .penny-input:focus{border-color:rgba(155,126,232,.5)}
-  .penny-send{width:38px;height:38px;border-radius:11px;border:none;background:linear-gradient(135deg,#a98bf5,#7d5fd4);color:#fff;font-size:15px;cursor:pointer;flex-shrink:0}
-  .penny-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .penny-chip{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;text-align:center}
-  .penny-chip:hover{color:var(--text);border-color:rgba(155,126,232,.4)}
-  .penny-response{font-size:11px;color:var(--muted);line-height:1.55;margin-top:10px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:10px;padding:10px;display:none}
-  .penny-response.show{display:block}
-
-  /* ---------- brief ---------- */
-  .brief-hero{border-radius:14px;overflow:hidden;border:1px solid rgba(155,126,232,.25);background:linear-gradient(160deg,#2a2140,#12101f 70%);padding:18px;position:relative;margin-bottom:12px}
-  .brief-hero::after{content:"🛰️";position:absolute;right:14px;bottom:10px;font-size:34px;opacity:.55;filter:saturate(.6)}
-  .brief-kicker{font-size:10px;font-weight:800;letter-spacing:.14em;color:#c9b3f5;text-transform:uppercase}
-  .brief-date{font-size:11px;color:var(--muted);margin:4px 0 8px}
-  .brief-text{font-size:11px;color:var(--muted);line-height:1.5;max-width:75%}
-  .btn-brief{width:100%;background:linear-gradient(135deg,#e2bd72,#c89a4e);color:#221a0c;border:none;border-radius:11px;padding:11px;font-size:12px;font-weight:800;cursor:pointer}
-  .btn-brief:hover{filter:brightness(1.07)}
-  .brief-list{margin-top:12px}
-  .brief-list-title{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
-  .brief-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)}
-  .brief-row:last-child{border-bottom:none}
-
-  /* ---------- universe / cloud / quote ---------- */
-  .three-col{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:14px}
-  .map-wrap{display:flex;flex-direction:column;gap:8px}
-  .cloud{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:center;padding:14px 4px;min-height:150px}
-  .cloud span{font-weight:700;cursor:default;transition:transform .15s}
-  .cloud span:hover{transform:scale(1.08)}
-  .quote-box{text-align:center;padding:8px 4px}
-  .quote-mark{font-family:var(--serif);font-size:34px;color:var(--gold);line-height:.5;display:block;margin-bottom:12px}
-  .quote-text{font-family:var(--serif);font-size:15px;font-style:italic;line-height:1.5;margin-bottom:8px}
-  .quote-author{font-size:11px;color:var(--faint);margin-bottom:10px}
-  .quote-based{font-size:9.5px;color:var(--faint);margin-bottom:12px}
-  .btn-ghost{background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:8px 14px;font-size:11px;font-weight:800;cursor:pointer}
-  .btn-ghost:hover{color:var(--text);border-color:rgba(214,173,99,.35)}
-  .refresh-ico{cursor:pointer;color:var(--faint);font-size:13px}
-  .refresh-ico:hover{color:var(--gold-2)}
-
-  /* ---------- quick access bar ---------- */
-  .quick-bar{position:fixed;left:var(--sbw,220px);right:0;bottom:0;z-index:40;display:flex;align-items:center;gap:10px;padding:10px 22px;background:rgba(5,7,12,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
-  .quick-label{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
-  .quick-actions{display:flex;gap:8px;flex-wrap:wrap;flex:1}
-  .quick-btn{background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:8px 13px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
-  .quick-btn:hover{color:var(--text);border-color:rgba(214,173,99,.35)}
-  .quick-sync{margin-left:auto;font-size:10px;color:var(--green);display:flex;align-items:center;gap:6px;white-space:nowrap}
-  .quick-sync .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
-
-  .empty-note{font-size:12px;color:var(--faint);font-style:italic;padding:14px 0;text-align:center}
-  #sync-note{display:block;text-align:center;font-size:11px;color:var(--faint);margin-top:14px}
-
-  /* ---------- notifications panel ---------- */
-  .icon-btn{transition:border-color .15s}
-  .icon-btn:hover{border-color:rgba(214,173,99,.35)}
-  .icon-btn.active{border-color:rgba(214,173,99,.55);background:rgba(214,173,99,.10)}
-  .notif-overlay{position:fixed;inset:0;background:rgba(3,4,8,.45);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
-  .notif-overlay.open{opacity:1;pointer-events:auto}
-  .notif-panel{position:fixed;top:0;right:0;bottom:0;width:min(400px,92vw);background:linear-gradient(180deg,#0d1220,#090d16);border-left:1px solid var(--line);box-shadow:-24px 0 60px rgba(0,0,0,.5);z-index:61;transform:translateX(105%);transition:transform .25s ease;display:flex;flex-direction:column}
-  .notif-panel.open{transform:translateX(0)}
-  .notif-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 18px 14px;border-bottom:1px solid var(--line)}
-  .notif-head h3{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#e7e3d8;display:flex;align-items:center;gap:8px}
-  .notif-count-pill{font-size:10px;font-weight:800;background:var(--gold-soft);color:var(--gold-2);border:1px solid rgba(214,173,99,.24);border-radius:999px;padding:3px 9px}
-  .notif-clear-all{background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:7px 11px;font-size:11px;font-weight:800;cursor:pointer}
-  .notif-clear-all:hover{color:#ff9d9a;border-color:rgba(228,95,91,.35)}
-  .notif-list{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
-  .notif-item{display:flex;gap:11px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px;padding:12px;animation:notifIn .18s ease}
-  @keyframes notifIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .notif-item.removing{opacity:0;transform:translateX(18px);transition:all .18s ease}
-  .notif-ico{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:15px;flex-shrink:0}
-  .notif-ico.red{background:var(--red-soft)}.notif-ico.amber{background:var(--amber-soft)}.notif-ico.blue{background:var(--blue-soft)}.notif-ico.green{background:var(--green-soft)}.notif-ico.purple{background:var(--purple-soft)}
-  .notif-body{flex:1;min-width:0}
-  .notif-title{font-size:12.5px;font-weight:800;line-height:1.35}
-  .notif-text{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45}
-  .notif-time{font-size:9.5px;color:var(--faint);margin-top:6px;text-transform:capitalize}
-  .notif-dismiss{width:24px;height:24px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--faint);font-size:13px;cursor:pointer;flex-shrink:0;display:grid;place-items:center}
-  .notif-dismiss:hover{color:#ff9d9a;border-color:rgba(228,95,91,.3);background:rgba(228,95,91,.08)}
-  .notif-empty{text-align:center;color:var(--faint);font-size:12px;padding:44px 20px;font-style:italic}
-  .notif-foot{padding:12px 18px;border-top:1px solid var(--line);font-size:10px;color:var(--faint);text-align:center}
-
-  /* ---------- topic workspace (Trello view) ---------- */
-  #topic-view{display:none}
-  .topic-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-  .topic-toolbar select,.topic-toolbar input{background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:9px 12px;font-size:12px}
-  .board-cols{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px}
-  .board-col{background:var(--panel-2);border-radius:14px;padding:12px;min-width:240px;flex-shrink:0;border:1px solid var(--line)}
-  .board-col-head{font-size:11.5px;font-weight:800;color:var(--muted);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-  .board-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 11px;margin-bottom:8px;cursor:pointer;font-size:12px}
-  .board-card:hover{border-color:var(--gold)}
-  .board-card .tp{font-size:9.5px;color:var(--faint);text-transform:uppercase;margin-bottom:4px}
-  .board-card .nm{font-weight:600;line-height:1.3}
-  .add-col-btn{background:var(--panel-2);border:1px dashed var(--line-strong);border-radius:14px;min-width:180px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px;cursor:pointer}
-  .add-card-link{font-size:11px;color:var(--gold-2);cursor:pointer;margin-top:4px;font-weight:700}
-
-  /* ---------- modal ---------- */
-  #ref-modal-backdrop{display:none;position:fixed;inset:0;background:rgba(3,4,8,.6);backdrop-filter:blur(3px);z-index:100;align-items:center;justify-content:center;padding:20px}
-  #ref-modal{background:linear-gradient(180deg,#101623,#0b0f17);border:1px solid var(--line-strong);border-radius:18px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;padding:24px;box-shadow:0 30px 70px rgba(0,0,0,.55)}
-  .modal-field{margin-bottom:12px}
-  .modal-field label{font-size:10px;color:var(--faint);display:block;margin-bottom:5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
-  .modal-field input,.modal-field select,.modal-field textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);padding:9px 11px;border-radius:10px;font-size:12.5px;font-family:inherit;outline:none}
-  .modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:rgba(214,173,99,.45)}
-  .modal-field select option{background:#101623}
-
-  @media (max-width:1180px){.layout{grid-template-columns:1fr}.three-col{grid-template-columns:1fr}.stat-row{grid-template-columns:repeat(2,1fr)}}
-  @media (max-width:820px){.quick-bar{left:0}}
-  @media (max-width:760px){.main{padding:14px 12px 110px}.topics-grid{grid-template-columns:1fr 1fr}.stat-row{grid-template-columns:1fr 1fr}}
-
-  .workspace-banner{position:relative;height:156px;min-height:156px;margin:0 0 18px;border:1px solid rgba(255,255,255,.10);border-radius:16px;overflow:hidden;background-position:center;background-size:cover;box-shadow:0 16px 40px rgba(0,0,0,.30)}
-  .workspace-banner::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,7,12,.90),rgba(5,7,12,.48) 46%,rgba(5,7,12,.18)),linear-gradient(0deg,rgba(5,7,12,.46),transparent 60%)}
-  .workspace-banner-content{position:relative;z-index:1;height:156px;min-height:156px;display:flex;align-items:flex-end;padding:20px 24px}
-  .workspace-banner-title{font-family:var(--serif);font-size:27px;font-weight:600;margin-top:5px}.workspace-banner-subtitle{font-size:12px;color:#d6dae4;margin-top:5px}.workspace-banner-edit{position:absolute;right:14px;top:14px;z-index:3;background:rgba(5,12,22,.78);border:1px solid rgba(90,143,240,.65);color:#d8e7ff;border-radius:8px;padding:8px 11px;font-size:10px;font-weight:800;cursor:pointer}.workspace-banner-edit:hover{border-color:var(--gold);color:var(--gold-2)}.workspace-banner-kicker{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#f0cf8d;font-weight:800}
-
-  .topic-list-row{grid-template-columns:14px minmax(0,1fr) 52px 24px 24px;gap:7px}.topic-row-bar{height:5px;width:52px;background:#14283b;border-radius:5px;overflow:hidden}.topic-row-bar i{display:block;height:100%;background:linear-gradient(90deg,#4bb4ff,#7b75ef);border-radius:5px}.topic-edit-mini,.topic-delete-mini{border:0;background:transparent;color:#718da1;font-size:13px;padding:1px 3px;cursor:pointer;opacity:.55}.topic-edit-mini:hover{color:#8dd8ff;opacity:1}.topic-delete-mini:hover{color:#ff8b9a;opacity:1}
-
-  .home-btn{min-height:40px;display:inline-flex;align-items:center;gap:7px;background:#0b1725;border:1px solid #31536e;border-radius:12px;padding:9px 13px;color:#c5e2f2;font-size:12px;font-weight:800;transition:border-color .15s,background .15s,color .15s}.home-btn:hover{background:#10304a;border-color:#5bb8e9;color:#f0fbff}
-  /* Premium Jarvis / Mis Gustos mockup refinement */
-  body{background:#050a12;background-image:radial-gradient(900px 480px at 70% -8%,rgba(35,103,163,.22),transparent 66%),radial-gradient(650px 460px at 8% 20%,rgba(45,30,91,.18),transparent 68%)}
-  .main{max-width:none;padding:24px 34px 98px}
-  .workspace-banner{height:166px;min-height:166px;margin-bottom:14px;border-color:rgba(54,143,205,.42);border-radius:14px;background-position:center 48%;box-shadow:0 16px 42px rgba(0,0,0,.38),inset 0 0 0 1px rgba(255,255,255,.04)}
-  .workspace-banner::after{background:linear-gradient(90deg,rgba(4,10,18,.94),rgba(4,10,18,.62) 43%,rgba(4,10,18,.14)),linear-gradient(0deg,rgba(4,10,18,.58),transparent 62%)}
-  .workspace-banner-content{height:166px;min-height:166px;padding:22px 26px}.workspace-banner-title{font-size:30px;text-shadow:0 2px 18px #000}.workspace-banner-subtitle{font-size:12px;color:#d7e6f0}.workspace-banner-kicker{color:#86d5ff;letter-spacing:.16em}.workspace-banner-edit{background:rgba(7,20,32,.9);border-color:#4386b7;color:#d8efff;box-shadow:0 4px 15px rgba(0,0,0,.22)}
-  .mockup-actions-head{margin:0 0 10px}.head-actions{gap:9px}.top-pill,.icon-btn{background:#0b1725;border-color:#294963;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}.top-pill:hover,.icon-btn:hover{border-color:#58aee1}.btn-gold{background:linear-gradient(135deg,#f1ce7d,#dba946);box-shadow:0 8px 22px rgba(219,169,70,.22)}
-  .tab-bar{margin-bottom:15px;border-bottom-color:rgba(69,135,181,.25);gap:2px}.tab-bar button{padding:11px 15px;color:#8da4b7}.tab-bar button.active{color:#f3d27f}.tab-bar button.active::after{height:3px;background:linear-gradient(90deg,#f3d27f,#b9863e);box-shadow:0 0 10px rgba(226,185,95,.4)}
-  .layout{display:block}.col-main > .panel:nth-of-type(2){display:block}.col-main > .three-col{display:none}.col-side{display:none}
-  .panel{background:linear-gradient(155deg,rgba(12,22,35,.97),rgba(8,13,22,.98));border-color:rgba(78,142,190,.24);border-radius:14px;box-shadow:0 14px 38px rgba(0,0,0,.28);padding:16px;margin-bottom:14px}.panel-head{margin-bottom:13px}.panel-head h3{font-size:12px;color:#e6f1f8;letter-spacing:.035em}.panel-note{color:#7893a8;font-size:11px}
-  .mockup-cloud-panel{grid-template-columns:minmax(0,1fr) 300px;gap:14px}.mockup-cloud{min-height:398px;border-color:rgba(78,142,190,.25);border-radius:12px;background:radial-gradient(circle at 51% 49%,rgba(24,88,145,.32),transparent 55%),radial-gradient(circle at 80% 20%,rgba(119,51,157,.12),transparent 32%),#0a1422;box-shadow:inset 0 0 48px rgba(20,70,110,.14)}.mockup-cloud .cloud{max-width:760px;min-height:330px;gap:9px 15px}.mockup-cloud .cloud span{font-weight:800;text-shadow:0 0 15px currentColor;letter-spacing:-.02em}.cloud-view-controls button{background:#0c1827;border-color:#2a4962;color:#8daabd}.cloud-view-controls button.active{background:rgba(151,111,42,.22);border-color:#d6ad63;color:#f3d287}
-  .topic-list-side{border-color:rgba(83,143,189,.25);background:linear-gradient(180deg,rgba(12,22,36,.95),rgba(8,14,24,.9));padding:15px}.topic-list-side h4{font-family:var(--serif);font-size:17px;color:#eff7fb}.topic-list-row{grid-template-columns:14px 1fr auto;gap:9px;padding:9px 5px;border-bottom-color:rgba(112,157,192,.15);color:#d8e7f1}.topic-list-row:hover{background:rgba(56,150,219,.12)}.topic-bar{height:6px;background:linear-gradient(90deg,#4bb4ff,#7182f3);box-shadow:0 0 8px rgba(75,180,255,.22)}.topic-side-add{margin-top:14px;color:#f0cb79;text-align:left;padding-left:5px}
-  .main-topic-cards{grid-template-columns:repeat(6,minmax(0,1fr));gap:11px}.main-topic-card{border-color:rgba(75,139,184,.26);border-radius:12px;background:linear-gradient(160deg,#101f31,#0a1421);overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.22)}.main-topic-card:hover{transform:translateY(-3px);border-color:#54a9df;box-shadow:0 12px 26px rgba(0,0,0,.35)}.main-topic-card .topic-art{height:86px;filter:saturate(1.1);position:relative}.main-topic-card .topic-art::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(5,11,19,.5),transparent)}.main-topic-card .topic-card-body{padding:11px}.main-topic-card h4{font-size:12px;color:#e8f4fb}.main-topic-card p{color:#8fa9ba}.topic-progress{background:#172a3c}.topic-progress i{background:linear-gradient(90deg,#39a9ec,#777ef0);box-shadow:0 0 8px rgba(64,163,228,.24)}
-  .ref-row{padding:12px 4px;border-bottom-color:rgba(112,157,192,.14)}.ref-row:hover{background:rgba(56,150,219,.07)}.ref-name{color:#e7f3f9}.ref-meta{color:#7f9bad}.ref-icon{background:#10283d;border:1px solid #2a5877}
-  .quick-bar{background:rgba(5,11,18,.94);border-top-color:rgba(69,135,181,.24);box-shadow:0 -8px 25px rgba(0,0,0,.2)}.quick-btn{background:#0c1b2b;border-color:#2a4b64;color:#a7c0d0}.quick-btn:hover{border-color:#55a9dc;color:#e4f5ff}.quick-sync{color:#45d69b}
-  @media(max-width:1100px){.mockup-cloud-panel{grid-template-columns:1fr}.main-topic-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
-  @media(max-width:760px){.main{padding:16px 12px 108px}.workspace-banner,.workspace-banner-content{height:150px;min-height:150px}.workspace-banner-title{font-size:25px}.main-topic-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.mockup-cloud{min-height:330px}}
-
+:root{--bg:#050b14;--p:#0b1726;--p2:#0f2033;--p3:#0a1422;--line:#8ec3ee26;--line2:#8ec3ee47;--text:#f3f1ea;--muted:#a5b5c4;--faint:#7890a4;--gold:#e5c068;--gold2:#f3d98f;--blue:#5aa9f0;--green:#46d49c;--purple:#a585f2;--pink:#ec79b3;--orange:#f0a64a;--red:#ef6d73;--serif:Fraunces,Georgia,serif;--sans:Inter,system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{overflow-x:clip}
+body{margin:0;background:radial-gradient(900px 500px at 72% -10%,#16395a,transparent 62%),radial-gradient(700px 480px at 5% 15%,#2a1c4f55,transparent 70%),var(--bg);color:var(--text);font-family:var(--sans);font-size:13px}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.shell{max-width:1560px;margin:auto;padding:16px 24px 96px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.crumb{color:var(--muted);font-size:12px}.crumb b{color:var(--text)}.crumb a{text-decoration:none;cursor:pointer}.crumb a:hover{color:var(--gold2)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line2);background:#0c1c2e;color:var(--text);border-radius:10px;padding:8px 13px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn:hover{border-color:var(--gold)}
+.btn.gold{background:linear-gradient(135deg,#f2d27e,#cf9f3f);color:#1f1606;border-color:#f3da8f}
+.btn.ghost{background:transparent}
+.btn.danger{color:#ff9aa0;border-color:#ef6d7366}
+.btn.sm{padding:5px 9px;font-size:11px}
+.input,.select{background:#0a1829;border:1px solid var(--line2);color:var(--text);border-radius:10px;padding:8px 11px;font-size:12px;min-width:0}
+/* Hero */
+.hero{position:relative;border:1px solid #e5c06855;border-radius:16px;overflow:hidden;min-height:176px;background:#0a1a2b center/cover no-repeat;margin-bottom:12px}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#050b14f5,#050b14b8 48%,#050b1433),linear-gradient(0deg,#050b1499,transparent 60%)}
+.hero-in{position:relative;z-index:1;display:flex;gap:18px;align-items:center;padding:26px 28px;min-height:176px}
+.hero-icon{width:72px;height:72px;border-radius:16px;border:1.5px solid var(--gold);background:#07121fcc center/cover no-repeat;display:grid;place-items:center;flex-shrink:0;color:var(--gold)}
+.hero-kicker{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold2);font-weight:800}
+.hero h1,.topic-hero h1{font-family:var(--serif);font-weight:600;font-size:34px;margin:4px 0 4px;line-height:1.1}
+.hero p{color:#d3dde6;margin:0;max-width:620px}
+.hero-quote{margin-left:auto;max-width:300px;font-family:var(--serif);font-style:italic;font-size:15px;color:#e8e2d2;text-align:right;align-self:center}
+.hero-quote small{display:block;font-family:var(--sans);font-style:normal;font-size:10px;letter-spacing:.14em;color:var(--gold2);margin-top:6px}
+.hero-edit{position:absolute;z-index:2;right:14px;top:14px}
+/* Tabs */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}
+.tabs button{background:none;border:0;color:var(--muted);font-weight:700;padding:10px 14px;position:relative;white-space:nowrap}
+.tabs button:hover{color:var(--text)}
+.tabs button.active{color:var(--gold2)}
+.tabs button.active::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px;background:var(--gold)}
+/* Panels */
+.panel{background:linear-gradient(160deg,#0d1b2cf2,#08121ff2);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.panel-head h2,.panel-head h3{margin:0;font-family:var(--serif);font-weight:600;font-size:19px}
+.panel-head h3{font-size:16px}
+.panel-head .sub{color:var(--faint);font-size:11.5px;margin-top:3px}
+.link{background:none;border:0;color:var(--gold2);font-weight:800;font-size:11.5px;padding:0}
+.link:hover{text-decoration:underline}
+.grid-2{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:linear-gradient(160deg,#0d1b2c,#08121f);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center}
+.kpi svg{flex-shrink:0;color:var(--gold)}
+.kpi strong{display:block;font-size:24px;font-family:var(--serif);font-weight:600;line-height:1.1}
+.kpi span{color:var(--muted);font-size:11px}
+.empty{color:var(--faint);font-style:italic;font-size:12px;padding:10px 2px}
+/* Topic cards */
+.topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.tcard{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--p);cursor:pointer;transition:transform .15s,border-color .15s;min-height:210px;display:flex;flex-direction:column}
+.tcard:hover{transform:translateY(-2px);border-color:#e5c06899}
+.tcover{height:112px;background:#11253a center/cover no-repeat;position:relative}
+.tcover::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#0b1726,transparent 70%)}
+.tbody{padding:0 12px 12px;margin-top:-22px;position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;flex:1}
+.ticon{width:40px;height:40px;border-radius:10px;border:1px solid var(--gold);background:#081322 center/cover no-repeat;display:grid;place-items:center;color:var(--gold);font-family:var(--serif);font-weight:600;font-size:18px}
+.tname{font-weight:800;font-size:13.5px;margin-top:4px}
+.tmeta{color:var(--faint);font-size:11px}
+.tdesc{color:var(--muted);font-size:11.5px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tdesc.placeholder{color:var(--faint);font-style:italic}
+.tmenu{position:absolute;right:8px;top:8px;z-index:2;background:#07121fcc;border:1px solid var(--line2);color:var(--text);border-radius:8px;width:30px;height:28px;font-weight:800}
+.tcard.new{border-style:dashed;align-items:center;justify-content:center;text-align:center;color:var(--muted);gap:6px;padding:14px;background:transparent}
+.tcard.new b{color:var(--gold2);font-size:14px}
+.plus{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;color:var(--gold);font-size:22px}
+.menu{position:fixed;z-index:80;background:#0d1d30;border:1px solid var(--line2);border-radius:10px;padding:5px;min-width:170px;box-shadow:0 18px 40px #000a}
+.menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);padding:8px 10px;border-radius:7px;font-size:12px;font-weight:600}
+.menu button:hover{background:#ffffff10}
+.menu button.del{color:#ff9aa0}
+/* Lists */
+.row{display:flex;gap:11px;align-items:center;padding:10px 6px;border-bottom:1px solid #8ec3ee18;cursor:pointer;border-radius:8px}
+.row:hover{background:#ffffff08}
+.row:last-child{border-bottom:0}
+.thumb{width:44px;height:44px;border-radius:9px;background:#10263b center/cover no-repeat;border:1px solid var(--line);display:grid;place-items:center;color:var(--gold);font-size:10px;font-weight:800;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em;text-align:center}
+.row .copy{min-width:0;flex:1}
+.row strong{display:block;font-size:12.5px;overflow-wrap:anywhere}
+.row small{color:var(--faint);font-size:11px}
+.row .right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.chip{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:#5aa9f01f;color:#9fcaf5;margin:2px 4px 0 0;white-space:nowrap}
+.chip.gold{background:#e5c0681f;color:var(--gold2)}
+.chip.green{background:#46d49c1f;color:#7fe3b9}
+.chip.purple{background:#a585f21f;color:#c7b3f7}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar .input{flex:1 1 220px}
+/* Board */
+.board{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;align-items:flex-start}
+.col{background:var(--p2);border:1px solid var(--line);border-radius:12px;padding:10px;width:290px;flex-shrink:0;max-height:70vh;display:flex;flex-direction:column}
+.col.drop{border-color:var(--gold);background:#132a40}
+.col-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.col-head strong{flex:1;font-size:13px;overflow-wrap:anywhere}
+.col-head .count{background:#ffffff12;border-radius:999px;padding:2px 8px;font-size:11px;color:var(--muted)}
+.col-head button{background:none;border:0;color:var(--muted);font-weight:800;font-size:15px;padding:0 4px}
+.col-body{overflow-y:auto;min-height:40px;display:flex;flex-direction:column;gap:8px}
+.card{display:flex;gap:10px;background:var(--p);border:1px solid var(--line);border-radius:10px;padding:9px;cursor:grab}
+.card:hover{border-color:#e5c06899}
+.card.dragging{opacity:.5}
+.card .thumb{width:58px;height:58px}
+.card strong{display:block;font-size:12.5px;line-height:1.3;overflow-wrap:anywhere}
+.card small{color:var(--faint);font-size:11px;display:block;margin-top:2px}
+.add-card{background:none;border:1px dashed var(--line2);color:var(--gold2);border-radius:9px;padding:8px;font-weight:700;font-size:12px;margin-top:8px}
+.col.new{align-items:center;justify-content:center;text-align:center;border-style:dashed;color:var(--muted);cursor:pointer;min-height:160px;background:transparent;gap:6px}
+.col.new b{color:var(--text)}
+.topic-hero{position:relative;border:1px solid #e5c06855;border-radius:16px;overflow:hidden;background:#0a1a2b center/cover no-repeat;margin-bottom:12px}
+.topic-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#050b14f2,#050b14b0 55%,#050b1422)}
+.topic-hero .hero-in{min-height:150px}
+/* Cloud */
+.cloud-wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px}
+.cloud-box{position:relative;border:1px solid var(--line);border-radius:12px;min-height:380px;overflow:hidden;background:radial-gradient(circle at 50% 50%,#1b4a7555,transparent 60%),#081322}
+.cloud{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:center;padding:30px 24px;min-height:380px;transform-origin:center;transition:transform .2s}
+.cloud button{background:none;border:0;font-weight:800;letter-spacing:-.01em;line-height:1.05;padding:2px;text-shadow:0 0 16px currentColor}
+.cloud button:hover{transform:scale(1.07)}
+.zoom{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;z-index:2}
+.total-pill{position:absolute;right:12px;bottom:12px;z-index:2;border:1px solid var(--line2);border-radius:9px;padding:6px 10px;color:var(--muted);font-size:11px;background:#081322cc}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:9px;overflow:hidden}
+.seg button{background:transparent;border:0;color:var(--muted);padding:6px 12px;font-weight:700;font-size:11.5px}
+.seg button.active{background:#e5c06826;color:var(--gold2)}
+.tlist .trow{display:grid;grid-template-columns:10px minmax(0,1fr) 70px 30px 36px;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid #8ec3ee14;cursor:pointer;font-size:12px}
+.tlist .trow:hover{background:#ffffff08}
+.dotc{width:10px;height:10px;border-radius:50%}
+.bar{height:5px;border-radius:5px;background:#16304a;overflow:hidden}.bar i{display:block;height:100%;border-radius:5px}
+.num{text-align:right;color:var(--muted)}
+.map svg{width:100%;height:auto;display:block}
+.authors{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.author{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--p);cursor:pointer;display:flex;gap:10px;align-items:center}
+.author:hover{border-color:#e5c06899}
+.avatar{width:40px;height:40px;border-radius:50%;background:#e5c06822;border:1px solid var(--gold);display:grid;place-items:center;color:var(--gold2);font-weight:800;flex-shrink:0}
+.quotes{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.quote{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--p);display:flex;flex-direction:column;gap:8px}
+.quote q{font-family:var(--serif);font-style:italic;font-size:15.5px;line-height:1.45;quotes:"“" "”"}
+.quote small{color:var(--gold2);font-weight:700;letter-spacing:.06em}
+.quote .qa{display:flex;gap:6px;margin-top:auto}
+/* Quick bar */
+.quickbar{position:fixed;left:var(--sbw,0px);right:0;bottom:0;z-index:40;display:flex;gap:8px;align-items:center;padding:10px 24px;background:#050b14ee;backdrop-filter:blur(12px);border-top:1px solid var(--line);overflow-x:auto}
+.quickbar .lbl{color:var(--gold2);font-weight:800;font-size:12px;white-space:nowrap;margin-right:4px}
+.sync{margin-left:auto;color:var(--green);font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:16px;z-index:90}
+.modal{background:linear-gradient(180deg,#0f1f32,#0a1523);border:1px solid var(--line2);border-radius:16px;padding:20px;width:min(760px,100%);max-height:92vh;overflow:auto}
+.modal.narrow{width:min(520px,100%)}
+.modal-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.modal-head h2{margin:0;font-family:var(--serif);font-weight:600;font-size:22px}
+.modal-head .sub{color:var(--muted);font-size:12px;margin-top:3px}
+.modal-head .x{margin-left:auto;background:none;border:0;color:var(--muted);font-size:20px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .wide{grid-column:1/-1}
+.form label,.flabel{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted);font-weight:700}
+.form input,.form select,.form textarea{background:#0a1829;border:1px solid var(--line2);color:var(--text);border-radius:9px;padding:9px 11px;font-size:13px;width:100%}
+.form textarea{min-height:92px;resize:vertical}
+.ref-top{display:grid;grid-template-columns:170px minmax(0,1fr);gap:14px;margin-bottom:12px}
+.ref-img{height:150px;border-radius:12px;border:1px solid var(--line2);background:#0a1829 center/cover no-repeat;display:grid;place-items:center;color:var(--faint);font-size:11px;text-align:center;padding:8px}
+.pick{display:flex;flex-wrap:wrap;gap:6px}
+.pick label{flex-direction:row;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:999px;padding:5px 10px;font-size:11.5px;color:var(--text);cursor:pointer;background:#0a1829}
+.pick input{width:auto;accent-color:var(--gold)}
+.pick label:has(input:checked){border-color:var(--gold);background:#e5c0681f}
+.tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:1px solid var(--line2);border-radius:9px;padding:6px;background:#0a1829}
+.tags .chip button{background:none;border:0;color:inherit;margin-left:4px;padding:0;font-weight:800}
+.tags input{border:0!important;background:transparent!important;flex:1;min-width:120px;padding:4px!important}
+.stars{display:flex;gap:4px;align-items:center}
+.stars button{background:none;border:0;font-size:22px;color:#3a4d61;padding:0 1px}
+.stars button.on{color:var(--gold)}
+.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.file{position:relative;border:1px solid var(--line2);border-radius:10px;height:100px;background:#0a1829 center/cover no-repeat;display:flex;align-items:flex-end;text-decoration:none;overflow:hidden}
+.file span{background:#050b14d9;width:100%;padding:4px 6px;font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file .rm{position:absolute;right:4px;top:4px;background:#050b14e6;border:1px solid var(--line2);color:#ff9aa0;border-radius:6px;width:22px;height:22px;font-weight:800;padding:0}
+.drop-zone{border:1.5px dashed var(--line2);border-radius:10px;height:100px;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:11px;cursor:pointer;padding:6px}
+.drop-zone.over{border-color:var(--gold);color:var(--gold2)}
+.comments{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto;margin-top:8px}
+.comment{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#0a1829}
+.comment small{color:var(--faint);display:block;margin-bottom:3px}
+.section-label{font-size:11px;color:var(--muted);font-weight:800;margin:16px 0 8px;letter-spacing:.04em}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.modal-actions .left{margin-right:auto}
+.img-field{display:flex;gap:10px;align-items:center}
+.img-prev{width:84px;height:56px;border-radius:9px;border:1px solid var(--line2);background:#0a1829 center/cover no-repeat;flex-shrink:0}
+.img-prev.sq{width:56px}
+.brief{white-space:normal;line-height:1.55;color:#d8e2ea}
+.brief h4{margin:14px 0 6px;color:var(--gold2);font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+.brief ul{margin:0;padding-left:18px}
+.status{text-align:center;color:var(--faint);font-size:11px;margin-top:10px}
+@media(max-width:1180px){.grid-2,.cloud-wrap{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.shell{padding:12px 12px 110px}.hero-in{flex-wrap:wrap;padding:20px 16px;gap:12px}.hero-icon{width:54px;height:54px}.hero h1{font-size:26px}.hero-quote{display:none}.kpis{grid-template-columns:1fr 1fr}.topics{grid-template-columns:1fr 1fr}.form,.ref-top{grid-template-columns:1fr}.col{width:84vw}.quickbar{padding:8px 12px}.hero-edit{top:auto;bottom:10px}}
+@media(max-width:420px){.topics{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="main">
-
-  <!-- ===== DASHBOARD VIEW ===== -->
-  <div id="dashboard-view">
-<section class="workspace-banner" style="background-image:url('/assets/covers/mis-gustos-aprendizajes-cover-v2.jpg')"><button class="workspace-banner-edit" onclick="window.location.href='/sistemas-ajustes.html'">✎ Editar portada</button><button class="workspace-banner-click" onclick="window.location.href='/sistemas-ajustes.html'" aria-label="Cambiar portada"></button><div class="workspace-banner-content"><div><div class="workspace-banner-kicker">JARVIS · MIS GUSTOS &amp; CONOCIMIENTO</div><div class="workspace-banner-title">Mis Gustos &amp; Conocimiento</div><div class="workspace-banner-subtitle">Todo lo que me interesa. Conectado, organizado y listo para inspirar mejores decisiones.</div></div></div></section>
-  <div class="page-head mockup-actions-head">
-      <div></div>
-      <div class="head-actions">
-        <a class="home-btn" href="/index.html" title="Volver a la página principal">⌂ <span>Inicio</span></a>
-        <div class="top-pill">📅 <span><span id="date-range-label">Esta semana</span><small id="date-range-sub"></small></span></div>
-        <div class="top-pill" id="filtros-pill">▤ Filtros <span>⌄</span></div>
-        <div class="icon-btn" id="notif-bell" title="Notificaciones">🔔<span class="badge" id="notif-badge" style="display:none;">0</span></div>
-        <button class="btn-gold" onclick="openCreateReference()">＋ Nueva referencia</button>
-      </div>
+<main class="shell">
+  <div class="top">
+    <div class="crumb" id="crumb"><b>Mis Gustos &amp; Conocimiento</b></div>
+    <div class="actions">
+      <button class="btn" onclick="location.href='/'">⌂ Inicio</button>
+      <button class="btn" onclick="openTopicForm()">＋ Nuevo tema</button>
+      <button class="btn gold" onclick="openRefForm({})">＋ Nueva referencia</button>
     </div>
+  </div>
 
-    <div class="tab-bar" id="tab-bar">
-      <button class="active" data-tab="resumen">Resumen</button>
+  <div id="home-view">
+    <section class="hero" id="hero">
+      <button class="btn hero-edit" onclick="openPageForm()">✎ Editar portada</button>
+      <div class="hero-in">
+        <div class="hero-icon" id="hero-icon"></div>
+        <div>
+          <div class="hero-kicker">Jarvis · Conocimiento</div>
+          <h1 id="hero-title">Mis Gustos &amp; Conocimiento</h1>
+          <p id="hero-desc">Todo lo que me interesa, conectado y organizado.</p>
+        </div>
+        <div class="hero-quote" id="hero-quote"></div>
+      </div>
+    </section>
+    <nav class="tabs" id="tabs">
+      <button data-tab="resumen">Resumen</button>
       <button data-tab="temas">Mis Temas</button>
       <button data-tab="referencias">Referencias</button>
-      <button data-tab="brief">Intelligence Brief</button>
+      <button data-tab="nube">Nube de Temas</button>
       <button data-tab="explorar">Explorar</button>
-        <button data-tab="autores" title="Autores">Autores</button>
+      <button data-tab="autores">Autores</button>
       <button data-tab="citas">Citas</button>
-    </div>
-
-    <div class="stat-row" id="stat-row"></div>
-
-    <div class="layout">
-      <div class="col-main">
-<div class="panel"><div class="panel-head"><h3>☁ Nube de Temas</h3><span class="panel-note">Visualiza la relación entre tus intereses</span><div class="cloud-view-controls"><button class="active" data-cloud-view="cloud">Nube</button><button data-cloud-view="map">Mapa</button><button data-cloud-view="list">Lista</button></div></div><div class="mockup-cloud-panel"><div class="mockup-cloud"><div class="cloud" id="tag-cloud"></div></div><div class="topic-list-side"><div style="display:flex;justify-content:space-between;align-items:center"><h4>Temas <span id="topic-list-count"></span></h4><select class="select-filter" style="font-size:10px"><option>Ordenar: Referencias</option></select></div><div id="topic-list-side"></div><button class="topic-side-add" id="add-topic-side">＋ Agregar tema</button></div></div></div><div class="panel"><div class="panel-head"><h3>Temas principales</h3><span class="link" id="cloud-see-all">Ver todos →</span></div><div class="main-topic-cards" id="topics-row"></div></div>
-
-        <div class="panel">
-          <div class="panel-head"><h3>Referencias recientes</h3><span class="link" onclick="openCreateReference()">Ver todas</span></div>
-          <div id="recent-list"></div>
-          <div class="refs-footer"><span class="link" onclick="openCreateReference()">Ver todas las referencias →</span></div>
-        </div>
-
-        <div class="three-col">
-          <div class="panel">
-          <div class="panel-head"><h3>4. Mi Universo de Intereses</h3><span class="panel-note">Visualización</span></div>
-            <div class="map-wrap" id="knowledge-map"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-head"><h3>5. Cita del Día</h3></div>
-            <div class="quote-box"><span class="quote-mark">“</span><div class="quote-text" id="quote-text-secondary"></div><div class="quote-author" id="quote-author-secondary"></div></div>
-          </div>
-          <div class="panel">
-            <div class="panel-head"><h3>6. Cita del Día</h3><span class="refresh-ico" id="quote-refresh" title="Otra cita">↻</span></div>
-            <div class="quote-box">
-              <span class="quote-mark">“</span>
-              <div class="quote-text" id="quote-text"></div>
-              <div class="quote-author" id="quote-author"></div>
-              <div class="quote-based">Basada en tus temas de Productividad · Hábitos · Mentalidad</div>
-              <button class="btn-ghost" id="quote-save">Guardar cita</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-side">
-        <div class="penny-card">
-          <div class="penny-head">
-            <div class="penny-avatar">🎩</div>
-            <div>
-              <div class="penny-name">PENNYWORTH AI <span class="pro">PRO</span></div>
-              <div class="penny-sub">Tu asistente estratégico</div>
-            </div>
-          </div>
-          <div class="penny-desc">Pregúntame sobre tus intereses, referencias y descubre conexiones que te ayuden a crecer.</div>
-          <div class="penny-input-row">
-            <input class="penny-input" id="pw-question" placeholder="Pennyworth AI próximamente" disabled>
-            <button class="penny-send" id="pw-send" title="Pennyworth AI próximamente" disabled>➤</button>
-          </div>
-          <div class="penny-chips">
-            <div class="penny-chip disabled" aria-disabled="true">¿Qué aprendí esta semana?</div>
-            <div class="penny-chip disabled" aria-disabled="true">Recomiéndame algo nuevo</div>
-            <div class="penny-chip disabled" aria-disabled="true">Conecta ideas de mis temas</div>
-            <div class="penny-chip disabled" aria-disabled="true">Prepara mi brief semanal</div>
-          </div>
-          <div class="penny-response" id="pw-response"></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><h3>3. Intelligence Brief Personal</h3><span class="link" id="brief-history">Ver historial</span></div>
-          <div class="brief-hero">
-            <div class="brief-kicker">Weekly Brief</div>
-            <div class="brief-date" id="brief-date"></div>
-            <div class="brief-text">Análisis personalizado de lo más relevante en tus temas de interés.</div>
-          </div>
-          <button class="btn-brief" id="brief-generate" type="button" disabled title="Disponible en una futura fase de Pennyworth AI">Brief semanal · Próximamente</button>
-          <div class="brief-list">
-            <div class="brief-list-title">Briefs recientes</div>
-            <div id="brief-list"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <span id="sync-note"></span>
+    </nav>
+    <div id="tab-view"></div>
   </div>
 
-  <!-- ===== TOPIC WORKSPACE VIEW ===== -->
-  <div id="topic-view">
-    <div class="page-head">
-      <div>
-        <h2 id="topic-title">📚 Tema</h2>
-        <p>Vista organizada por columnas — arrastra la información como en Trello.</p>
-      </div>
-      <div class="head-actions">
-        <button class="btn-ghost" id="rename-topic-btn" type="button">✎ Renombrar tema</button>
-        <div class="top-pill" onclick="backToDashboard()">← Volver a Mis Temas</div>
-      </div>
-    </div>
-    <div class="topic-toolbar">
-      <input id="topic-search" placeholder="Buscar en este tema…">
-      <select id="topic-tipo-filter"><option value="all">Todos los tipos</option></select>
-      <select id="topic-sort">
-        <option value="recent">Ordenar: Más recientes</option>
-        <option value="az">Ordenar: A-Z</option>
-        <option value="importance">Ordenar: Importancia</option>
-      </select>
-      <span class="link" id="clear-filters-btn">Limpiar filtros</span>
-      <button class="btn-gold" onclick="openCreateReference()">+ Agregar referencia</button>
-    </div>
-    <div class="board-cols" id="topic-board"></div>
-  </div>
+  <div id="topic-view" style="display:none"></div>
+  <div class="status" id="status">Cargando desde Notion…</div>
+</main>
 
-  <div id="ref-modal-backdrop">
-    <div id="ref-modal"></div>
-  </div>
-
-  <div class="notif-overlay" id="notif-overlay"></div>
-  <aside class="notif-panel" id="notif-panel" aria-label="Notificaciones">
-    <div class="notif-head">
-      <h3>🔔 Notificaciones <span class="notif-count-pill" id="notif-count">0</span></h3>
-      <button class="notif-clear-all" id="notif-clear-all" type="button">Limpiar todo</button>
-    </div>
-    <div class="notif-list" id="notif-list"></div>
-    <div class="notif-foot">Generadas desde tus referencias y temas de Notion</div>
-  </aside>
+<div class="quickbar">
+  <span class="lbl">⚡ Acceso rápido</span>
+  <button class="btn sm" onclick="openRefForm({})">＋ Nueva referencia</button>
+  <button class="btn sm" onclick="openRefForm({ tipo:'Idea / Concepto' })">＋ Nueva nota</button>
+  <button class="btn sm" onclick="openTopicForm()">＋ Nuevo tema</button>
+  <button class="btn sm" onclick="openQuoteForm()">＋ Nueva cita</button>
+  <button class="btn sm" onclick="openBrief('all')">✦ Generar brief</button>
+  <button class="btn sm" onclick="go('nube')">◎ Explorar temas</button>
+  <span class="sync"><i></i><span id="sync-text">Sincronizado con Notion</span></span>
 </div>
 
-<div class="quick-bar">
-  <span class="quick-label">Acceso rápido</span>
-  <div class="quick-actions">
-    <button class="quick-btn" onclick="openCreateReference()">＋ Nueva referencia</button>
-    <button class="quick-btn" id="qa-new-note">▣ Nueva nota</button>
-    <button class="quick-btn" id="qa-new-topic">✚ Nuevo tema</button>
-    <button class="quick-btn" onclick="openCreateReference()">⤓ Captura rápida</button>
-    <button class="quick-btn" id="qa-import">⇪ Importar contenido</button>
-  </div>
-  <span class="quick-sync"><span class="dot"></span> Sincronizado con Notion</span>
-</div>
+<script src="/toast.js"></script>
+<div class="modal-bg" id="modal-bg"><div class="modal" id="modal"></div></div>
 
 <script>
-const TIPOS = ["Autor / Pensador","Libro","Podcast","Conferencia / Video","Artículo / Link","Cuenta / Perfil","Referencia visual","Idea / Concepto","Cita","Evento"];
-const TIPO_ICON = {"Autor / Pensador":"👤","Libro":"📕","Podcast":"🎧","Conferencia / Video":"🎬","Artículo / Link":"📰","Cuenta / Perfil":"👥","Referencia visual":"🖼️","Idea / Concepto":"💡","Cita":"💬","Evento":"📅"};
-const TOPIC_ICONS = ["🧠","📣","💼","🧪","🎯","🧘","🏛️","🎨","🎵","✅","🏛","✈️","📈","❤️","🚀","📚"];
-const TOPIC_TONES = ["blue","amber","gold","purple","pink","green"];
-const QUOTES = [
-  { text:"El conocimiento es poder, pero el carácter es más.", author:"Bruce Lee" },
-  { text:"La curiosidad es el combustible de una vida extraordinaria.", author:"Anónimo" },
-  { text:"Aprende como si fueras a vivir para siempre.", author:"Gandhi" },
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const cssUrl = u => { try{ const x = new URL(String(u), location.origin); return /^https?:$/.test(x.protocol) ? `url("${x.href.replace(/"/g, "%22")}")` : "none"; }catch(e){ return "none"; } };
+const safeUrl = u => { try{ const x = new URL(String(u || ""), location.origin); return /^https?:$/.test(x.protocol) ? x.href : ""; }catch(e){ return ""; } };
+const TIPOS = ["Artículo / Link","Libro","Podcast","Conferencia / Video","Autor / Pensador","Cuenta / Perfil","Referencia visual","Idea / Concepto","Cita","Evento"];
+const TIPO_SHORT = { "Artículo / Link":"Artículo", "Libro":"Libro", "Podcast":"Podcast", "Conferencia / Video":"Video", "Autor / Pensador":"Autor", "Cuenta / Perfil":"Perfil", "Referencia visual":"Visual", "Idea / Concepto":"Nota", "Cita":"Cita", "Evento":"Evento" };
+const ESTADOS = ["Por consumir","Consumiendo","Terminado","⭐ Hall of Fame"];
+const COLORS = ["#5aa9f0","#ec79b3","#a585f2","#46d49c","#f0c95d","#f0a64a","#6fd3e8","#ef6d73"];
+const GRADS = ["#1d4f7c,#0b1726","#5a2a6b,#0b1726","#2b4d78,#0b1726","#5c4521,#0b1726","#1f5a4c,#0b1726","#6b2d3f,#0b1726"];
+const DEFAULT_QUOTES = [
+  { text:"La curiosidad es una ventaja competitiva.", author:"Jarvis" },
   { text:"Lo que sabemos es una gota; lo que ignoramos, un océano.", author:"Isaac Newton" },
-  { text:"La disciplina es elegir entre lo que quieres ahora y lo que quieres más.", author:"Anónimo" },
-  { text:"No hay atajos hacia ningún lugar que valga la pena llegar.", author:"Beverly Sills" },
-  { text:"El éxito es la suma de pequeños esfuerzos repetidos día tras día.", author:"Robert Collier" },
-  { text:"Un sistema simple bien usado supera a uno complejo mal usado.", author:"Anónimo" },
-  { text:"Lo que no se mide, no se mejora.", author:"Peter Drucker" },
-  { text:"La claridad viene de la acción, no del pensamiento.", author:"Marie Forleo" },
-  { text:"No necesitas tener todo resuelto. Solo da el siguiente paso bien dado.", author:"James Clear" },
+  { text:"Aprende como si fueras a vivir para siempre.", author:"Mahatma Gandhi" },
+  { text:"El conocimiento es poder, pero el carácter es más.", author:"Bruce Lee" },
+  { text:"Una mente curiosa construye una vida notable.", author:"Jarvis" },
 ];
-const TONE_BG = { blue:"var(--blue-soft)", green:"var(--green-soft)", purple:"var(--purple-soft)", amber:"var(--amber-soft)", red:"var(--red-soft)", pink:"var(--pink-soft)", gold:"var(--gold-soft)" };
-const TONE_FG = { blue:"#7aa7f5", green:"#5fdca4", purple:"#b294f0", amber:"#f2b25f", red:"#ef8583", pink:"#f38cba", gold:"var(--gold-2)" };
+const ICONS = {
+  book:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg>',
+  layers:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>',
+  note:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h4"/></svg>',
+  people:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg>',
+  chart:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 20h18"/><path d="m5 15 4-4 4 3 6-7"/></svg>',
+  brain:'<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9 3a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 3 3 2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><path d="M15 3a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-3 3 2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>',
+};
 
-let allData = null;
-let activeTopic = null;
-let quoteIdx = Math.floor(Date.now()/86400000) % QUOTES.length;
+let data = { referencias:[], topics:[], page:null }, tab = "resumen", activeTopic = null, cloudZoom = 1, cloudView = "nube", topicSort = "refs";
+const refFilters = { q:"", tema:"all", tipo:"all", estado:"all", autor:"", sort:"recent" };
+const boardFilters = { q:"", tipo:"all", sort:"recent" };
 
-function emptyNote(t){ return `<div class="empty-note">${t}</div>`; }
-// Everything below that comes from Notion goes through esc() before being
-// put into innerHTML, and links through safeUrl() (http/https only).
-function esc(value){ return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-function safeUrl(value){ try{ const u = new URL(String(value || ""), location.origin); return /^https?:$/.test(u.protocol) ? u.href : "#"; }catch(e){ return "#"; } }
-function toneStyle(tone){ return `background:${TONE_BG[tone]||TONE_BG.blue};color:${TONE_FG[tone]||TONE_FG.blue}`; }
-function relDate(iso){
-  const d = new Date(iso), now = new Date();
-  const days = Math.floor((now - d) / 86400000);
-  if(days <= 0) return "Hoy";
-  if(days === 1) return "Ayer";
-  return d.toLocaleDateString("es", { day:"numeric", month:"short" });
+/* ---------- helpers ---------- */
+const topicOf = name => data.topics.find(t => t.name === name);
+const refsOf = name => data.referencias.filter(r => (r.temas || []).includes(name));
+const colorOf = name => COLORS[Math.max(0, data.topics.findIndex(t => t.name === name)) % COLORS.length];
+const initials = s => String(s || "?").trim().split(/\s+/).slice(0,2).map(w => w[0]).join("").toUpperCase();
+const dateEs = iso => iso ? new Date(iso).toLocaleDateString("es-MX", { day:"numeric", month:"short", year:"numeric" }) : "";
+function relDate(iso){ const d = Math.floor((Date.now() - new Date(iso)) / 86400000); return d <= 0 ? "Hoy" : d === 1 ? "Ayer" : d < 7 ? `Hace ${d} días` : dateEs(iso); }
+function coverStyle(url, i){ return url ? `background-image:${cssUrl(url)}` : `background-image:linear-gradient(135deg,${GRADS[i % GRADS.length]})`; }
+function iconHTML(t){ return t.iconUrl ? "" : esc(initials(t.name).slice(0,1)); }
+function thumbHTML(r, cls = "thumb"){ return r.imageUrl ? `<div class="${cls}" style="background-image:${cssUrl(r.imageUrl)}"></div>` : `<div class="${cls}">${esc(TIPO_SHORT[r.tipo] || "Ref")}</div>`; }
+function parseQuote(r){ const m = String(r.referencia || "").match(/^["“](.+)["”]\s*[—-]\s*(.+)$/s); return m ? { text:m[1], author:m[2] } : { text:r.referencia, author:r.autor || "" }; }
+const quotes = () => data.referencias.filter(r => r.tipo === "Cita");
+function quoteOfDay(){ const saved = quotes().map(parseQuote), pool = saved.length ? saved : DEFAULT_QUOTES; return pool[Math.floor(Date.now() / 86400000) % pool.length]; }
+function sortRefs(list, how){
+  const l = [...list];
+  if(how === "az") return l.sort((a,b) => a.referencia.localeCompare(b.referencia, "es"));
+  if(how === "importance") return l.sort((a,b) => (b.importancia||0) - (a.importancia||0));
+  if(how === "oldest") return l.sort((a,b) => new Date(a.createdTime) - new Date(b.createdTime));
+  return l.sort((a,b) => new Date(b.createdTime) - new Date(a.createdTime));
 }
-function weekRangeLabel(){
-  const now = new Date();
-  const dow = (now.getDay() + 6) % 7;
-  const mon = new Date(now); mon.setDate(now.getDate() - dow);
-  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
-  const fmt = d => d.toLocaleDateString("es", { day:"numeric", month:"short" });
-  return `${fmt(mon)} – ${fmt(sun)}, ${sun.getFullYear()}`;
+function refRow(r){
+  return `<div class="row" data-ref="${esc(r.id)}">${thumbHTML(r)}<div class="copy"><strong>${esc(r.referencia)}</strong><small>${esc([r.tipo, r.autor].filter(Boolean).join(" · "))}</small><div>${(r.temas||[]).slice(0,2).map(t => `<span class="chip">${esc(t)}</span>`).join("")}${(r.tags||[]).slice(0,2).map(t => `<span class="chip purple">${esc(t)}</span>`).join("")}</div></div><div class="right"><span class="chip ${r.estado==="Terminado"||r.estado==="⭐ Hall of Fame"?"green":"gold"}">${esc(r.estado || "Sin estado")}</span><small>${esc(relDate(r.createdTime))}</small></div></div>`;
 }
+function bindRefs(root){ root.querySelectorAll("[data-ref]").forEach(n => n.addEventListener("click", () => openRef(n.dataset.ref))); }
+async function post(url, body){
+  const r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if(!r.ok || d.error || d.ok === false) throw new Error(d.error || ("Error " + r.status));
+  return d;
+}
+async function run(msg, fn, okMsg){
+  const t = window.jarvisToast?.loading(msg);
+  try{ const out = await fn(); window.jarvisToast?.success(t, okMsg || "Guardado en Notion"); return out; }
+  catch(err){ window.jarvisToast?.error(t, "No se pudo: " + err.message); throw err; }
+}
+function readFile(file){ return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsDataURL(file); }); }
+// Big photos are resized in the browser so they stay under the 3 MB upload limit.
+async function imagePayload(file, max = 1800){
+  if(!file) return null;
+  if(!/^image\//.test(file.type)) throw new Error("Elige una imagen (JPG, PNG o WebP).");
+  if(file.size < 1.5*1024*1024 && file.type !== "image/heic") return { name:file.name, type:file.type, data: await readFile(file) };
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file); });
+  const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas");
+  c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  return { name: file.name.replace(/\.\w+$/, "") + ".jpg", type:"image/jpeg", data: c.toDataURL("image/jpeg", .86) };
+}
+function openModal(html, narrow){ const m = document.getElementById("modal"); m.className = "modal" + (narrow ? " narrow" : ""); m.innerHTML = html; document.getElementById("modal-bg").style.display = "flex"; return m; }
+function closeModal(){ document.getElementById("modal-bg").style.display = "none"; document.getElementById("modal").innerHTML = ""; }
+document.getElementById("modal-bg").addEventListener("mousedown", e => { if(e.target.id === "modal-bg") closeModal(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape"){ closeMenu(); closeModal(); } });
+let menuEl = null;
+function closeMenu(){ menuEl?.remove(); menuEl = null; }
+function showMenu(anchor, items){
+  closeMenu();
+  menuEl = document.createElement("div"); menuEl.className = "menu";
+  menuEl.innerHTML = items.map((it, i) => `<button data-i="${i}" class="${it.danger?"del":""}">${esc(it.label)}</button>`).join("");
+  document.body.appendChild(menuEl);
+  const r = anchor.getBoundingClientRect();
+  menuEl.style.top = Math.min(r.bottom + 4, innerHeight - menuEl.offsetHeight - 8) + "px";
+  menuEl.style.left = Math.max(8, Math.min(r.right - menuEl.offsetWidth, innerWidth - menuEl.offsetWidth - 8)) + "px";
+  menuEl.querySelectorAll("button").forEach(b => b.addEventListener("click", ev => { ev.stopPropagation(); const it = items[b.dataset.i]; closeMenu(); it.run(); }));
+}
+document.addEventListener("click", e => { if(menuEl && !menuEl.contains(e.target)) closeMenu(); });
 
-function renderStats(d){
-  const refs = d.referencias || [];
-  const weekAgo = Date.now() - 7*86400000;
-  const refsWeek = refs.filter(r => new Date(r.createdTime) >= weekAgo).length;
-  const authors = new Set(refs.map(r => (r.autor||"").trim()).filter(Boolean));
-  const applied = refs.filter(r => r.estado === "Terminado" || r.estado === "⭐ Hall of Fame").length;
-  const notes = refs.filter(r => (r.porQueMeInteresa||"").trim()).length;
-  const stats = [
-    { ico:"📚", tone:"blue",   lbl:"Referencias totales", num:d.stats.totalReferencias, sub: refsWeek ? `+${refsWeek} esta semana` : "esta semana" },
-    { ico:"🧪", tone:"purple", lbl:"Temas activos",       num:d.stats.totalTopics,      sub:"esta semana" },
-    { ico:"✍️", tone:"amber",  lbl:"Notas personales",    num:notes,                    sub:"con notas" },
-    { ico:"👤", tone:"green",  lbl:"Autores seguidos",    num:authors.size,             sub:"en tu biblioteca" },
-    { ico:"🏆", tone:"pink",   lbl:"Conocimiento aplicado", num:applied,                sub:"este mes" },
+/* ---------- navigation (kept in the URL so a refresh stays put) ---------- */
+function go(t){ activeTopic = null; tab = t; location.hash = t; render(); scrollTo({ top:0 }); }
+function openTopic(name){ activeTopic = name; location.hash = "tema=" + encodeURIComponent(name); render(); scrollTo({ top:0 }); }
+function readHash(){
+  const h = decodeURIComponent(location.hash.slice(1));
+  if(h.startsWith("tema=")){ activeTopic = h.slice(5); }
+  else { activeTopic = null; tab = ["resumen","temas","referencias","nube","explorar","autores","citas"].includes(h) ? h : "resumen"; }
+}
+addEventListener("hashchange", () => { readHash(); render(); });
+document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => go(b.dataset.tab)));
+
+/* ---------- rendering ---------- */
+function render(){
+  renderHero();
+  const inTopic = activeTopic && topicOf(activeTopic);
+  document.getElementById("home-view").style.display = inTopic ? "none" : "";
+  document.getElementById("topic-view").style.display = inTopic ? "" : "none";
+  document.getElementById("crumb").innerHTML = inTopic ? `<a onclick="go('temas')">Mis Gustos &amp; Conocimiento</a>　›　<b>${esc(activeTopic)}</b>` : "<b>Mis Gustos &amp; Conocimiento</b>";
+  if(inTopic) return renderTopic();
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  const el = document.getElementById("tab-view");
+  el.innerHTML = ({ resumen:resumenHTML, temas:temasHTML, referencias:referenciasHTML, nube:nubeHTML, explorar:explorarHTML, autores:autoresHTML, citas:citasHTML })[tab]();
+  bindTab(el);
+}
+function renderHero(){
+  const p = data.page || {};
+  document.getElementById("hero").style.backgroundImage = cssUrl(p.coverUrl || "/assets/covers/mis-gustos-aprendizajes-cover-v2.jpg");
+  const icon = document.getElementById("hero-icon");
+  icon.style.backgroundImage = p.iconUrl ? cssUrl(p.iconUrl) : "none"; icon.innerHTML = p.iconUrl ? "" : ICONS.brain;
+  document.getElementById("hero-title").textContent = p.title || "Mis Gustos & Conocimiento";
+  document.getElementById("hero-desc").textContent = p.description || "Todo lo que me interesa, conectado y organizado.";
+  const q = quoteOfDay();
+  document.getElementById("hero-quote").innerHTML = `“${esc(q.text)}”<small>— ${esc(q.author || "Jarvis")}</small>`;
+}
+function kpisHTML(){
+  const r = data.referencias, week = Date.now() - 7*86400000;
+  const authors = new Set(r.map(x => (x.autor||"").trim()).filter(Boolean)).size;
+  const items = [
+    [ICONS.book, r.length, "Referencias totales", r.filter(x => new Date(x.createdTime) >= week).length + " esta semana"],
+    [ICONS.layers, data.topics.filter(t => t.count).length + " / " + data.topics.length, "Temas con referencias", ""],
+    [ICONS.note, r.filter(x => (x.porQueMeInteresa||"").trim()).length, "Notas personales", ""],
+    [ICONS.people, authors, "Autores", ""],
+    [ICONS.chart, r.filter(x => x.estado === "Terminado" || x.estado === "⭐ Hall of Fame").length, "Conocimiento aplicado", "terminadas o Hall of Fame"],
   ];
-  document.getElementById("stat-row").innerHTML = stats.map(s => `
-    <div class="stat-card">
-      <div class="stat-ico" style="${toneStyle(s.tone)}">${s.ico}</div>
-      <div><div class="stat-lbl">${s.lbl}</div><div class="stat-num">${s.num}</div><div class="stat-sub">${s.sub}</div></div>
-    </div>`).join("");
+  return `<div class="kpis">${items.map(([i,n,l,s]) => `<div class="kpi">${i}<div><strong>${esc(n)}</strong><span>${l}${s?` · ${esc(s)}`:""}</span></div></div>`).join("")}</div>`;
 }
-
-function renderDashboard(d){
-  renderStats(d);
-
-  const el = document.getElementById("topics-row");
-  el.innerHTML = (d.topics||[]).slice(0,6).map((t,i) => `<div class="main-topic-card" data-topic="${esc(t.name)}"><div class="topic-art" style="background:linear-gradient(135deg,${["#174c7a","#50225f","#2c4770","#4d3b24","#5b4420","#19466b"][i%6]},#101623)"></div><div class="topic-card-body"><h4>${esc(t.name)}</h4><p>${t.count} referencias</p><div class="topic-progress"><i style="width:${Math.min(100,20+t.count*3)}%"></i></div></div></div>`).join("") + `<div class="main-topic-card" id="add-topic-btn"><div class="topic-art"></div><div class="topic-card-body"><h4>＋ Nuevo tema</h4><p>Crear tema</p></div></div>`;
-  el.querySelectorAll("[data-topic]").forEach(c => c.addEventListener("click", () => openTopic(c.dataset.topic)));
-  document.getElementById("add-topic-btn").addEventListener("click", createTopic);document.getElementById("add-topic-side").onclick=createTopic;document.getElementById("topic-list-count").textContent=`(${d.topics.length})`;document.getElementById("topic-list-side").innerHTML=d.topics.map((t,i)=>`<div class="topic-list-row" data-topic="${esc(t.name)}" title="Abrir ${esc(t.name)}"><span class="topic-dot" style="background:${["#5a8ff0","#ec6ba3","#9b7ee8","#42d392","#f0c95d"][i%5]}"></span><span>${esc(t.name)}</span><span class="topic-row-bar"><i style="width:${Math.max(8,Math.min(100,(t.count/Math.max(1,d.topics[0]?.count||1))*100))}%"></i></span><b>${t.count}</b><button class="topic-edit-mini" data-rename-topic="${esc(t.name)}" title="Renombrar">✎</button><button class="topic-delete-mini" data-delete-topic="${esc(t.name)}" title="Eliminar">×</button></div>`).join("");document.querySelectorAll("#topic-list-side [data-topic]").forEach(r=>r.onclick=e=>{if(!e.target.closest("button"))openTopic(r.dataset.topic)});document.querySelectorAll("[data-rename-topic]").forEach(b=>b.onclick=e=>{e.stopPropagation();renameTopicDirect(b.dataset.renameTopic)});document.querySelectorAll("[data-delete-topic]").forEach(b=>b.onclick=e=>{e.stopPropagation();deleteTopic(b.dataset.deleteTopic)});
-
-  const recentEl = document.getElementById("recent-list");
-  recentEl.innerHTML = d.recent.length ? d.recent.map((r,i) => `
-    <div class="ref-row" data-id="${esc(r.id)}">
-      <div class="ref-icon" style="${toneStyle(TOPIC_TONES[i % TOPIC_TONES.length])}">${TIPO_ICON[r.tipo] || "📎"}</div>
-      <div style="min-width:0;"><div class="ref-name">${esc(r.referencia)}</div><div class="ref-meta">${esc(r.tipo || "")}${r.autor ? " · " + esc(r.autor) : ""}</div></div>
-      <div class="ref-right">${r.temas.slice(0,1).map(t=>`<span class="mini-tag" style="${toneStyle(TOPIC_TONES[i % TOPIC_TONES.length])}">${esc(t)}</span>`).join("")}<span class="ref-date">${relDate(r.createdTime)}</span></div>
-    </div>`).join("") : emptyNote("Sin referencias guardadas todavía.");
-  recentEl.querySelectorAll("[data-id]").forEach(row => row.addEventListener("click", () => openReferenceDetail(row.dataset.id)));
-
-  const mapEl = document.getElementById("knowledge-map");
-  if(!d.knowledgeMap.length){
-    mapEl.innerHTML = emptyNote("Aparece cuando guardes referencias con temas y tags.");
-  } else {
-    const size = 300, cx = size/2, cy = size/2, r = 105, nodeR = 30;
-    const palette = ["#9b7ee8","#5a8ff0","#42d392","#f0a23f","#ec6ba3","#e8c34f"];
-    const topics = d.knowledgeMap.slice(0, 5);
-    let svg = `<circle cx="${cx}" cy="${cy}" r="34" fill="rgba(214,173,99,.10)" stroke="var(--gold)" stroke-width="1.5"/>
-      <text x="${cx}" y="${cy+4}" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="var(--gold-2)">YO</text>`;
-    topics.forEach((topic, i) => {
-      const angle = (i / topics.length) * 2 * Math.PI - Math.PI/2;
-      const tx = cx + r * Math.cos(angle), ty = cy + r * Math.sin(angle);
-      const color = palette[i % palette.length];
-      svg += `<line x1="${cx}" y1="${cy}" x2="${tx}" y2="${ty}" stroke="${color}" stroke-opacity="0.35" stroke-width="1.5"/>`;
-      topic.connections.slice(0,3).forEach((tag, j) => {
-        const subAngle = angle + (j - 1) * 0.42;
-        const sx = tx + 62 * Math.cos(subAngle), sy = ty + 62 * Math.sin(subAngle);
-        svg += `<line x1="${tx}" y1="${ty}" x2="${sx}" y2="${sy}" stroke="${color}" stroke-opacity="0.2" stroke-width="1"/>
-          <circle cx="${sx}" cy="${sy}" r="3" fill="${color}"/>
-          <text x="${sx}" y="${sy - 7}" text-anchor="middle" font-family="Inter" font-size="8.5" fill="var(--faint)">${esc(tag.length>12?tag.slice(0,11)+'…':tag)}</text>`;
-      });
-      svg += `<circle cx="${tx}" cy="${ty}" r="${nodeR}" fill="#151c2b" stroke="${color}" stroke-width="2" style="cursor:pointer;" data-topic="${esc(topic.topic)}"/>
-        <text x="${tx}" y="${ty+4}" text-anchor="middle" font-family="Inter" font-size="9.5" font-weight="600" fill="var(--text)" style="cursor:pointer; pointer-events:none;">${esc(topic.topic.length>10?topic.topic.slice(0,9)+'…':topic.topic)}</text>`;
+function topicCard(t, i){
+  const cols = new Set([...(t.columns||[]), ...refsOf(t.name).map(r => r.columna).filter(c => c && c !== "Sin columna")]).size;
+  return `<div class="tcard" data-topic="${esc(t.name)}"><button class="tmenu" data-tmenu="${esc(t.name)}" title="Opciones">⋯</button><div class="tcover" style="${coverStyle(t.coverUrl, i)}"></div><div class="tbody"><div class="ticon" style="${t.iconUrl?`background-image:${cssUrl(t.iconUrl)}`:""}">${iconHTML(t)}</div><div class="tname">${esc(t.name)}</div><div class="tmeta">${t.count} referencias · ${cols} columnas</div><div class="tdesc ${t.description?"":"placeholder"}">${esc(t.description || "Sin descripción — ✎ edita el tema para añadir portada, ícono y descripción.")}</div></div></div>`;
+}
+const newTopicCard = () => `<div class="tcard new" data-newtopic><div class="plus">＋</div><b>Nuevo tema</b><span>Empieza a explorar un nuevo interés.</span></div>`;
+function resumenHTML(){
+  const recent = sortRefs(data.referencias, "recent").slice(0, 6);
+  return `${kpisHTML()}<div class="grid-2"><div>
+    <section class="panel"><div class="panel-head"><div><h2>Mis Temas</h2><div class="sub">Áreas de interés, aprendizaje y exploración.</div></div><button class="link" onclick="go('temas')">Ver todos (${data.topics.length}) →</button></div>
+      <div class="topics">${data.topics.slice(0, 7).map(topicCard).join("")}${newTopicCard()}</div></section>
+    <section class="panel"><div class="panel-head"><h3>Referencias recientes</h3><button class="link" onclick="go('referencias')">Ver todas →</button></div>${recent.map(refRow).join("") || '<div class="empty">Aún no hay referencias. Usa “＋ Nueva referencia”.</div>'}</section>
+  </div><div>
+    <section class="panel"><div class="panel-head"><h3>Brief de conocimiento</h3></div>
+      <div class="sub" style="color:var(--muted);font-size:12px;margin-bottom:10px">Un resumen de lo que has guardado en un tema o en todos: novedades, pendientes por consumir, lo mejor valorado y los tags más repetidos.</div>
+      <select class="select" id="brief-topic" style="width:100%;margin-bottom:10px"><option value="all">Todos los temas</option>${data.topics.map(t => `<option>${esc(t.name)}</option>`).join("")}</select>
+      <button class="btn gold" style="width:100%" onclick="openBrief(document.getElementById('brief-topic').value)">✦ Generar brief</button></section>
+    <section class="panel"><div class="panel-head"><h3>Actividad reciente</h3></div>${recent.slice(0,5).map(r => `<div class="row" data-ref="${esc(r.id)}"><div class="copy"><strong>${esc(r.referencia)}</strong><small>${esc(r.tipo||"Referencia")} agregada · ${esc((r.temas||[])[0] || "sin tema")}</small></div><small>${esc(relDate(r.createdTime))}</small></div>`).join("") || '<div class="empty">Sin actividad todavía.</div>'}</section>
+    <section class="panel"><div class="panel-head"><h3>Cita del día</h3><button class="link" onclick="go('citas')">Todas →</button></div>${(q => `<div class="quote" style="border:0;padding:0;background:none"><q>${esc(q.text)}</q><small>— ${esc(q.author || "Jarvis")}</small></div>`)(quoteOfDay())}</section>
+  </div></div>`;
+}
+function temasHTML(){
+  const list = [...data.topics].sort(topicSort === "az" ? (a,b) => a.name.localeCompare(b.name, "es") : (a,b) => b.count - a.count || a.name.localeCompare(b.name, "es"));
+  return `<section class="panel"><div class="panel-head"><div><h2>Mis Temas</h2><div class="sub">Cada tema tiene su portada, ícono, descripción y un tablero con columnas.</div></div>
+    <div class="actions"><input class="input" id="topic-q" placeholder="⌕ Buscar temas…"><select class="select" id="topic-sort"><option value="refs" ${topicSort==="refs"?"selected":""}>Ordenar: referencias</option><option value="az" ${topicSort==="az"?"selected":""}>Ordenar: nombre</option></select></div></div>
+    <div class="topics" id="topic-grid">${list.map(t => topicCard(t, data.topics.indexOf(t))).join("")}${newTopicCard()}</div></section>`;
+}
+function filteredRefs(){
+  const q = refFilters.q.toLowerCase();
+  return sortRefs(data.referencias.filter(r =>
+    (!q || `${r.referencia} ${r.autor} ${r.porQueMeInteresa} ${(r.tags||[]).join(" ")}`.toLowerCase().includes(q)) &&
+    (refFilters.tema === "all" || (r.temas||[]).includes(refFilters.tema)) &&
+    (refFilters.tipo === "all" || r.tipo === refFilters.tipo) &&
+    (refFilters.estado === "all" || r.estado === refFilters.estado) &&
+    (!refFilters.autor || (r.autor||"").trim() === refFilters.autor)), refFilters.sort);
+}
+function referenciasHTML(){
+  const list = filteredRefs(), opt = (v, cur, label) => `<option value="${esc(v)}" ${v===cur?"selected":""}>${esc(label ?? v)}</option>`;
+  return `<section class="panel"><div class="panel-head"><div><h2>Referencias</h2><div class="sub">${list.length} de ${data.referencias.length} referencias${refFilters.autor?` · autor: ${esc(refFilters.autor)}`:""}</div></div><button class="btn gold" onclick="openRefForm({})">＋ Nueva referencia</button></div>
+    <div class="toolbar"><input class="input" id="rf-q" value="${esc(refFilters.q)}" placeholder="⌕ Buscar por título, autor, nota o tag…">
+      <select class="select" id="rf-tema">${opt("all", refFilters.tema, "Tema · Todos")}${data.topics.map(t => opt(t.name, refFilters.tema)).join("")}</select>
+      <select class="select" id="rf-tipo">${opt("all", refFilters.tipo, "Tipo · Todos")}${TIPOS.map(t => opt(t, refFilters.tipo)).join("")}</select>
+      <select class="select" id="rf-estado">${opt("all", refFilters.estado, "Estado · Todos")}${ESTADOS.map(t => opt(t, refFilters.estado)).join("")}</select>
+      <select class="select" id="rf-sort">${opt("recent", refFilters.sort, "Más recientes")}${opt("oldest", refFilters.sort, "Más antiguas")}${opt("az", refFilters.sort, "A-Z")}${opt("importance", refFilters.sort, "Importancia")}</select>
+      <button class="btn ghost" id="rf-clear">× Limpiar</button></div>
+    ${list.map(refRow).join("") || '<div class="empty">No hay referencias con estos filtros.</div>'}</section>`;
+}
+function cloudItems(){
+  const words = data.topics.map(t => ({ word:t.name, weight:t.count, topic:true }));
+  (data.tagCloud || []).forEach(t => { if(!words.some(w => w.word.toLowerCase() === t.word.toLowerCase())) words.push({ word:t.word, weight:t.weight, topic:false }); });
+  return words;
+}
+function nubeHTML(){
+  const words = cloudItems(), max = Math.max(1, ...words.map(w => w.weight)), total = data.referencias.length;
+  const sorted = [...data.topics].sort(topicSort === "az" ? (a,b) => a.name.localeCompare(b.name, "es") : (a,b) => b.count - a.count);
+  const maxT = Math.max(1, ...data.topics.map(t => t.count));
+  const view = cloudView === "mapa" ? `<div class="map">${mapSVG()}</div>` : cloudView === "lista"
+    ? `<div class="tlist" style="padding:14px">${sorted.map(t => topicRow(t, maxT, total)).join("")}</div>`
+    : `<div class="cloud" id="cloud" style="transform:scale(${cloudZoom})">${words.map((w,i) => `<button data-${w.topic?"topic":"tag"}="${esc(w.word)}" title="${esc(w.word)} · ${w.weight} referencias" style="font-size:${13 + (w.weight/max)*34}px;color:${COLORS[i % COLORS.length]}">${esc(w.word)}</button>`).join("") || '<div class="empty">Crea un tema para verlo aquí.</div>'}</div>
+       <div class="zoom"><button class="btn sm" id="z-in" title="Acercar">＋</button><button class="btn sm" id="z-out" title="Alejar">－</button><button class="btn sm" id="z-reset">↺ Restablecer vista</button></div>`;
+  return `<div class="cloud-wrap"><section class="panel"><div class="panel-head"><div><h2>Nube de Temas</h2><div class="sub">El tamaño indica cuántas referencias tiene cada tema. Haz clic en un tema para abrirlo; en un tag, para ver sus referencias.</div></div>
+      <div class="seg" id="cloud-seg"><button data-v="nube" class="${cloudView==="nube"?"active":""}">Nube</button><button data-v="mapa" class="${cloudView==="mapa"?"active":""}">Mapa</button><button data-v="lista" class="${cloudView==="lista"?"active":""}">Lista</button></div></div>
+      <div class="cloud-box">${view}<div class="total-pill">${total} referencias en total</div></div></section>
+    <section class="panel"><div class="panel-head"><h3>Temas (${data.topics.length})</h3><select class="select" id="topic-sort"><option value="refs" ${topicSort==="refs"?"selected":""}>Por referencias</option><option value="az" ${topicSort==="az"?"selected":""}>Por nombre</option></select></div>
+      <div class="tlist">${sorted.map(t => topicRow(t, maxT, total)).join("")}</div>
+      <button class="link" style="margin-top:12px" onclick="openTopicForm()">＋ Agregar tema</button></section></div>
+    <section class="panel"><div class="panel-head"><h3>Temas principales</h3><button class="link" onclick="go('temas')">Ver todos →</button></div>
+      <div class="topics">${[...data.topics].sort((a,b) => b.count - a.count).slice(0, 6).map(t => topicCard(t, data.topics.indexOf(t))).join("")}</div></section>`;
+}
+function topicRow(t, max, total){
+  const pct = total ? Math.round(t.count / total * 100) : 0, c = colorOf(t.name);
+  return `<div class="trow" data-topic="${esc(t.name)}"><span class="dotc" style="background:${c}"></span><span>${esc(t.name)}</span><span class="bar"><i style="width:${Math.max(4, t.count/max*100)}%;background:${c}"></i></span><span class="num">${t.count}</span><span class="num">${pct}%</span></div>`;
+}
+function mapSVG(){
+  const topics = [...data.topics].sort((a,b) => b.count - a.count).slice(0, 8);
+  if(!topics.length) return '<div class="empty" style="padding:30px">Crea temas para ver el mapa.</div>';
+  const W = 760, H = 420, cx = W/2, cy = H/2, R = 150;
+  let s = "";
+  topics.forEach((t, i) => {
+    const a = i / topics.length * Math.PI * 2 - Math.PI/2, x = cx + R*Math.cos(a), y = cy + R*Math.sin(a), c = colorOf(t.name);
+    s += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${c}" stroke-opacity=".35"/>`;
+    const tags = {}; refsOf(t.name).forEach(r => (r.tags||[]).forEach(g => tags[g] = (tags[g]||0) + 1));
+    Object.entries(tags).sort((p,q) => q[1]-p[1]).slice(0,3).forEach(([g], j) => {
+      const b = a + (j-1)*.35, gx = x + 70*Math.cos(b), gy = y + 70*Math.sin(b);
+      s += `<line x1="${x}" y1="${y}" x2="${gx}" y2="${gy}" stroke="${c}" stroke-opacity=".25"/><circle cx="${gx}" cy="${gy}" r="3.5" fill="${c}"/><text x="${gx}" y="${gy-8}" text-anchor="middle" font-size="10" fill="#a5b5c4">${esc(g.slice(0,16))}</text>`;
     });
-    mapEl.innerHTML = `<div style="display:flex; justify-content:center;"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${svg}</svg></div>
-      <div style="text-align:center; font-size:10.5px; color:var(--faint); margin-top:6px;">Haz clic en un nodo para explorar sus conexiones</div>`;
-    mapEl.querySelectorAll("[data-topic]").forEach(node => {
-      node.addEventListener("click", () => openTopic(node.dataset.topic));
-    });
-  }
-
-  const cloudEl = document.getElementById("tag-cloud");
-  const cloudItems = [...(d.topics||[]).map(t => ({word:t.name, weight:Math.max(1,t.count||0)})), ...(d.tagCloud||[]).map(t => ({word:t.word, weight:t.weight||1}))].filter((t,i,a)=>a.findIndex(x=>x.word.toLowerCase()===t.word.toLowerCase())===i).slice(0,32);
-  if(!cloudItems.length){ cloudEl.innerHTML = `<div class="cloud-empty"><strong>No hay temas cargados todavía</strong><span>Agrega un tema o asigna uno a una referencia de Notion para verlo aquí.</span><button class="btn-gold" onclick="createTopic()">＋ Nuevo tema</button></div>`; }
-  else {
-    const max = Math.max(...cloudItems.map(t=>t.weight),1);
-    cloudEl.innerHTML = cloudItems.map((t,i) => `<span data-topic="${esc(t.word)}" title="Abrir ${esc(t.word)} · ${Number(t.weight)||0} referencias" style="font-size:${12+((Number(t.weight)||0)/max)*23}px; color:${["#f0a23f","#42d392","#9b7ee8","#5a8ff0","#ec6ba3"][i%5]};">${esc(t.word)}</span>`).join("");cloudEl.querySelectorAll("[data-topic]").forEach(word => word.onclick=()=>openTopic(word.dataset.topic));
-  }
-
-  document.querySelectorAll("[data-cloud-view]").forEach(btn=>btn.onclick=()=>{document.querySelectorAll("[data-cloud-view]").forEach(b=>b.classList.toggle("active",b===btn));const view=btn.dataset.cloudView;if(view==="list"){document.querySelector(".topic-list-side")?.scrollIntoView({behavior:"smooth",block:"center"});}else if(view==="map"){document.getElementById("knowledge-map")?.scrollIntoView({behavior:"smooth",block:"center"});}});
-
-  renderQuote();
-  renderBriefs();
-}
-
-function renderQuote(){
-  const q = QUOTES[quoteIdx % QUOTES.length];
-  document.getElementById("quote-text").textContent = `"${q.text}"`;
-  document.getElementById("quote-author").textContent = "— " + q.author;
-}
-document.getElementById("quote-refresh").addEventListener("click", () => { quoteIdx = (quoteIdx + 1) % QUOTES.length; renderQuote(); });
-document.getElementById("quote-save").addEventListener("click", async () => {
-  const q = QUOTES[quoteIdx % QUOTES.length];
-  const t = window.jarvisToast?.loading("Guardando cita…");
-  try{
-    const r = await fetch("/api/capture", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ action:"create-reference", referencia:`"${q.text}" — ${q.author}`, tipo:"Cita", estado:"Por consumir" }) });
-    const result = await r.json();
-    if(!r.ok || result.error) throw new Error(result.error || "Error desconocido");
-    window.jarvisToast?.success(t, "Cita guardada en tus referencias");
-    loadData();
-  }catch(e){ window.jarvisToast?.error(t, "No se pudo guardar: " + e.message); }
-});
-
-function renderBriefs(){
-  document.getElementById("brief-date").textContent = weekRangeLabel();
-  const weeks = [0, 1, 2].map(w => {
-    const now = new Date();
-    const dow = (now.getDay() + 6) % 7;
-    const mon = new Date(now); mon.setDate(now.getDate() - dow - 7*w);
-    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
-    const fmt = d => d.toLocaleDateString("es", { day:"numeric", month:"short" });
-    return `${fmt(mon)} – ${fmt(sun)}, ${sun.getFullYear()}`;
+    s += `<g data-topic="${esc(t.name)}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="${24 + Math.min(18, t.count*2)}" fill="#0f2033" stroke="${c}" stroke-width="2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" font-weight="700" fill="#f3f1ea">${esc(t.name.length > 14 ? t.name.slice(0,13) + "…" : t.name)}</text></g>`;
   });
-  document.getElementById("brief-list").innerHTML = weeks.map(w => `
-    <div class="brief-row"><span>${w}</span><span class="link" data-brief="${w}">Ver</span></div>`).join("");
-  document.querySelectorAll("[data-brief]").forEach(l => l.addEventListener("click", () => {
-    window.jarvisToast?.info("Los briefs históricos se generarán con Pennyworth AI en la siguiente fase.");
-  }));
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mapa de temas"><circle cx="${cx}" cy="${cy}" r="34" fill="#e5c0681a" stroke="#e5c068" stroke-width="1.5"/><text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13" font-weight="800" fill="#f3d98f">YO</text>${s}</svg>`;
 }
-document.getElementById("brief-generate").addEventListener("click", () => {
-  window.jarvisToast?.info("El Brief semanal se generará con Pennyworth AI en la siguiente fase — los datos ya están listos para alimentarlo.");
-});
-document.getElementById("brief-history").addEventListener("click", () => {
-  document.getElementById("brief-list").scrollIntoView({ behavior:"smooth", block:"center" });
-});
-document.getElementById("edit-universe")?.addEventListener("click", () => {
-  window.jarvisToast?.info("Toca cualquier nodo del universo para abrir y editar ese tema.");
-});
-document.getElementById("cloud-see-all").addEventListener("click", () => {
-  document.getElementById("tag-cloud").scrollIntoView({ behavior:"smooth", block:"center" });
-});
-document.getElementById("filtros-pill").addEventListener("click", () => {
-  document.getElementById("global-search")?.focus();
-  window.jarvisToast?.info("Usa la búsqueda de la vista de tema para filtrar referencias.");
-});
-document.getElementById("qa-new-note").addEventListener("click", () => openCreateReference());
-document.getElementById("qa-new-topic").addEventListener("click", () => createTopic());
-document.getElementById("qa-import").addEventListener("click", () => openCreateReference());
-
-/* ---------- tabs ---------- */
-document.querySelectorAll("#tab-bar button").forEach(btn => btn.addEventListener("click", () => {
-  document.querySelectorAll("#tab-bar button").forEach(b => b.classList.toggle("active", b === btn));
-  const tab = btn.dataset.tab;
-  if(tab === "temas") document.getElementById("topics-row").scrollIntoView({ behavior:"smooth", block:"center" });
-  else if(tab === "referencias") document.getElementById("recent-list").scrollIntoView({ behavior:"smooth", block:"center" });
-  else if(tab === "brief") document.getElementById("brief-generate").scrollIntoView({ behavior:"smooth", block:"center" });
-  else if(tab === "citas") document.getElementById("quote-text").scrollIntoView({ behavior:"smooth", block:"center" });
-  else if(tab === "explorar") document.getElementById("knowledge-map").scrollIntoView({ behavior:"smooth", block:"center" });
-  else if(tab === "autores") { document.getElementById("recent-list").scrollIntoView({behavior:"smooth",block:"center"}); window.jarvisToast?.info?.("Los autores se muestran dentro de tus referencias."); }
-  else window.scrollTo({ top:0, behavior:"smooth" });
-}));
-
-function openTopic(topicName){
-  activeTopic = topicName;
-  document.getElementById("dashboard-view").style.display = "none";
-  document.getElementById("topic-view").style.display = "block";
-  document.getElementById("topic-title").textContent = "📚 " + topicName;
-  renderTopicBoard();
+function explorarHTML(){
+  const queue = sortRefs(data.referencias.filter(r => r.estado === "Por consumir" || r.estado === "Consumiendo"), "importance").slice(0, 10);
+  const best = sortRefs(data.referencias.filter(r => r.importancia), "importance").slice(0, 8);
+  const empty = data.topics.filter(t => !t.count);
+  return `<section class="panel"><div class="panel-head"><div><h2>Explorar</h2><div class="sub">Cómo se conectan tus temas con los tags de tus referencias. Haz clic en un tema para abrirlo.</div></div></div><div class="map">${mapSVG()}</div></section>
+    <div class="grid-2" style="grid-template-columns:1fr 1fr"><section class="panel"><div class="panel-head"><h3>Por consumir</h3><button class="link" onclick="refFilters.estado='Por consumir';go('referencias')">Ver todas →</button></div>${queue.map(refRow).join("") || '<div class="empty">Nada pendiente.</div>'}</section>
+    <section class="panel"><div class="panel-head"><h3>Mejor valoradas</h3></div>${best.map(refRow).join("") || '<div class="empty">Valora tus referencias con estrellas para verlas aquí.</div>'}</section></div>
+    ${empty.length ? `<section class="panel"><div class="panel-head"><h3>Temas por explorar</h3><div class="sub">Temas sin referencias todavía.</div></div><div>${empty.map(t => `<button class="btn sm" style="margin:0 6px 6px 0" data-topic="${esc(t.name)}">${esc(t.name)}</button>`).join("")}</div></section>` : ""}`;
 }
-function backToDashboard(){
-  document.getElementById("topic-view").style.display = "none";
-  document.getElementById("dashboard-view").style.display = "block";
-  activeTopic = null;
+function autoresHTML(){
+  const by = {};
+  data.referencias.forEach(r => { const a = (r.autor||"").trim(); if(!a) return; (by[a] = by[a] || []).push(r); });
+  const list = Object.entries(by).sort((a,b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "es"));
+  return `<section class="panel"><div class="panel-head"><div><h2>Autores</h2><div class="sub">${list.length} autores en tus referencias. Haz clic para ver sus referencias.</div></div></div>
+    <div class="authors">${list.map(([a, refs]) => `<div class="author" data-author="${esc(a)}"><div class="avatar">${esc(initials(a))}</div><div style="min-width:0"><strong style="display:block">${esc(a)}</strong><small style="color:var(--faint)">${refs.length} referencia${refs.length===1?"":"s"} · ${esc([...new Set(refs.flatMap(r => r.temas||[]))].slice(0,2).join(", ") || "sin tema")}</small></div></div>`).join("") || '<div class="empty">Agrega el autor en tus referencias para verlos aquí.</div>'}</div></section>`;
 }
-
-async function renameActiveTopic(){
-  if(!activeTopic) return;
-  const newName = prompt("Nuevo nombre para este tema:", activeTopic);
-  if(!newName || !newName.trim() || newName.trim() === activeTopic) return;
-  const t = window.jarvisToast?.loading("Renombrando tema…");
-  try{
-    const r = await fetch("/api/capture", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ action:"rename-topic", oldName:activeTopic, newName:newName.trim() }) });
-    const result = await r.json();
-    if(!r.ok || result.error) throw new Error(result.error || "Error desconocido");
-    activeTopic = newName.trim();
-    window.jarvisToast?.success(t, "Tema renombrado");
-    await loadData();
-    openTopic(activeTopic);
-  }catch(e){ window.jarvisToast?.error(t, "No se pudo renombrar: " + e.message); }
+function citasHTML(){
+  const saved = quotes();
+  return `<section class="panel"><div class="panel-head"><div><h2>Citas</h2><div class="sub">Tus citas guardadas en Notion. La del día aparece en la portada.</div></div><button class="btn gold" onclick="openQuoteForm()">＋ Nueva cita</button></div>
+    <div class="quotes">${saved.map(r => { const q = parseQuote(r); return `<div class="quote"><q>${esc(q.text)}</q><small>— ${esc(q.author || "Anónimo")}</small><div>${(r.temas||[]).map(t => `<span class="chip">${esc(t)}</span>`).join("")}</div><div class="qa"><button class="btn sm" data-ref="${esc(r.id)}">✎ Editar</button><button class="btn sm danger" data-delquote="${esc(r.id)}">Eliminar</button></div></div>`; }).join("") || '<div class="empty">Aún no tienes citas guardadas.</div>'}</div></section>
+    <section class="panel"><div class="panel-head"><h3>Sugerencias</h3><div class="sub">Guárdalas en tus citas con un clic.</div></div>
+    <div class="quotes">${DEFAULT_QUOTES.filter(q => !saved.some(r => parseQuote(r).text === q.text)).map((q,i) => `<div class="quote"><q>${esc(q.text)}</q><small>— ${esc(q.author)}</small><div class="qa"><button class="btn sm" data-savequote="${i}">Guardar cita</button></div></div>`).join("") || '<div class="empty">Ya guardaste todas las sugerencias.</div>'}</div></section>`;
+}
+function bindTab(el){
+  bindRefs(el);
+  el.querySelectorAll("[data-topic]").forEach(n => n.addEventListener("click", e => { if(e.target.closest("[data-tmenu]")) return; openTopic(n.dataset.topic); }));
+  el.querySelectorAll("[data-tmenu]").forEach(n => n.addEventListener("click", e => { e.stopPropagation(); topicMenu(n, n.dataset.tmenu); }));
+  el.querySelectorAll("[data-newtopic]").forEach(n => n.addEventListener("click", () => openTopicForm()));
+  el.querySelectorAll("[data-tag]").forEach(n => n.addEventListener("click", () => { refFilters.q = n.dataset.tag; go("referencias"); }));
+  el.querySelectorAll("[data-author]").forEach(n => n.addEventListener("click", () => { Object.assign(refFilters, { autor:n.dataset.author, q:"", tema:"all", tipo:"all", estado:"all" }); go("referencias"); }));
+  el.querySelectorAll("[data-savequote]").forEach(n => n.addEventListener("click", () => { const q = DEFAULT_QUOTES.filter(q => !quotes().some(r => parseQuote(r).text === q.text))[n.dataset.savequote]; saveQuote(q.text, q.author, ""); }));
+  el.querySelectorAll("[data-delquote]").forEach(n => n.addEventListener("click", () => archiveRef(n.dataset.delquote, "¿Eliminar esta cita?")));
+  el.querySelector("#topic-sort")?.addEventListener("change", e => { topicSort = e.target.value; render(); });
+  el.querySelector("#topic-q")?.addEventListener("input", e => { const q = e.target.value.toLowerCase(); el.querySelectorAll("#topic-grid .tcard[data-topic]").forEach(c => c.style.display = c.dataset.topic.toLowerCase().includes(q) ? "" : "none"); });
+  el.querySelectorAll("#cloud-seg button").forEach(b => b.addEventListener("click", () => { cloudView = b.dataset.v; render(); }));
+  el.querySelector("#z-in")?.addEventListener("click", () => { cloudZoom = Math.min(1.8, cloudZoom + .15); document.getElementById("cloud").style.transform = `scale(${cloudZoom})`; });
+  el.querySelector("#z-out")?.addEventListener("click", () => { cloudZoom = Math.max(.6, cloudZoom - .15); document.getElementById("cloud").style.transform = `scale(${cloudZoom})`; });
+  el.querySelector("#z-reset")?.addEventListener("click", () => { cloudZoom = 1; document.getElementById("cloud").style.transform = "scale(1)"; });
+  const rf = (id, key, evt = "change") => el.querySelector(id)?.addEventListener(evt, e => { refFilters[key] = e.target.value; const pos = e.target.selectionStart; render(); if(evt === "input"){ const n = document.getElementById(id.slice(1)); n.focus(); n.setSelectionRange(pos, pos); } });
+  rf("#rf-q", "q", "input"); rf("#rf-tema", "tema"); rf("#rf-tipo", "tipo"); rf("#rf-estado", "estado"); rf("#rf-sort", "sort");
+  el.querySelector("#rf-clear")?.addEventListener("click", () => { Object.assign(refFilters, { q:"", tema:"all", tipo:"all", estado:"all", autor:"", sort:"recent" }); render(); });
+}
+function topicMenu(anchor, name){
+  showMenu(anchor, [
+    { label:"Abrir tablero", run:() => openTopic(name) },
+    { label:"✎ Editar portada, ícono y descripción", run:() => openTopicForm(topicOf(name)) },
+    { label:"＋ Agregar referencia", run:() => openRefForm({ temas:[name] }) },
+    { label:"Eliminar tema", danger:true, run:() => deleteTopic(name) },
+  ]);
 }
 
-async function renameTopicDirect(oldName){const next=prompt(`Nuevo nombre para “${oldName}”:`,oldName);if(!next||!next.trim()||next.trim()===oldName)return;try{const r=await fetch("/api/capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"rename-topic",oldName,newName:next.trim()})});const d=await r.json();if(!r.ok||d.error)throw Error(d.error||"No se pudo renombrar el tema");await loadData();}catch(e){alert("No se pudo renombrar el tema: "+e.message)}}
-async function deleteTopic(name){if(!confirm(`¿Eliminar el tema “${name}”? Se quitará de la lista de opciones de Notion.`))return;try{const r=await fetch("/api/capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delete-topic",name})});const d=await r.json();if(!r.ok||d.error)throw Error(d.error||"No se pudo eliminar el tema");await loadData();}catch(e){alert("No se pudo eliminar el tema: "+e.message)}}
-
-function renderTopicBoard(){
-  const search = (document.getElementById("topic-search").value || "").toLowerCase();
-  const tipoFilter = document.getElementById("topic-tipo-filter").value;
-  const sortBy = document.getElementById("topic-sort").value;
-  let refs = allData.referencias.filter(r => {
-    if(!r.temas.includes(activeTopic)) return false;
-    if(tipoFilter !== "all" && r.tipo !== tipoFilter) return false;
-    if(search && !r.referencia.toLowerCase().includes(search) && !(r.autor||"").toLowerCase().includes(search)) return false;
-    return true;
+/* ---------- topic board ---------- */
+function boardColumns(t){
+  const refs = refsOf(t.name), cols = [...(t.columns || [])];
+  refs.forEach(r => { const c = (r.columna || "").trim(); if(c && c !== "Sin columna" && !cols.includes(c)) cols.push(c); });
+  const loose = refs.some(r => !(r.columna || "").trim() || r.columna === "Sin columna");
+  return loose || !cols.length ? ["Sin columna", ...cols] : cols;
+}
+function renderTopic(){
+  const t = topicOf(activeTopic), i = data.topics.indexOf(t), q = boardFilters.q.toLowerCase();
+  const refs = sortRefs(refsOf(t.name).filter(r => (!q || `${r.referencia} ${r.autor} ${(r.tags||[]).join(" ")}`.toLowerCase().includes(q)) && (boardFilters.tipo === "all" || r.tipo === boardFilters.tipo)), boardFilters.sort);
+  const colOf = r => (r.columna || "").trim() && r.columna !== "Sin columna" ? r.columna.trim() : "Sin columna";
+  const cols = boardColumns(t);
+  const el = document.getElementById("topic-view");
+  el.innerHTML = `<section class="topic-hero" style="${coverStyle(t.coverUrl, i)}"><button class="btn hero-edit" onclick="openTopicForm(topicOf(activeTopic))">✎ Editar portada</button><div class="hero-in">
+      <div class="hero-icon" style="${t.iconUrl?`background-image:${cssUrl(t.iconUrl)}`:""};font-family:var(--serif);font-size:30px">${iconHTML(t)}</div>
+      <div><div class="hero-kicker">Mis Gustos · Tema</div><h1>${esc(t.name)}</h1><p>${esc(t.description || "Tablero por columnas — arrastra las referencias para organizarlas.")}</p></div></div></section>
+    <div class="toolbar"><input class="input" id="b-q" value="${esc(boardFilters.q)}" placeholder="⌕ Buscar referencias…">
+      <select class="select" id="b-tipo"><option value="all">Todos los tipos</option>${TIPOS.map(x => `<option ${x===boardFilters.tipo?"selected":""}>${esc(x)}</option>`).join("")}</select>
+      <select class="select" id="b-sort">${[["recent","Más recientes"],["oldest","Más antiguas"],["az","A-Z"],["importance","Importancia"]].map(([v,l]) => `<option value="${v}" ${v===boardFilters.sort?"selected":""}>Ordenar: ${l}</option>`).join("")}</select>
+      <button class="btn ghost" id="b-clear">× Limpiar filtros</button>
+      <span style="margin-left:auto"></span>
+      <button class="btn" onclick="openTopicForm(topicOf(activeTopic))">✎ Editar tema</button>
+      <button class="btn" onclick="go('temas')">← Volver</button>
+      <button class="btn gold" onclick="openRefForm({ temas:[activeTopic] })">＋ Agregar referencia</button></div>
+    <div class="board" id="board">${cols.map(c => { const list = refs.filter(r => colOf(r) === c); return `<div class="col" data-col="${esc(c)}"><div class="col-head"><strong>${esc(c)}</strong><span class="count">${list.length}</span>${c !== "Sin columna" ? `<button data-colmenu="${esc(c)}" title="Opciones de columna">⋯</button>` : ""}</div>
+      <div class="col-body">${list.map(r => `<div class="card" draggable="true" data-ref="${esc(r.id)}">${thumbHTML(r)}<div style="min-width:0"><strong>${esc(r.referencia)}</strong><small>${esc(r.autor || r.tipo || "")}</small><div>${(r.tags||[]).slice(0,2).map(g => `<span class="chip">${esc(g)}</span>`).join("")}</div><small>${esc(dateEs(r.createdTime))}${r.importancia?" · "+"★".repeat(r.importancia):""}</small></div></div>`).join("") || '<div class="empty">Arrastra aquí o agrega una referencia.</div>'}</div>
+      <button class="add-card" data-addto="${esc(c)}">＋ Añadir referencia</button></div>`; }).join("")}
+      <div class="col new" id="new-col"><div class="plus">＋</div><b>Nueva columna</b><span>Organiza tus referencias por autor, idea o lo que tenga sentido.</span></div></div>`;
+  bindRefs(el);
+  el.querySelectorAll("[data-addto]").forEach(b => b.addEventListener("click", () => openRefForm({ temas:[t.name], columna: b.dataset.addto === "Sin columna" ? "" : b.dataset.addto })));
+  el.querySelectorAll("[data-colmenu]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); columnMenu(b, b.dataset.colmenu); }));
+  el.querySelector("#new-col").addEventListener("click", addColumn);
+  const bf = (id, key, evt = "change") => el.querySelector(id).addEventListener(evt, e => { boardFilters[key] = e.target.value; const pos = e.target.selectionStart; renderTopic(); if(evt === "input"){ const n = document.getElementById(id.slice(1)); n.focus(); n.setSelectionRange(pos, pos); } });
+  bf("#b-q", "q", "input"); bf("#b-tipo", "tipo"); bf("#b-sort", "sort");
+  el.querySelector("#b-clear").addEventListener("click", () => { Object.assign(boardFilters, { q:"", tipo:"all", sort:"recent" }); renderTopic(); });
+  // Drag a card to another column: saves its new Columna in Notion.
+  el.querySelectorAll(".card").forEach(c => {
+    c.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", c.dataset.ref); c.classList.add("dragging"); });
+    c.addEventListener("dragend", () => c.classList.remove("dragging"));
   });
-  if(sortBy === "az") refs = [...refs].sort((a,b) => a.referencia.localeCompare(b.referencia));
-  else if(sortBy === "importance") refs = [...refs].sort((a,b) => (b.importancia||0) - (a.importancia||0));
-  else refs = [...refs].sort((a,b) => new Date(b.createdTime) - new Date(a.createdTime));
-  const columns = {};
-  refs.forEach(r => { const k = r.columna || "Sin columna"; (columns[k] = columns[k] || []).push(r); });
-  const colNames = Object.keys(columns).sort();
-
-  const el = document.getElementById("topic-board");
-  if(!colNames.length){
-    el.innerHTML = `<div style="width:100%; text-align:center;">
-      ${emptyNote("Sin referencias en este tema todavía.")}
-      <button class="btn-gold" style="margin-top:4px;" onclick="openCreateReference()">+ Agregar la primera referencia</button>
-    </div>`;
-    return;
-  }
-  el.innerHTML = colNames.map(col => `
-    <div class="board-col">
-      <div class="board-col-head"><span>${esc(col)}</span><span>${columns[col].length}</span></div>
-      ${columns[col].map(r => `
-        <div class="board-card" data-id="${esc(r.id)}">
-          <div class="tp">${TIPO_ICON[r.tipo]||''} ${esc(r.tipo||'')}</div>
-          <div class="nm">${esc(r.referencia)}</div>
-        </div>`).join("")}
-      <div class="add-card-link" data-newcard="${esc(col)}">+ Nueva referencia</div>
-    </div>`).join("") + `<div class="add-col-btn" id="add-col-btn">+ Nueva columna</div>`;
-
-  el.querySelectorAll("[data-id]").forEach(c => c.addEventListener("click", () => openReferenceDetail(c.dataset.id)));
-  el.querySelectorAll("[data-newcard]").forEach(l => l.addEventListener("click", () => openCreateReference(l.dataset.newcard)));
-  document.getElementById("add-col-btn").addEventListener("click", () => {
-    const name = prompt("Nombre de la nueva columna (autor, concepto, persona, lo que tenga sentido):");
-    if(name && name.trim()) openCreateReference(name.trim());
+  el.querySelectorAll(".col[data-col]").forEach(col => {
+    col.addEventListener("dragover", e => { e.preventDefault(); col.classList.add("drop"); });
+    col.addEventListener("dragleave", () => col.classList.remove("drop"));
+    col.addEventListener("drop", e => { e.preventDefault(); col.classList.remove("drop"); moveRef(e.dataTransfer.getData("text/plain"), col.dataset.col); });
   });
 }
-document.getElementById("topic-search").addEventListener("input", renderTopicBoard);
-document.getElementById("topic-tipo-filter").addEventListener("change", renderTopicBoard);
-document.getElementById("topic-sort").addEventListener("change", renderTopicBoard);
-document.getElementById("rename-topic-btn").addEventListener("click", renameActiveTopic);
-document.getElementById("clear-filters-btn").addEventListener("click", () => {
-  document.getElementById("topic-search").value = "";
-  document.getElementById("topic-tipo-filter").value = "all";
-  document.getElementById("topic-sort").value = "recent";
-  renderTopicBoard();
-});
+async function moveRef(id, column){
+  const r = data.referencias.find(x => x.id === id), target = column === "Sin columna" ? "" : column;
+  if(!r || (r.columna === "Sin columna" ? "" : r.columna) === target) return;
+  const before = r.columna; r.columna = target || "Sin columna"; renderTopic();
+  try{ await run("Moviendo…", () => post("/api/capture", { action:"update-reference", pageId:id, columna:target }), `Movida a “${column}”`); }
+  catch(e){ r.columna = before; renderTopic(); }
+}
+function columnMenu(anchor, col){
+  const t = topicOf(activeTopic), cols = boardColumns(t).filter(c => c !== "Sin columna"), i = cols.indexOf(col);
+  const moveTo = j => { const next = [...cols]; next.splice(i, 1); next.splice(j, 0, col); t.columns = next; renderTopic(); run("Guardando orden…", () => post("/api/capture", { action:"topic-columns", topic:t.name, op:"order", columns:next }), "Orden guardado").catch(load); };
+  showMenu(anchor, [
+    { label:"✎ Renombrar columna", run:() => { const n = prompt("Nuevo nombre de la columna:", col); if(n && n.trim() && n.trim() !== col) columnsOp({ op:"rename", column:col, newName:n.trim() }, "Columna renombrada"); } },
+    ...(i > 0 ? [{ label:"← Mover a la izquierda", run:() => moveTo(i - 1) }] : []),
+    ...(i < cols.length - 1 ? [{ label:"→ Mover a la derecha", run:() => moveTo(i + 1) }] : []),
+    { label:"＋ Añadir referencia aquí", run:() => openRefForm({ temas:[t.name], columna:col }) },
+    { label:"Eliminar columna", danger:true, run:() => { if(confirm(`¿Eliminar la columna “${col}”? Sus referencias pasan a “Sin columna”; no se borra ninguna.`)) columnsOp({ op:"delete", column:col }, "Columna eliminada"); } },
+  ]);
+}
+function addColumn(){ const n = prompt("Nombre de la nueva columna:"); if(n && n.trim()) columnsOp({ op:"add", column:n.trim() }, "Columna creada"); }
+async function columnsOp(body, okMsg){ await run("Guardando…", () => post("/api/capture", { action:"topic-columns", topic:activeTopic, ...body }), okMsg).catch(() => {}); await load(); }
 
-async function createTopic(){
-  const name = prompt("Nombre del nuevo tema:");
-  if(!name || !name.trim()) return;
-  const t = window.jarvisToast?.loading("Creando tema…");
-  try{
-    const r = await fetch("/api/capture", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ action:"create-topic", name }) });
-    const result = await r.json();
-    if(!r.ok || result.error) throw new Error(result.error || "Error desconocido");
-    window.jarvisToast?.success(t, "Tema creado");
-    loadData();
-  }catch(e){ window.jarvisToast?.error(t, "No se pudo crear el tema: " + e.message); }
+/* ---------- topic form ---------- */
+function imgField(id, label, url, square){
+  return `<div class="wide"><span class="flabel">${label}</span><div class="img-field"><div class="img-prev ${square?"sq":""}" id="${id}-prev" style="${url?`background-image:${cssUrl(url)}`:""}"></div><input type="file" id="${id}" accept="image/*">${url ? `<label style="flex-direction:row;align-items:center;gap:6px;color:var(--muted)"><input type="checkbox" id="${id}-rm" style="width:auto"> Quitar</label>` : ""}</div></div>`;
+}
+function bindPreview(id){ document.getElementById(id).addEventListener("change", e => { const f = e.target.files[0]; if(f) document.getElementById(id + "-prev").style.backgroundImage = `url("${URL.createObjectURL(f)}")`; }); }
+function openTopicForm(t){
+  const editing = !!t; t = t || {};
+  openModal(`<div class="modal-head"><div><h2>${editing ? "Editar tema" : "Nuevo tema"}</h2><div class="sub">La portada, el ícono y la descripción se guardan en Notion (base “Jarvis · Temas”).</div></div><button class="x" onclick="closeModal()">×</button></div>
+    <form class="form" id="topic-form" onsubmit="return false">
+      <label class="wide">Nombre<input name="name" value="${esc(t.name || "")}" required placeholder="Ej. Inteligencia Artificial"></label>
+      <label class="wide">Descripción<textarea name="description" placeholder="¿Qué te interesa de este tema?">${esc(t.description || "")}</textarea></label>
+      ${imgField("t-cover", "Portada", t.coverUrl)}${imgField("t-icon", "Ícono / logo", t.iconUrl, true)}
+    </form>
+    <div class="modal-actions">${editing ? `<button class="btn danger left" id="t-del">Eliminar tema</button>` : ""}<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold" id="t-save">${editing ? "Guardar cambios" : "Crear tema"}</button></div>`, true);
+  bindPreview("t-cover"); bindPreview("t-icon");
+  document.getElementById("t-del")?.addEventListener("click", () => deleteTopic(t.name));
+  document.getElementById("t-save").addEventListener("click", async () => {
+    const f = document.getElementById("topic-form"), name = f.elements.name.value.trim();
+    if(!name){ window.jarvisToast?.error(null, "Escribe un nombre."); return; }
+    const btn = document.getElementById("t-save"); btn.disabled = true;
+    try{
+      const cover = await imagePayload(document.getElementById("t-cover").files[0]), icon = await imagePayload(document.getElementById("t-icon").files[0], 600);
+      const body = { action:"topic-save", name, description:f.elements.description.value, ...(editing ? { oldName:t.name } : {}) };
+      if(cover) Object.assign(body, { coverFilename:cover.name, coverContentType:cover.type, coverDataBase64:cover.data });
+      if(icon) Object.assign(body, { iconFilename:icon.name, iconContentType:icon.type, iconDataBase64:icon.data });
+      if(document.getElementById("t-cover-rm")?.checked) body.removeCover = true;
+      if(document.getElementById("t-icon-rm")?.checked) body.removeIcon = true;
+      await run("Guardando tema…", () => post("/api/capture", body), editing ? "Tema actualizado" : "Tema creado");
+      closeModal();
+      if(activeTopic && editing && activeTopic === t.name && name !== t.name){ activeTopic = name; location.hash = "tema=" + encodeURIComponent(name); }
+      await load();
+    }catch(e){ btn.disabled = false; if(!/No se pudo/.test(e.message)) window.jarvisToast?.error(null, e.message); }
+  });
+  document.querySelector("#topic-form [name=name]").focus();
+}
+async function deleteTopic(name){
+  const n = refsOf(name).length;
+  if(!confirm(`¿Eliminar el tema “${name}”?${n ? ` Sus ${n} referencias no se borran; solo dejan de tener este tema.` : ""}`)) return;
+  try{ await run("Eliminando tema…", () => post("/api/capture", { action:"delete-topic", name }), "Tema eliminado"); closeModal(); if(activeTopic === name) go("temas"); await load(); }catch(e){}
 }
 
-function closeRefModal(){ document.getElementById("ref-modal-backdrop").style.display = "none"; }
-document.getElementById("ref-modal-backdrop").addEventListener("click", (e) => { if(e.target.id==="ref-modal-backdrop") closeRefModal(); });
-document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeRefModal(); });
-
-function openCreateReference(prefillColumna){
-  const modal = document.getElementById("ref-modal");
-  document.getElementById("ref-modal-backdrop").style.display = "flex";
-  modal.innerHTML = `
-    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
-      <h2 style="font-family:var(--serif); font-size:18px;">Nueva Referencia</h2>
-      <span style="cursor:pointer; color:var(--faint); font-size:18px;" onclick="closeRefModal()">✕</span>
-    </div>
-    <div class="modal-field"><label>Título</label><input id="m-referencia" placeholder="ej. Never Split the Difference"></div>
-    <div class="modal-field"><label>Autor</label><input id="m-autor" placeholder="ej. Chris Voss"></div>
-    <div class="modal-field"><label>Tipo</label><select id="m-tipo">${TIPOS.map(t=>`<option value="${t}">${t}</option>`).join("")}</select></div>
-    <div class="modal-field"><label>Tema</label><select id="m-tema">${(allData?.topics||[]).map(t=>`<option value="${esc(t.name)}" ${t.name===activeTopic?'selected':''}>${esc(t.name)}</option>`).join("")}</select></div>
-    <div class="modal-field"><label>Columna (autor, concepto, persona — lo que tenga sentido)</label><input id="m-columna" value="${esc(prefillColumna||'')}" placeholder="ej. Chris Voss"></div>
-    <div class="modal-field"><label>Enlace</label><input id="m-enlace" placeholder="https://…"></div>
-    <div class="modal-field"><label>Por qué me interesa / Notas</label><textarea id="m-notas" rows="3"></textarea></div>
-    <button class="btn-gold" style="width:100%; justify-content:center;" onclick="submitCreateReference()">Guardar</button>`;
-}
-async function submitCreateReference(){
-  const referencia = document.getElementById("m-referencia").value.trim();
-  if(!referencia){ alert("Escribe un título."); return; }
-  const t = window.jarvisToast?.loading("Guardando referencia…");
-  try{
-    const r = await fetch("/api/capture", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        action:"create-reference", referencia,
-        autor: document.getElementById("m-autor").value,
-        tipo: document.getElementById("m-tipo").value,
-        temas: [document.getElementById("m-tema").value],
-        columna: document.getElementById("m-columna").value,
-        enlace: document.getElementById("m-enlace").value,
-        porQueMeInteresa: document.getElementById("m-notas").value,
-        estado: "Por consumir",
-      })
-    });
-    const result = await r.json();
-    if(!r.ok || result.error) throw new Error(result.error || "Error desconocido");
-    window.jarvisToast?.success(t, "Referencia guardada");
-    loadData();
-    if(result.pageId) openReferenceDetail(result.pageId);
-    else closeRefModal();
-  }catch(e){ window.jarvisToast?.error(t, "No se pudo guardar: " + e.message); }
+/* ---------- page cover form ---------- */
+function openPageForm(){
+  const p = data.page || {};
+  if(!p.workspaceId){ window.jarvisToast?.error(null, "No se encontró la fila de Mis Gustos en Workspaces."); return; }
+  openModal(`<div class="modal-head"><div><h2>Editar portada</h2><div class="sub">Cambia la imagen, el ícono, el título o la descripción de esta sección.</div></div><button class="x" onclick="closeModal()">×</button></div>
+    <form class="form" id="page-form" onsubmit="return false">
+      <label class="wide">Título<input name="title" value="${esc(p.title || "")}"></label>
+      <label class="wide">Descripción<textarea name="description">${esc(p.description || "")}</textarea></label>
+      ${imgField("p-cover", "Portada", p.coverUrl)}${imgField("p-icon", "Ícono / logo", p.iconUrl, true)}
+    </form><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold" id="p-save">Guardar cambios</button></div>`, true);
+  bindPreview("p-cover"); bindPreview("p-icon");
+  document.getElementById("p-save").addEventListener("click", async () => {
+    const f = document.getElementById("page-form"), btn = document.getElementById("p-save"); btn.disabled = true;
+    try{
+      const cover = await imagePayload(document.getElementById("p-cover").files[0]), icon = await imagePayload(document.getElementById("p-icon").files[0], 600);
+      const body = { workspaceId:p.workspaceId, name:f.elements.title.value.trim(), description:f.elements.description.value };
+      if(cover) Object.assign(body, { coverFilename:cover.name, coverContentType:cover.type, coverDataBase64:cover.data });
+      if(icon) Object.assign(body, { iconFilename:icon.name, iconContentType:icon.type, iconDataBase64:icon.data });
+      await run("Guardando portada…", () => post("/api/workspaces-data", body), "Portada guardada");
+      closeModal(); await load();
+    }catch(e){ btn.disabled = false; }
+  });
 }
 
-async function openReferenceDetail(pageId){
-  const modal = document.getElementById("ref-modal");
-  document.getElementById("ref-modal-backdrop").style.display = "flex";
-  modal.innerHTML = emptyNote("Cargando…");
+/* ---------- reference form (create + full editor) ---------- */
+let refTags = [], refStars = 0;
+async function openRef(id){
+  openModal('<div class="empty">Cargando referencia…</div>');
   try{
-    const res = await fetch(`/api/gustos-data?action=detail&pageId=${pageId}`);
-    const r = await res.json();
+    const r = await fetch(`/api/gustos-data?action=detail&pageId=${encodeURIComponent(id)}`).then(x => x.json());
     if(r.error) throw new Error(r.error);
-    modal.innerHTML = `
-      <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
-        <div>
-          <div style="font-size:10.5px; color:var(--gold-2); text-transform:uppercase;">${esc(r.tipo||'')}</div>
-          <h2 style="font-family:var(--serif); font-size:19px;">${esc(r.referencia)}</h2>
-          ${r.autor ? `<div style="font-size:12.5px; color:var(--muted); margin-top:2px;">${esc(r.autor)}</div>` : ''}
-        </div>
-        <span style="cursor:pointer; color:var(--faint); font-size:18px;" onclick="closeRefModal()">✕</span>
-      </div>
-      <div class="modal-field"><label>Temas <span style="font-weight:400; text-transform:none; letter-spacing:0;">(Ctrl / ⌘ + clic para elegir varios)</span></label>
-        <select id="m-tema" multiple size="${Math.min(6, Math.max(3, (allData?.topics||[]).length))}">${(allData?.topics||[]).map(t=>`<option value="${esc(t.name)}" ${r.temas.includes(t.name)?'selected':''}>${esc(t.name)}</option>`).join("")}</select></div>
-      <div class="modal-field"><label>Columna</label><input id="m-columna" value="${esc(r.columna||'')}"></div>
-      <div class="modal-field"><label>Estado</label>
-        <select id="m-estado">${["Por consumir","Consumiendo","Terminado","⭐ Hall of Fame"].map(s=>`<option ${s===r.estado?'selected':''}>${s}</option>`).join("")}</select></div>
-      <div class="modal-field"><label>Enlace</label><input id="m-enlace" value="${esc(r.enlace||'')}"></div>
-      <div class="modal-field"><label>Tags (separados por coma)</label><input id="m-tags" value="${esc((r.tags||[]).join(', '))}"></div>
-      <div class="modal-field"><label>Fecha agregada</label><input value="${new Date(r.createdTime||Date.now()).toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'})}" disabled style="opacity:0.7;"></div>
-      <div class="modal-field"><label>Importancia</label>
-        <div id="m-stars" style="display:flex; gap:4px; font-size:20px; cursor:pointer;">
-          ${[1,2,3,4,5].map(n => `<span data-star="${n}" style="color:${n<=(r.importancia||0)?'var(--gold-2)':'var(--line-strong)'};">★</span>`).join("")}
-        </div>
-        <input type="hidden" id="m-importancia" value="${Number(r.importancia)||0}">
-      </div>
-      <div class="modal-field"><label>Por qué me interesa / Notas</label><textarea id="m-notas" rows="3">${esc(r.porQueMeInteresa||'')}</textarea></div>
-      <label style="font-size:10px; color:var(--faint); display:block; margin-bottom:8px; font-weight:800; letter-spacing:.07em;">📎 Archivos / imágenes</label>
-      <div id="ref-attachments" style="margin-bottom:8px;">
-        ${r.attachments && r.attachments.length ? r.attachments.map(a => `
-          <div style="display:flex; align-items:center; gap:8px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--line);">
-            <span>📄</span><a href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener" style="color:var(--gold-2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(a.name)}</a>
-          </div>`).join("") : `<div style="font-size:11.5px; color:var(--faint);">Sin archivos todavía.</div>`}
-      </div>
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-        <input type="file" id="ref-file-input" style="display:none;" onchange="uploadRefAttachment('${pageId}')">
-        <div onclick="document.getElementById('ref-file-input').click()" style="background:rgba(255,255,255,.04); border:1px solid var(--line); color:var(--muted); font-size:12px; padding:8px 14px; border-radius:10px; cursor:pointer;">+ Subir archivo</div>
-        <span id="ref-upload-status" style="font-size:11px; color:var(--faint);"></span>
-      </div>
-      <label style="font-size:10px; color:var(--faint); display:block; margin-bottom:8px; font-weight:800; letter-spacing:.07em;">Comentarios</label>
-      <div style="margin-bottom:10px; max-height:140px; overflow-y:auto;">
-        ${r.comments.length ? r.comments.map(c=>`<div style="font-size:12px; padding:7px 0; border-bottom:1px solid var(--line);">${esc(c.text)}</div>`).join("") : emptyNote("Sin comentarios.")}
-      </div>
-      <div style="display:flex; gap:8px; margin-bottom:16px;">
-        <input id="m-comment" placeholder="Escribe un comentario…" style="flex:1; background:rgba(255,255,255,.04); border:1px solid var(--line); color:var(--text); padding:9px 10px; border-radius:10px; font-size:12.5px;">
-        <button class="btn-ghost" onclick="submitRefComment('${pageId}')">Comentar</button>
-      </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn-gold" style="flex:1; justify-content:center;" onclick="saveRefDetail('${pageId}')">Guardar Cambios</button>
-        <button class="btn-ghost" style="color:var(--red); border-color:rgba(228,95,91,.35);" onclick="deleteReference('${pageId}')">Archivar</button>
-        <button class="btn-ghost" onclick="closeRefModal()">Cerrar</button>
-      </div>`;
-    document.querySelectorAll("#m-stars [data-star]").forEach(star => {
-      star.addEventListener("click", () => {
-        const val = parseInt(star.dataset.star);
-        document.getElementById("m-importancia").value = val;
-        document.querySelectorAll("#m-stars [data-star]").forEach(s => {
-          s.style.color = parseInt(s.dataset.star) <= val ? "var(--gold-2)" : "var(--line-strong)";
-        });
-      });
-    });
-  }catch(e){
-    modal.innerHTML = emptyNote("No se pudo cargar: " + esc(e.message));
-  }
+    openRefForm(r);
+  }catch(e){ openModal(`<div class="modal-head"><h2>No se pudo cargar</h2><button class="x" onclick="closeModal()">×</button></div><div class="empty">${esc(e.message)}</div>`, true); }
 }
-async function deleteReference(pageId){
-  if(!confirm("¿Archivar esta referencia? Dejará de aparecer en Mis Gustos, pero no se eliminará de forma irreversible.")) return;
-  const t = window.jarvisToast?.loading("Archivando referencia…");
-  try{
-    const r = await fetch("/api/capture", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ action:"delete-reference", pageId }) });
-    const result = await r.json();
-    if(!r.ok || result.error) throw new Error(result.error || "Error desconocido");
-    window.jarvisToast?.success(t, "Referencia archivada");
-    closeRefModal();
-    loadData();
-  }catch(e){ window.jarvisToast?.error(t, "No se pudo archivar: " + e.message); }
+function openRefForm(r){
+  const editing = !!r.id, topicNames = data.topics.map(t => t.name);
+  const temas = r.temas || (activeTopic ? [activeTopic] : []);
+  refTags = [...(r.tags || [])]; refStars = r.importancia || 0;
+  const cols = [...new Set(temas.flatMap(n => topicOf(n) ? boardColumns(topicOf(n)) : []).filter(c => c !== "Sin columna"))];
+  const files = r.attachments || [], img = files.find(f => /\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test(f.name || "") || /\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test(f.url || ""));
+  openModal(`<div class="modal-head"><div><h2>${editing ? "Editar referencia" : r.tipo === "Idea / Concepto" ? "Nueva nota" : "Nueva referencia"}</h2><div class="sub">Todos los cambios se guardan en Notion.</div></div><button class="x" onclick="closeModal()">×</button></div>
+    <form id="ref-form" onsubmit="return false">
+    <div class="ref-top"><div class="ref-img" style="${img?`background-image:${cssUrl(img.url)}`:""}">${img ? "" : editing ? "Sube una imagen abajo y aparecerá aquí." : "Podrás subir imágenes y archivos al guardar."}</div>
+      <div class="form"><label class="wide">Título<input name="referencia" value="${esc(r.referencia || "")}" required placeholder="Ej. Never Split the Difference"></label>
+        <label>Autor / pensador<input name="autor" value="${esc(r.autor || "")}" placeholder="Ej. Chris Voss"></label>
+        <label>Tipo<select name="tipo">${TIPOS.map(t => `<option ${t===(r.tipo||"Artículo / Link")?"selected":""}>${esc(t)}</option>`).join("")}</select></label></div></div>
+    <div class="form">
+      <div class="wide"><span class="flabel">Temas</span><div class="pick" id="ref-temas">${topicNames.map(n => `<label><input type="checkbox" value="${esc(n)}" ${temas.includes(n)?"checked":""}>${esc(n)}</label>`).join("") || '<span class="empty">Crea un tema primero.</span>'}</div></div>
+      <label>Columna<input name="columna" list="col-list" value="${esc(r.columna && r.columna !== "Sin columna" ? r.columna : "")}" placeholder="Ej. Agentes de IA"><datalist id="col-list">${cols.map(c => `<option value="${esc(c)}">`).join("")}</datalist></label>
+      <label>Estado<select name="estado">${ESTADOS.map(s => `<option ${s===(r.estado||"Por consumir")?"selected":""}>${esc(s)}</option>`).join("")}</select></label>
+      <label class="wide">Enlace<div style="display:flex;gap:8px"><input name="enlace" type="url" value="${esc(r.enlace || "")}" placeholder="https://…"><a class="btn" id="open-link" target="_blank" rel="noopener" href="${esc(safeUrl(r.enlace))}" style="text-decoration:none;${safeUrl(r.enlace)?"":"display:none"}">Abrir ↗</a></div></label>
+      <div class="wide"><span class="flabel">Tags</span><div class="tags" id="tags"></div></div>
+      <div><span class="flabel">Importancia</span><div class="stars" id="stars"></div></div>
+      <label>Fecha agregada<input value="${esc(dateEs(r.createdTime || new Date()))}" disabled></label>
+      <label class="wide">Notas / por qué me importa<textarea name="porQueMeInteresa" placeholder="Lo que aprendiste, por qué importa, próximos pasos…">${esc(r.porQueMeInteresa || "")}</textarea></label>
+    </div></form>
+    ${editing ? `<div class="section-label">ARCHIVOS E IMÁGENES</div><div class="files">${files.map((f, i) => `<a class="file" href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener" style="${/\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test((f.name||"") + " " + (f.url||"").split("?")[0]) ? `background-image:${cssUrl(f.url)}` : ""}"><button class="rm" data-rmfile="${i}" title="Quitar archivo">×</button><span>📎 ${esc(f.name)}</span></a>`).join("")}<label class="drop-zone" id="drop"><input type="file" id="ref-files" multiple style="display:none"><span><b>Subir archivos</b><br>Arrastra aquí o haz clic · máx. 3 MB</span></label></div>
+      <div class="section-label">COMENTARIOS (${(r.comments||[]).length})</div>
+      <div style="display:flex;gap:8px"><input class="input" id="comment" style="flex:1" placeholder="Escribe un comentario…"><button class="btn gold" id="post-comment">Publicar</button></div>
+      <div class="comments">${(r.comments||[]).map(c => `<div class="comment"><small>${esc(new Date(c.createdTime).toLocaleString("es-MX", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }))}</small>${esc(c.text)}</div>`).join("")}</div>` : ""}
+    <div class="modal-actions">${editing ? `<button class="btn danger left" id="ref-del">Eliminar referencia</button><a class="btn" style="text-decoration:none" href="${esc(safeUrl(r.notionUrl))}" target="_blank" rel="noopener">Abrir en Notion ↗</a>` : ""}<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold" id="ref-save">${editing ? "Guardar cambios" : "Guardar"}</button></div>`);
+  renderTags(); renderStars();
+  const f = document.getElementById("ref-form");
+  f.elements.enlace.addEventListener("input", e => { const a = document.getElementById("open-link"), u = safeUrl(e.target.value); a.href = u; a.style.display = u ? "" : "none"; });
+  document.getElementById("ref-save").addEventListener("click", () => saveRef(r));
+  if(editing){
+    document.getElementById("ref-del").addEventListener("click", () => archiveRef(r.id, "¿Eliminar esta referencia? Se archivará en Notion."));
+    document.getElementById("post-comment").addEventListener("click", () => postComment(r.id));
+    document.getElementById("comment").addEventListener("keydown", e => { if(e.key === "Enter") postComment(r.id); });
+    const drop = document.getElementById("drop"), input = document.getElementById("ref-files");
+    input.addEventListener("change", () => uploadFiles(r.id, [...input.files]));
+    drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+    drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); uploadFiles(r.id, [...e.dataTransfer.files]); });
+    document.querySelectorAll("[data-rmfile]").forEach(b => b.addEventListener("click", async e => { e.preventDefault(); e.stopPropagation(); if(!confirm("¿Quitar este archivo de la referencia?")) return; await run("Quitando archivo…", () => post("/api/capture", { action:"remove-file", pageId:r.id, index:Number(b.dataset.rmfile) }), "Archivo quitado").catch(() => {}); openRef(r.id); load(); }));
+  }
+  f.elements.referencia.focus();
 }
-async function uploadRefAttachment(pageId){
-  const input = document.getElementById("ref-file-input");
-  const file = input.files[0];
-  if(!file) return;
-  const statusEl = document.getElementById("ref-upload-status");
-  if(file.size > 3 * 1024 * 1024){
-    statusEl.textContent = "Archivo demasiado grande (máx. 3MB por ahora).";
-    statusEl.style.color = "var(--red)";
-    return;
-  }
-  const t = window.jarvisToast?.loading("Subiendo archivo…");
-  statusEl.textContent = "Subiendo…";
-  statusEl.style.color = "var(--faint)";
+function renderTags(){
+  const box = document.getElementById("tags");
+  box.innerHTML = refTags.map((t,i) => `<span class="chip purple">${esc(t)}<button data-rmtag="${i}" title="Quitar">×</button></span>`).join("") + `<input id="tag-input" placeholder="＋ Añadir tag y Enter">`;
+  box.querySelectorAll("[data-rmtag]").forEach(b => b.addEventListener("click", () => { refTags.splice(Number(b.dataset.rmtag), 1); renderTags(); }));
+  const input = document.getElementById("tag-input");
+  const add = () => { const v = input.value.replace(/,/g, "").trim(); if(v && !refTags.includes(v)) refTags.push(v); input.value = ""; renderTags(); document.getElementById("tag-input").focus(); };
+  input.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === ","){ e.preventDefault(); add(); } else if(e.key === "Backspace" && !input.value && refTags.length){ refTags.pop(); renderTags(); document.getElementById("tag-input").focus(); } });
+  input.addEventListener("blur", () => { if(input.value.trim()) add(); });
+}
+function renderStars(){
+  const el = document.getElementById("stars");
+  el.innerHTML = [1,2,3,4,5].map(n => `<button type="button" class="${n<=refStars?"on":""}" data-star="${n}" title="${n} de 5">★</button>`).join("") + `<span style="color:var(--muted);margin-left:6px">${refStars} / 5</span>`;
+  el.querySelectorAll("[data-star]").forEach(b => b.addEventListener("click", () => { const n = Number(b.dataset.star); refStars = refStars === n ? 0 : n; renderStars(); }));
+}
+async function saveRef(r){
+  const f = document.getElementById("ref-form"), v = Object.fromEntries(new FormData(f).entries());
+  const pending = document.getElementById("tag-input")?.value.trim(); if(pending && !refTags.includes(pending)) refTags.push(pending);
+  if(!v.referencia?.trim()){ window.jarvisToast?.error(null, "Escribe un título."); return; }
+  const temas = [...document.querySelectorAll("#ref-temas input:checked")].map(i => i.value);
+  const body = { referencia:v.referencia.trim(), autor:v.autor || "", tipo:v.tipo, temas, columna:(v.columna || "").trim(), estado:v.estado, enlace:(v.enlace || "").trim(), tags:refTags, importancia:refStars || null, porQueMeInteresa:v.porQueMeInteresa || "" };
+  const btn = document.getElementById("ref-save"); btn.disabled = true;
   try{
-    const dataBase64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-    const res = await fetch("/api/capture", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ action:"upload", pageId, filename: file.name, contentType: file.type, dataBase64 })
-    });
-    const result = await res.json();
-    if(!res.ok || result.error) throw new Error(result.error || "Error desconocido");
-    window.jarvisToast?.success(t, "Archivo subido");
-    input.value = "";
-    openReferenceDetail(pageId);
-  }catch(e){
-    statusEl.textContent = "No se pudo subir: " + e.message;
-    statusEl.style.color = "var(--red)";
-    window.jarvisToast?.error(t, "No se pudo subir: " + e.message);
-  }
+    if(r.id){ await run("Guardando…", () => post("/api/capture", { action:"update-reference", pageId:r.id, ...body }), "Referencia guardada"); closeModal(); }
+    else { const d = await run("Guardando…", () => post("/api/capture", { action:"create-reference", ...body }), "Referencia creada — ya puedes adjuntar archivos"); await load(); return openRef(d.pageId); }
+    await load();
+  }catch(e){ btn.disabled = false; }
+}
+async function archiveRef(id, question){
+  if(!confirm(question)) return;
+  try{ await run("Eliminando…", () => post("/api/capture", { action:"delete-reference", pageId:id }), "Eliminada"); closeModal(); await load(); }catch(e){}
+}
+async function postComment(id){
+  const input = document.getElementById("comment"), text = input.value.trim();
+  if(!text) return;
+  try{ await run("Publicando…", () => post("/api/capture", { action:"comment", pageId:id, text }), "Comentario publicado"); openRef(id); }catch(e){}
+}
+async function uploadFiles(id, files){
+  if(!files.length) return;
+  if(files.some(f => f.size > 3*1024*1024)){ window.jarvisToast?.error(null, "Cada archivo debe pesar menos de 3 MB."); return; }
+  try{
+    for(const file of files){ const data64 = (await readFile(file)).split(",")[1]; await run(`Subiendo ${file.name}…`, () => post("/api/capture", { action:"upload", pageId:id, filename:file.name, contentType:file.type, dataBase64:data64 }), "Archivo subido"); }
+  }catch(e){}
+  openRef(id); load();
 }
 
-async function saveRefDetail(pageId){
-  const t = window.jarvisToast?.loading("Guardando cambios…");
+/* ---------- quotes & brief ---------- */
+function openQuoteForm(){
+  openModal(`<div class="modal-head"><div><h2>Nueva cita</h2><div class="sub">Se guarda como referencia de tipo “Cita”.</div></div><button class="x" onclick="closeModal()">×</button></div>
+    <form class="form" id="quote-form" onsubmit="return false"><label class="wide">Cita<textarea name="text" required placeholder="Escribe la cita…"></textarea></label>
+    <label>Autor<input name="author" placeholder="¿Quién la dijo?"></label><label>Tema<select name="tema"><option value="">Sin tema</option>${data.topics.map(t => `<option>${esc(t.name)}</option>`).join("")}</select></label></form>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold" id="q-save">Guardar cita</button></div>`, true);
+  document.getElementById("q-save").addEventListener("click", () => { const f = document.getElementById("quote-form"); if(!f.elements.text.value.trim()){ window.jarvisToast?.error(null, "Escribe la cita."); return; } saveQuote(f.elements.text.value.trim(), f.elements.author.value.trim(), f.elements.tema.value); });
+  document.querySelector("#quote-form textarea").focus();
+}
+async function saveQuote(text, author, tema){
+  try{ await run("Guardando cita…", () => post("/api/capture", { action:"create-reference", referencia:`“${text}” — ${author || "Anónimo"}`, autor:author || "", tipo:"Cita", temas: tema ? [tema] : [], estado:"Terminado" }), "Cita guardada"); closeModal(); await load(); }catch(e){}
+}
+// A brief built from the real references of one topic (or all): no AI, just
+// what is in Notion, organised.
+function openBrief(topic){
+  const refs = topic === "all" ? data.referencias : refsOf(topic), week = Date.now() - 7*86400000;
+  const fresh = sortRefs(refs.filter(r => new Date(r.createdTime) >= week), "recent");
+  const queue = sortRefs(refs.filter(r => r.estado === "Por consumir" || r.estado === "Consumiendo"), "importance").slice(0, 6);
+  const best = sortRefs(refs.filter(r => r.importancia >= 4), "importance").slice(0, 6);
+  const tags = {}; refs.forEach(r => (r.tags||[]).forEach(t => tags[t] = (tags[t]||0) + 1));
+  const topTags = Object.entries(tags).sort((a,b) => b[1]-a[1]).slice(0, 8);
+  const notes = refs.filter(r => (r.porQueMeInteresa||"").trim()).slice(0, 4);
+  const li = r => `<li><b>${esc(r.referencia)}</b>${r.autor ? " — " + esc(r.autor) : ""}${r.importancia ? " · " + "★".repeat(r.importancia) : ""}</li>`;
+  openModal(`<div class="modal-head"><div><h2>Brief · ${esc(topic === "all" ? "Todos los temas" : topic)}</h2><div class="sub">${new Date().toLocaleDateString("es-MX", { weekday:"long", day:"numeric", month:"long", year:"numeric" })} · ${refs.length} referencias</div></div><button class="x" onclick="closeModal()">×</button></div>
+    <div class="brief">${!refs.length ? '<div class="empty">Este tema todavía no tiene referencias.</div>' : `
+      <h4>Esta semana</h4>${fresh.length ? `<ul>${fresh.slice(0,6).map(li).join("")}</ul>` : "<p>No agregaste referencias en los últimos 7 días.</p>"}
+      <h4>Por consumir</h4>${queue.length ? `<ul>${queue.map(li).join("")}</ul>` : "<p>No tienes pendientes.</p>"}
+      <h4>Lo mejor valorado</h4>${best.length ? `<ul>${best.map(li).join("")}</ul>` : "<p>Aún no hay referencias con 4 o 5 estrellas.</p>"}
+      <h4>Ideas que se repiten</h4><p>${topTags.map(([t,n]) => `<span class="chip purple">${esc(t)} · ${n}</span>`).join(" ") || "Agrega tags a tus referencias para ver patrones."}</p>
+      ${notes.length ? `<h4>Tus notas</h4><ul>${notes.map(r => `<li><b>${esc(r.referencia)}:</b> ${esc(r.porQueMeInteresa.slice(0, 220))}${r.porQueMeInteresa.length > 220 ? "…" : ""}</li>`).join("")}</ul>` : ""}`}</div>
+    <div class="modal-actions">${topic !== "all" && topicOf(topic) ? `<button class="btn" onclick="closeModal();openTopic(${esc(JSON.stringify(topic))})">Abrir tema</button>` : ""}<button class="btn" onclick="window.print()">Imprimir</button><button class="btn gold" onclick="closeModal()">Cerrar</button></div>`);
+}
+
+/* ---------- data ---------- */
+async function load(){
+  const status = document.getElementById("status");
   try{
-    const r = await fetch("/api/capture", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        action:"update-reference", pageId,
-        // All selected topics — previously only the first was kept.
-        temas: Array.from(document.getElementById("m-tema").selectedOptions).map(o => o.value),
-        columna: document.getElementById("m-columna").value,
-        estado: document.getElementById("m-estado").value,
-        enlace: document.getElementById("m-enlace").value,
-        tags: document.getElementById("m-tags").value.split(",").map(s=>s.trim()).filter(Boolean),
-        importancia: parseInt(document.getElementById("m-importancia").value) || null,
-        porQueMeInteresa: document.getElementById("m-notas").value,
-      })
-    });
-    const result = await r.json();
-    if(!r.ok || result.error) throw new Error(result.error || "Error desconocido");
-    window.jarvisToast?.success(t, "Guardado");
-    closeRefModal();
-    loadData();
-  }catch(e){ window.jarvisToast?.error(t, "No se pudo guardar: " + e.message); }
+    const r = await fetch("/api/gustos-data?fresh=" + Date.now(), { cache:"no-store" });
+    const d = await r.json();
+    if(!r.ok || d.error) throw new Error(d.error || ("Error " + r.status));
+    data = { ...d, referencias:d.referencias || [], topics:d.topics || [] };
+    status.textContent = `${data.referencias.length} referencias y ${data.topics.length} temas sincronizados desde Notion`;
+    document.getElementById("sync-text").textContent = "Sincronizado con Notion · " + new Date().toLocaleTimeString("es-MX", { hour:"2-digit", minute:"2-digit" });
+    if(activeTopic && !topicOf(activeTopic)){ activeTopic = null; tab = "temas"; }
+    render();
+  }catch(err){ status.textContent = "No se pudo cargar desde Notion: " + err.message; render(); }
 }
-async function submitRefComment(pageId){
-  const input = document.getElementById("m-comment");
-  if(!input.value.trim()) return;
-  const t = window.jarvisToast?.loading("Comentando…");
-  try{
-    const r = await fetch("/api/capture", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ action:"comment", pageId, text: input.value }) });
-    if(!r.ok) throw new Error("Error " + r.status);
-    window.jarvisToast?.success(t, "Comentario agregado");
-    openReferenceDetail(pageId);
-  }catch(e){ window.jarvisToast?.error(t, "No se pudo comentar: " + e.message); }
-}
-
-/* ---------- Notifications ---------- */
-const NOTIF_STORE_KEY = "jarvis-notif-dismissed-v1";
-let notificationsCache = [];
-
-function loadDismissedNotifs(){
-  try{ return new Set(JSON.parse(localStorage.getItem(NOTIF_STORE_KEY) || "[]")); }
-  catch(e){ return new Set(); }
-}
-function saveDismissedNotifs(set){
-  try{ localStorage.setItem(NOTIF_STORE_KEY, JSON.stringify([...set])); }catch(e){}
-}
-function notifRelDay(iso){
-  const d = new Date(iso), now = new Date();
-  const days = Math.floor((new Date(now.toDateString()) - new Date(d.toDateString())) / 86400000);
-  if(days <= 0) return "Hoy";
-  if(days === 1) return "Ayer";
-  return d.toLocaleDateString("es", { day:"numeric", month:"short" });
-}
-function buildNotifications(){
-  const list = [];
-  if(!allData) return list;
-  const refs = allData.referencias || [];
-  const weekAgo = Date.now() - 7*86400000;
-  const newThisWeek = refs.filter(r => new Date(r.createdTime) >= weekAgo);
-  newThisWeek.slice(0,4).forEach(r => list.push({
-    id:"new-" + r.id, tone:"green", icon:"✨",
-    title:"Nueva referencia: " + r.referencia,
-    text:"Guardada en " + (r.temas[0] || "tus temas") + (r.autor ? " · " + r.autor : "") + ".",
-    time:r.createdTime
-  }));
-  const stale = refs.filter(r => r.estado === "Por consumir" && (Date.now() - new Date(r.createdTime)) > 14*86400000);
-  stale.slice(0,3).forEach(r => list.push({
-    id:"stale-" + r.id, tone:"amber", icon:"📚",
-    title:"Por consumir: " + r.referencia,
-    text:"Lleva más de 2 semanas guardada sin empezar. ¿La retomas esta semana?",
-    time:r.createdTime
-  }));
-  const consuming = refs.filter(r => r.estado === "Consumiendo");
-  consuming.slice(0,3).forEach(r => list.push({
-    id:"consuming-" + r.id, tone:"blue", icon:"⏳",
-    title:"En progreso: " + r.referencia,
-    text:"La empezaste y sigue abierta — un buen momento para continuar.",
-    time:r.createdTime
-  }));
-  const emptyTopics = (allData.topics || []).filter(t => t.count === 0);
-  emptyTopics.slice(0,2).forEach(t => list.push({
-    id:"empty-topic-" + t.name, tone:"purple", icon:"🗂️",
-    title:"Tema sin referencias: " + t.name,
-    text:"Crea la primera referencia para activar este tema.",
-    time:new Date().toISOString()
-  }));
-  const hall = refs.filter(r => r.estado === "⭐ Hall of Fame");
-  if(hall.length) list.push({
-    id:"hall-" + hall.length, tone:"gold", icon:"🏆",
-    title:hall.length + (hall.length === 1 ? " referencia" : " referencias") + " en tu Hall of Fame",
-    text:"Tu mejor conocimiento aplicado hasta ahora. Sigue así.",
-    time:new Date().toISOString()
-  });
-  const toneOrder = { red:0, amber:1, purple:2, blue:3, green:4, gold:5 };
-  return list.sort((a,b) => toneOrder[a.tone] - toneOrder[b.tone]);
-}
-function visibleNotifications(){
-  const dismissed = loadDismissedNotifs();
-  return notificationsCache.filter(n => !dismissed.has(n.id));
-}
-function updateNotificationBadge(){
-  const n = visibleNotifications().length;
-  const badge = document.getElementById("notif-badge");
-  badge.textContent = n;
-  badge.style.display = n > 0 ? "" : "none";
-  const pill = document.getElementById("notif-count");
-  if(pill) pill.textContent = n;
-}
-function renderNotifications(){
-  const listEl = document.getElementById("notif-list");
-  const items = visibleNotifications();
-  if(!items.length){
-    listEl.innerHTML = '<div class="notif-empty">Sin notificaciones pendientes.<br>¡Todo bajo control! ✨</div>';
-  } else {
-    listEl.innerHTML = items.map(n => `
-      <div class="notif-item" data-nid="${esc(n.id)}">
-        <div class="notif-ico ${n.tone}">${n.icon}</div>
-        <div class="notif-body">
-          <div class="notif-title">${esc(n.title)}</div>
-          <div class="notif-text">${esc(n.text)}</div>
-          <div class="notif-time">${esc(notifRelDay(n.time))}</div>
-        </div>
-        <button class="notif-dismiss" data-dismiss="${esc(n.id)}" title="Descartar" type="button">✕</button>
-      </div>`).join("");
-    listEl.querySelectorAll("[data-dismiss]").forEach(btn => btn.addEventListener("click", () => {
-      const id = btn.dataset.dismiss;
-      const dismissed = loadDismissedNotifs();
-      dismissed.add(id);
-      saveDismissedNotifs(dismissed);
-      const row = listEl.querySelector(`[data-nid="${CSS.escape(id)}"]`);
-      if(row){ row.classList.add("removing"); setTimeout(() => { renderNotifications(); updateNotificationBadge(); }, 170); }
-      else { renderNotifications(); updateNotificationBadge(); }
-    }));
-  }
-  updateNotificationBadge();
-}
-function openNotifications(){
-  notificationsCache = buildNotifications();
-  renderNotifications();
-  document.getElementById("notif-panel").classList.add("open");
-  document.getElementById("notif-overlay").classList.add("open");
-  document.getElementById("notif-bell").classList.add("active");
-}
-function closeNotifications(){
-  document.getElementById("notif-panel").classList.remove("open");
-  document.getElementById("notif-overlay").classList.remove("open");
-  document.getElementById("notif-bell").classList.remove("active");
-}
-document.getElementById("notif-bell").addEventListener("click", (e) => {
-  e.stopPropagation();
-  const open = document.getElementById("notif-panel").classList.contains("open");
-  open ? closeNotifications() : openNotifications();
-});
-document.getElementById("notif-overlay").addEventListener("click", closeNotifications);
-document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeNotifications(); });
-document.getElementById("notif-clear-all").addEventListener("click", () => {
-  const dismissed = loadDismissedNotifs();
-  notificationsCache.forEach(n => dismissed.add(n.id));
-  saveDismissedNotifs(dismissed);
-  renderNotifications();
-});
-
-/* ---------- Pennyworth ---------- */
-function askPennyworth(){
-  const input = document.getElementById("pw-question");
-  const resp = document.getElementById("pw-response");
-  const q = input.value.trim();
-  if(!q){ return; }
-  // Honest, not fake: Pennyworth isn't wired to a live AI backend yet.
-  resp.textContent = "Pennyworth todavía no está conectado a un modelo de IA en vivo — esta función llega en la siguiente fase. Por ahora, puedes explorar tus temas y referencias directamente.";
-  resp.classList.add("show");
-  input.value = "";
-}
-document.getElementById("pw-send").addEventListener("click", askPennyworth);
-document.getElementById("pw-question").addEventListener("keydown", (e) => { if(e.key === "Enter") askPennyworth(); });
-document.querySelectorAll(".penny-chip").forEach(chip => chip.addEventListener("click", () => {
-  document.getElementById("pw-question").value = chip.dataset.q;
-  askPennyworth();
-}));
-
-var gustosLoadSequence = 0;
-async function loadData(){
-  const requestSequence = ++gustosLoadSequence;
-  const syncNote = document.getElementById("sync-note");
-  const topicsRow = document.getElementById("topics-row");
-  if(topicsRow && !topicsRow.querySelector(".main-topic-card")) topicsRow.innerHTML = emptyNote("Cargando temas desde Notion…");
-  try{
-    const res = await fetch("/api/gustos-data");
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
-    allData = data;
-    document.getElementById("topic-tipo-filter").innerHTML = `<option value="all">Todos los tipos</option>` + TIPOS.map(t=>`<option value="${t}">${t}</option>`).join("");
-    renderDashboard(data);
-    if(activeTopic) renderTopicBoard();
-    notificationsCache = buildNotifications();
-    updateNotificationBadge();
-    syncNote.textContent = "";
-  }catch(err){
-    if(requestSequence !== gustosLoadSequence) return;
-    console.warn("Live data unavailable:", err.message);
-    if(topicsRow) topicsRow.innerHTML = emptyNote("No se pudo conectar con Notion. Reintentando…");
-    syncNote.textContent = "Sin conexión temporal — reintentando…";
-    window.setTimeout(() => { if(requestSequence === gustosLoadSequence) loadData(); }, 1200);
-  }
-}
-document.getElementById("date-range-label").textContent = weekRangeLabel();
-document.getElementById("date-range-sub").textContent = "Esta semana";
-function bootGustos(){
-  if(window.__jarvisGustosBooted) return;
-  window.__jarvisGustosBooted = true;
-  loadData();
-}
-if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", bootGustos, { once:true });
-else window.setTimeout(bootGustos, 0);
-window.addEventListener("load", bootGustos, { once:true });
+readHash(); render(); load();
 </script>
-<script src="/toast.js"></script>
 <script src="/sidebar.js"></script>
 </body>
 </html>

@@ -1,7 +1,498 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Night Guest — Calendar</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>
-:root{--bg:#06111e;--p:#0b1c2d;--p2:#10283f;--line:#9ecbef2e;--text:#f5f6f4;--muted:#aab9c8;--gold:#e8c45d;--blue:#4ca8ff;--green:#39d49a;--purple:#a77cff;--red:#f26770;--serif:Fraunces,Georgia,serif;--sans:Inter,system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:radial-gradient(1000px 700px at 70% -15%,#19466e,transparent 62%),var(--bg);color:var(--text);font-family:var(--sans)}button,input,select{font:inherit}button{cursor:pointer}.shell{max-width:1500px;margin:auto;padding:16px 24px 42px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.crumb{font-size:11px;color:var(--muted)}.crumb b{color:#fff}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{background:var(--p2);border:1px solid var(--line);color:#fff;border-radius:8px;padding:9px 12px;font-size:11px;font-weight:700}.btn:hover{border-color:var(--gold)}.primary{background:linear-gradient(135deg,#f7dc88,#d09b2c);color:#1b1407;border:0}.google{border-color:#65a8ff;color:#c7ddff}.hero{height:150px;border:1px solid #e8c45d88;border-radius:16px;overflow:hidden;position:relative;background:linear-gradient(90deg,#061322ed,#0613226b 55%,#06132218),url('/assets/covers/calendario-cover-v2.jpg') center/cover;display:flex;align-items:flex-end;padding:22px 28px;margin-bottom:14px}.hero h1{font:600 31px var(--serif);margin:0}.hero p{font-size:12px;color:#d4dfe8;margin:5px 0 0}.hero button{position:absolute;right:16px;top:16px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:10px;background:#0a2135e8;border:1px solid var(--line);border-radius:10px;margin-bottom:12px}.toolbar input,.toolbar select{background:var(--p2);border:1px solid var(--line);border-radius:7px;color:#fff;padding:8px 10px;font-size:11px}.toolbar input{min-width:250px}.viewbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.viewbar h2{font:600 24px var(--serif);margin:0}.viewbar small{display:block;color:var(--muted);font-size:10px;margin-top:4px}.view-toggle{display:flex;gap:5px}.view-toggle button{background:var(--p2);border:1px solid var(--line);color:var(--muted);padding:8px 11px;border-radius:7px;font-size:11px}.view-toggle .active{background:var(--gold);color:#201708;border-color:var(--gold)}.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:12px}.panel{background:#0a1c2df2;border:1px solid var(--line);border-radius:12px;padding:13px}.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.month{font:600 20px var(--serif)}.nav{display:flex;gap:6px}.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.dow{text-align:center;color:var(--muted);font-size:10px;padding:5px}.day{min-height:112px;background:#102338;border:1px solid var(--line);border-radius:7px;padding:7px;cursor:pointer;overflow:hidden}.day:hover{border-color:var(--gold)}.day.today{border-color:var(--blue)}.day.selected{background:#243b47;border-color:var(--gold);box-shadow:inset 0 0 0 1px #e8c45d66}.day.empty{visibility:hidden}.num{font-size:11px;color:var(--muted);display:block;margin-bottom:6px}.item{font-size:9px;padding:4px 5px;border-radius:4px;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#194c6b;border-left:3px solid var(--blue)}.item.meeting{background:#164936;border-left-color:var(--green)}.item.deadline{background:#4b3720;border-left-color:var(--gold)}.item.completed{background:#3d2d58;border-left-color:var(--purple)}.side-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.side-head h3{font-size:13px;margin:0}.side-section{border:1px solid var(--line);border-radius:9px;margin-bottom:10px;overflow:hidden}.side-title{padding:10px;background:#122d47;font-size:12px;font-weight:700;display:flex;justify-content:space-between}.side-body{padding:8px 10px}.event{display:flex;gap:8px;padding:9px 0;border-bottom:1px solid #ffffff12;font-size:11px}.event:last-child{border:0}.event strong{display:block}.event small{display:block;color:var(--muted);margin-top:3px}.dot{width:7px;height:7px;border-radius:50%;background:var(--blue);margin-top:4px;flex:none}.dot.meeting{background:var(--green)}.dot.deadline{background:var(--gold)}.dot.completed{background:var(--purple)}.empty{text-align:center;color:var(--muted);font-size:11px;padding:18px 5px}.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stat{background:#10283e;border:1px solid var(--line);border-radius:8px;padding:10px}.stat strong{display:block;font:600 20px var(--serif);color:var(--gold)}.stat span{font-size:9px;color:var(--muted)}.modal-bg{display:none;position:fixed;inset:0;z-index:20;background:#020711cc;align-items:center;justify-content:center;padding:18px}.modal{width:min(470px,100%);background:#0c2135;border:1px solid #e8c45d88;border-radius:14px;padding:20px}.modal h2{font:600 24px var(--serif);margin:0 0 14px}.field{display:grid;gap:5px;margin-bottom:11px}.field label{font-size:10px;color:var(--muted);text-transform:uppercase}.field input,.field select{background:var(--p2);border:1px solid var(--line);color:#fff;border-radius:7px;padding:9px;font-size:12px}.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}.day-content-modal{width:min(720px,100%);max-height:86vh;overflow:auto}.day-content-list{display:grid;gap:8px;margin:14px 0}.day-content-item{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--p2);cursor:pointer}.day-content-item:hover{border-color:var(--gold)}.day-content-item strong{display:block;font-size:12px}.day-content-item small{display:block;color:var(--muted);font-size:10px;margin-top:4px}.day-content-empty{text-align:center;color:var(--muted);padding:28px 10px;font-size:12px}@media(max-width:1000px){.layout{grid-template-columns:1fr}.day{min-height:90px}}@media(max-width:650px){.shell{padding:12px}.hero{height:170px}.toolbar input{min-width:100%}.day{min-height:70px;padding:5px}.item{font-size:8px}.viewbar{display:block}.view-toggle{margin-top:9px}}
-</style></head><body><main class="shell"><div class="top"><div class="crumb"><b>Projects</b>　›　<b>One Night Guest</b>　›　Calendar</div><div class="actions"><button class="btn" onclick="location.href='/'">⌂ Home</button><button class="btn google" onclick="openGoogle()">◉ Google Calendar</button><button class="btn primary" onclick="openEventModal()">＋ New Event</button></div></div><section class="hero"><div><h1>One Night Guest Calendar</h1><p>Plan tasks, meetings, reminders, completed work, and real activity in one visual place.</p></div><button class="btn" onclick="location.href='/sistemas-ajustes.html'">✎ Edit Cover</button></section><div class="toolbar"><input id="search" placeholder="⌕ Search events, tasks, or meetings…"><select id="project"><option value="all">Project · All</option></select><select id="type"><option value="all">Type · All</option><option value="meeting">Meetings</option><option value="deadline">Tasks</option><option value="completado">Completed</option></select><select id="person"><option value="all">Responsible · All</option></select><button class="btn" onclick="clearFilters()">× Clear filters</button></div><div class="viewbar"><div><h2 id="month-title"></h2><small>Click any date to inspect, create, edit, or archive real records.</small></div><div class="view-toggle"><button class="active">Month</button><button onclick="showWeekView()">Week</button><button onclick="location.href='/ong-calendar.html?project=One%20Night%20Guest'">Day View</button></div></div><div class="layout"><section class="panel"><div class="cal-head"><span class="month" id="month-label"></span><div class="nav"><button class="btn" onclick="moveMonth(-1)">‹</button><button class="btn" onclick="goToday()">Today</button><button class="btn" onclick="moveMonth(1)">›</button></div></div><div class="cal-grid" id="calendar"></div><div class="stat-row"><div class="stat"><strong id="rem-count">0</strong><span>Upcoming reminders</span></div><div class="stat"><strong id="meet-count">0</strong><span>Meetings this month</span></div><div class="stat"><strong id="done-count">0</strong><span>Completed this month</span></div></div></section><aside><section class="panel"><div class="side-head"><h3 id="selected-title">Selected day</h3><button class="btn" onclick="openEventModal()">＋</button></div><div class="side-section"><div class="side-title">✓ Completed Work <span id="selected-done">0</span></div><div class="side-body" id="selected-completed"></div></div><div class="side-section"><div class="side-title">♟ Meetings / Appointments <span id="selected-meet">0</span></div><div class="side-body" id="selected-meetings"></div></div><div class="side-section"><div class="side-title">♧ Reminders <span>Not connected</span></div><div class="side-body"><div class="empty">Reminders will appear after Google Calendar authorization.</div></div></div><div class="side-section"><div class="side-title">▤ Notes <span>Not connected</span></div><div class="side-body"><div class="empty">Notes will appear when a connected source provides them.</div></div></div><button class="btn primary" style="width:100%;margin-top:4px" onclick="openEventModal()">＋ Create event</button></section><section class="panel" style="margin-top:12px"><div class="side-head"><h3>Google Calendar</h3></div><div class="empty">Not connected</div><button class="btn google" style="width:100%" onclick="openGoogle()">Connect Google Calendar</button></section></aside></div><div id="status" style="text-align:center;color:var(--muted);font-size:10px;margin-top:12px">Loading calendar records…</div></main><div class="modal-bg" id="modal-bg"><div class="modal" id="modal"></div></div><div class="modal-bg" id="google-bg"><div class="modal"><h2>Connect Google Calendar</h2><p style="color:var(--muted);font-size:12px;line-height:1.5">The visual calendar is ready. Google Calendar authorization is not enabled in the current deployment yet. When enabled, Aurelio can authorize his own account without sharing his password or authentication codes.</p><div class="modal-actions"><button class="btn" onclick="closeGoogle()">Close</button></div></div></div><script>
-let events=[],selected=new Date(),year=selected.getFullYear(),month=selected.getMonth(),filters={project:'all',type:'all',person:'all'};const names=['January','February','March','April','May','June','July','August','September','October','November','December'];const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const selectedISO=()=>iso(selected);function filtered(){const q=document.getElementById('search').value.toLowerCase();return events.filter(e=>(!q||`${e.title} ${e.person||''} ${e.project||''}`.toLowerCase().includes(q))&&(filters.project==='all'||e.project===filters.project)&&(filters.type==='all'||e.type===filters.type)&&(filters.person==='all'||(e.person||'').includes(filters.person)))}function renderFilters(){const projects=[...new Set(events.map(e=>e.project).filter(Boolean))].sort(),people=[...new Set(events.flatMap(e=>(e.person||'').split(',').map(x=>x.trim()).filter(Boolean)))].sort();const p=document.getElementById('project');p.innerHTML='<option value="all">Project · All</option>'+projects.map(x=>`<option value="${esc(x)}" ${filters.project===x?'selected':''}>${esc(x)}</option>`).join('');const pe=document.getElementById('person');pe.innerHTML='<option value="all">Responsible · All</option>'+people.map(x=>`<option value="${esc(x)}" ${filters.person===x?'selected':''}>${esc(x)}</option>`).join('')}function renderCalendar(){document.getElementById('month-title').textContent=`${names[month]} ${year}`;document.getElementById('month-label').textContent=`${names[month]} ${year}`;const first=new Date(year,month,1).getDay(),total=new Date(year,month+1,0).getDate(),today=iso(new Date()),dow=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];let h=dow.map(x=>`<div class="dow">${x}</div>`).join('');for(let i=0;i<first;i++)h+='<div class="day empty"></div>';for(let d=1;d<=total;d++){const date=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,items=filtered().filter(e=>e.date===date).slice(0,4);h+=`<div class="day ${date===today?'today ':''}${date===selectedISO()?'selected':''}" onclick="selectDate('${date}')"><span class="num">${d}</span>${items.map(e=>`<div class="item ${e.type==='meeting'?'meeting':e.type==='completado'?'completed':'deadline'}">${esc(e.title)}</div>`).join('')}</div>`}document.getElementById('calendar').innerHTML=h;const monthly=filtered().filter(e=>{const d=new Date(e.date+'T00:00:00');return d.getFullYear()===year&&d.getMonth()===month});document.getElementById('meet-count').textContent=monthly.filter(e=>e.type==='meeting').length;document.getElementById('done-count').textContent=monthly.filter(e=>e.type==='completado').length;document.getElementById('rem-count').textContent=filtered().filter(e=>e.date>=iso(new Date())).length}function selectDate(date){selected=new Date(date+'T00:00:00');renderCalendar();renderSelected();openDayContent()}function renderSelected(){const date=selectedISO(),items=filtered().filter(e=>e.date===date),meet=items.filter(e=>e.type==='meeting'),done=items.filter(e=>e.type==='completado');document.getElementById('selected-title').textContent=selected.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});document.getElementById('selected-meet').textContent=meet.length;document.getElementById('selected-done').textContent=done.length;const render=(arr)=>arr.length?arr.map(e=>`<div class="event" onclick="openEvent('${e.id}')"><i class="dot ${e.type==='meeting'?'meeting':e.type==='completado'?'completed':'deadline'}"></i><div><strong>${esc(e.title)}</strong><small>${esc(e.project||'No project')} · ${esc(e.status||'Open')}</small></div></div>`).join(''):'<div class="empty">Nothing recorded for this day.</div>';document.getElementById('selected-meetings').innerHTML=render(meet);document.getElementById('selected-completed').innerHTML=render(done)}function openDayContent(){const date=selectedISO(),items=filtered().filter(e=>e.date===date),label=selected.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});const list=items.length?items.map(e=>`<div class="day-content-item" onclick="closeModal();openEvent('${e.id}')"><i class="dot ${e.type==='meeting'?'meeting':e.type==='completado'?'completed':'deadline'}"></i><div class="copy"><strong>${esc(e.title)}</strong><small>${esc(e.type==='meeting'?'Meeting / Appointment':e.type==='completado'?'Completed work':'Task / Deadline')} · ${esc(e.project||'No project')} · ${esc(e.status||'Open')}</small></div></div>`).join(''):'<div class="day-content-empty">No content is recorded for this date.</div>';document.getElementById('modal').className='modal day-content-modal';document.getElementById('modal').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><h2>${label}</h2><button class="btn" onclick="closeModal()">Close</button></div><p style="color:var(--muted);font-size:11px">All available content for the selected date.</p><div class="day-content-list">${list}</div><div class="modal-actions"><button class="btn primary" onclick="closeModal();openEventModal()">＋ Create event on this date</button></div>`;document.getElementById('modal-bg').style.display='flex'}
-function showWeekView(){const base=new Date(selected);const day=base.getDay();const monday=new Date(base);monday.setDate(base.getDate()-(day===0?6:day-1));const days=[];for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);const key=iso(d),items=filtered().filter(e=>e.date===key);days.push(`<section style="border:1px solid var(--line);border-radius:9px;padding:10px;background:var(--p2)"><strong>${d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}</strong>${items.length?items.map(e=>`<div class="day-content-item" style="margin-top:7px" onclick="closeModal();openEvent('${e.id}')"><i class="dot ${e.type==='meeting'?'meeting':e.type==='completado'?'completed':'deadline'}"></i><div><strong>${esc(e.title)}</strong><small>${esc(e.type||'Task')} · ${esc(e.status||'Open')}</small></div></div>`).join(''):'<div class="empty" style="padding:10px 0">No records</div>'}</section>`)}document.getElementById('modal').className='modal day-content-modal';document.getElementById('modal').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><h2>Week view</h2><button class="btn" onclick="closeModal()">Close</button></div><p style="color:var(--muted);font-size:11px">${monday.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${new Date(monday.getTime()+6*86400000).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</p><div class="day-content-list">${days.join('')}</div>`;document.getElementById('modal-bg').style.display='flex'}function renderAll(){renderFilters();renderCalendar();renderSelected()}function moveMonth(n){month+=n;if(month<0){month=11;year--}if(month>11){month=0;year++}renderCalendar()}function goToday(){selected=new Date();year=selected.getFullYear();month=selected.getMonth();renderAll()}function clearFilters(){filters={project:'all',type:'all',person:'all'};document.getElementById('search').value='';renderAll()}function openEvent(id){const e=events.find(x=>x.id===id);if(e)openEventModal(e)}function closeModal(){document.getElementById('modal-bg').style.display='none'}function openEventModal(e=null){document.getElementById('modal').className='modal';const date=e?.date||selectedISO();document.getElementById('modal').innerHTML=`<h2>${e?'Edit event':'New event'}</h2><div class="field"><label>Type</label><select id="m-type" ${e?'disabled':''}><option value="deadline" ${!e||e.type==='deadline'?'selected':''}>Task / deadline</option><option value="meeting" ${e?.type==='meeting'?'selected':''}>Meeting</option></select></div><div class="field"><label>Title</label><input id="m-title" value="${esc(e?.title||'')}" placeholder="Event title"></div><div class="field"><label>Date</label><input id="m-date" type="date" value="${esc(date)}"></div><div class="field"><label>Project</label><input id="m-project" value="${esc(e?.project||'One Night Guest')}" placeholder="Project"></div><div class="field"><label>Responsible</label><input id="m-person" value="${esc(e?.person||'')}" placeholder="Optional"></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveEvent('${e?.id||''}')">${e?'Save changes':'Create event'}</button>${e?`<button class="btn" style="color:#f26770" onclick="archive('${e.id}')">Archive</button>`:''}</div>`;document.getElementById('modal-bg').style.display='flex'}async function saveEvent(id){const body={action:id?'calendar-update':'calendar-create',pageId:id,type:document.getElementById('m-type').value,title:document.getElementById('m-title').value.trim(),date:document.getElementById('m-date').value,project:document.getElementById('m-project').value.trim(),person:document.getElementById('m-person').value.trim()};if(!body.title||!body.date)return alert('Enter a title and date.');const r=await fetch('/api/task-api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),d=await r.json();if(!r.ok||d.error)return alert(d.error||'Could not save event');closeModal();await load()}async function archive(id){if(!confirm('Archive this event?'))return;const r=await fetch('/api/task-api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'calendar-archive',pageId:id})}),d=await r.json();if(!r.ok||d.error)return alert(d.error||'Could not archive event');closeModal();await load()}function openGoogle(){document.getElementById('google-bg').style.display='flex'}function closeGoogle(){document.getElementById('google-bg').style.display='none'}async function load(){try{const r=await fetch('/api/task-api?action=calendar'),d=await r.json();if(!r.ok||d.error)throw Error(d.error||'Calendar unavailable');events=d.events||[];document.getElementById('status').textContent=`${events.length} records synchronized from Notion`;renderAll()}catch(e){document.getElementById('status').textContent='Unable to load calendar data: '+e.message;renderAll()}}['project','type','person'].forEach(id=>document.getElementById(id).addEventListener('change',e=>{filters[id]=e.target.value;renderAll()}));document.getElementById('search').addEventListener('input',renderAll);load();
-</script><script src="/sidebar.js"></script></body></html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calendario · Jarvis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#06111e;--p:#0b1c2d;--p2:#10283f;--p3:#0d2236;--line:#9ecbef2e;--line2:#9ecbef4d;--text:#f5f6f4;--muted:#aab9c8;--faint:#7d91a6;--gold:#e8c45d;--blue:#4ca8ff;--green:#39d49a;--purple:#a77cff;--red:#f26770;--orange:#efae4b;--pink:#e879b9;--serif:Fraunces,Georgia,serif;--sans:Inter,system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1000px 600px at 75% -10%,#153e61,transparent 60%),var(--bg);color:var(--text);font-family:var(--sans);font-size:13px}
+html,body{overflow-x:clip}
+button,input,select,textarea{font-family:inherit}
+.shell{max-width:1560px;margin:auto;padding:16px 24px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.crumb{color:var(--muted);font-size:12px}.crumb b{color:var(--text)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line2);background:#0e2438;color:var(--text);border-radius:9px;padding:8px 13px;font-size:12px;font-weight:700;cursor:pointer}
+.btn:hover{border-color:var(--gold)}
+.btn.primary{background:linear-gradient(135deg,#f2ce63,#c9982d);color:#1d1406;border-color:#f4d879}
+.btn.ghost{background:transparent}
+.btn.danger{color:#ff8b8b;border-color:#f2677066}
+.hero{border:1px solid #e8c45d55;border-radius:16px;padding:22px 26px;margin-bottom:12px;background:linear-gradient(90deg,#061322f2,#061322b0 60%,#06132266),url('/assets/covers/general-calendar-cover-v2.jpg') center/cover,#0a1c2d}
+.hero h1{font-family:var(--serif);font-weight:600;font-size:30px;margin:0}
+.hero p{color:var(--muted);margin:6px 0 0}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--p);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:12px}
+.toolbar input,.toolbar select{background:#0a1a2a;border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 10px;font-size:12px}
+.toolbar input{flex:1;min-width:180px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px;align-items:start}
+.panel{background:var(--p);border:1px solid var(--line);border-radius:14px;padding:14px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.cal-head h2{font-family:var(--serif);font-weight:600;font-size:22px;margin:0}
+.cal-head h2::first-letter,.list-day h4::first-letter{text-transform:uppercase}
+.nav,.views{display:flex;gap:6px;align-items:center}
+.views button{border:1px solid var(--line2);background:#0a1a2a;color:var(--muted);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.views button.active{background:linear-gradient(135deg,#f2ce63,#c9982d);color:#1d1406;border-color:#f4d879}
+/* Month */
+.month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.dow{background:#0a1a2a;color:var(--faint);font-size:11px;font-weight:700;text-align:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.day{min-height:112px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px;cursor:pointer;background:#0b1d2e;display:flex;flex-direction:column;gap:3px;min-width:0}
+.day:nth-child(7n+14){border-right:0}
+.day:hover{background:#10283f}
+.day.other{opacity:.45}
+.day.today{box-shadow:inset 0 0 0 2px var(--gold)}
+.day .num{font-size:12px;font-weight:700;color:var(--muted)}
+.day.today .num{color:var(--gold)}
+.chip{display:block;font-size:10.5px;padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:3px solid;background:#ffffff08}
+.more{font-size:10px;color:var(--faint)}
+.t-deadline{border-color:var(--orange)}.t-completado{border-color:var(--green)}.t-meeting{border-color:var(--blue)}.t-event{border-color:var(--purple)}.t-appointment{border-color:var(--pink)}.t-reminder{border-color:var(--gold)}.t-note{border-color:#9fb1c3}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;flex-shrink:0}
+.d-deadline{background:var(--orange)}.d-completado{background:var(--green)}.d-meeting{background:var(--blue)}.d-event{background:var(--purple)}.d-appointment{background:var(--pink)}.d-reminder{background:var(--gold)}.d-note{background:#9fb1c3}
+/* Week / list */
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.week-col{border:1px solid var(--line);border-radius:10px;padding:8px;min-height:340px;background:#0b1d2e;cursor:pointer}
+.week-col.today{border-color:var(--gold)}
+.week-col h4{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:capitalize}
+.row{display:flex;align-items:flex-start;gap:8px;padding:8px;border:1px solid var(--line);border-radius:9px;background:#0d2236;margin-bottom:6px;cursor:pointer}
+.row:hover{border-color:var(--line2)}
+.row .copy{flex:1;min-width:0}
+.row strong{display:block;font-size:12.5px;overflow-wrap:anywhere}
+.row small{color:var(--muted);font-size:11px}
+.row .time{color:var(--gold);font-size:11px;font-weight:700;white-space:nowrap}
+.row.done strong{text-decoration:line-through;color:var(--muted)}
+.row input[type=checkbox]{margin-top:2px;accent-color:var(--gold);width:16px;height:16px}
+.list-day h4{margin:14px 0 6px;font-size:12px;color:var(--gold)}
+/* Day */
+.day-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:12px}
+.timeline{border:1px solid var(--line);border-radius:10px;padding:8px;background:#0b1d2e}
+.slot{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px;min-height:40px;border-bottom:1px dashed #9ecbef1a;padding:4px 0}
+.slot .h{color:var(--faint);font-size:11px;padding-top:4px}
+.section{border:1px solid var(--line);border-radius:10px;padding:10px;background:#0b1d2e;margin-bottom:10px}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.section-head h4{margin:0;font-size:12.5px}
+.section-head .count{color:var(--faint);font-weight:600;margin-left:4px}
+.add-mini{border:1px solid var(--line2);background:transparent;color:var(--gold);border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer}
+.empty{color:var(--faint);font-size:11.5px;font-style:italic;padding:4px 2px}
+.quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:10px}
+.files a{display:block;color:var(--gold);font-size:12px;padding:3px 0;overflow-wrap:anywhere}
+/* Side */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.stat{border:1px solid var(--line);border-radius:10px;padding:10px;background:#0b1d2e}
+.stat strong{display:block;font-size:20px}.stat span{color:var(--muted);font-size:11px}
+.ring{width:118px;height:118px;border-radius:50%;margin:6px auto;display:grid;place-items:center}
+.ring div{width:88px;height:88px;border-radius:50%;background:var(--p);display:grid;place-items:center;text-align:center}
+.ring b{font-size:22px}.ring small{display:block;color:var(--muted);font-size:10px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) 30px;gap:6px;font-size:11px;color:var(--muted);margin-bottom:6px}
+.bar .track{grid-column:1/-1;height:6px;border-radius:9px;background:#16344e;overflow:hidden}.bar .fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--gold))}
+.side h3{margin:0;font-size:14px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted);margin-top:10px}
+/* Mini month */
+.mini{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;margin-top:8px}
+.mini span{font-size:10px;color:var(--faint);padding:3px 0}
+.mini button{background:none;border:0;color:var(--text);font-size:12px;padding:6px 0;border-radius:50%;cursor:pointer;position:relative}
+.mini button.other{color:#ffffff40}
+.mini button.has::after{content:"";position:absolute;left:50%;bottom:1px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--gold)}
+.mini button.sel{background:var(--gold);color:#1d1406;font-weight:800}
+.mini button:hover{outline:1px solid var(--gold)}
+.mini-head{display:flex;justify-content:space-between;align-items:center}
+
+.mini-head button{background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 8px}
+.quickbar{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.quickbar input{flex:1 1 260px;min-width:0;background:#0a1a2a;border:1px solid var(--line2);color:var(--text);border-radius:9px;padding:10px 12px;font-size:13px}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal{background:var(--p);border:1px solid var(--line2);border-radius:14px;padding:18px;width:min(560px,100%);max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 4px;font-family:var(--serif);font-weight:600}
+.modal .sub{color:var(--muted);font-size:12px;margin-bottom:12px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted);font-weight:600}
+.form .wide{grid-column:1/-1}
+.form input,.form select,.form textarea{background:#0a1a2a;border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:9px 10px;font-size:13px}
+.form textarea{min-height:90px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.modal-actions .left{margin-right:auto}
+.status{text-align:center;color:var(--muted);font-size:11px;margin-top:12px}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}.day-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.shell{padding:12px}.day{min-height:64px;padding:4px}.chip{font-size:9px;padding:1px 3px}.week-grid{grid-template-columns:1fr}.week-col{min-height:0}.form{grid-template-columns:1fr}.hero h1{font-size:24px}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <div class="top">
+    <div class="crumb" id="crumb"><b>Calendario</b></div>
+    <div class="actions">
+      <button class="btn" onclick="location.href='/'">⌂ Inicio</button>
+      <button class="btn" onclick="JarvisGcal.open(fixedProject)">◉ Ver en Google Calendar</button>
+      <button class="btn primary" onclick="openForm({ date: selectedDate })">＋ Nuevo</button>
+    </div>
+  </div>
+  <section class="hero"><h1 id="hero-title">Calendario</h1><p>Tareas, reuniones, eventos, recordatorios y notas en un solo lugar — todo guardado en Notion.</p></section>
+
+  <div class="toolbar">
+    <input id="search" placeholder="⌕ Buscar en el calendario…">
+    <select id="f-project"><option value="all">Proyecto · Todos</option></select>
+    <select id="f-type">
+      <option value="all">Tipo · Todos</option>
+      <option value="deadline">Tareas (fecha límite)</option>
+      <option value="completado">Tareas terminadas</option>
+      <option value="meeting">Reuniones</option>
+      <option value="event">Eventos</option>
+      <option value="appointment">Citas</option>
+      <option value="reminder">Recordatorios</option>
+      <option value="note">Notas</option>
+    </select>
+    <select id="f-person"><option value="all">Responsable · Todos</option></select>
+    <button class="btn ghost" onclick="clearFilters()">× Limpiar</button>
+  </div>
+
+  <div class="layout">
+    <section class="panel">
+      <div class="cal-head">
+        <div class="nav"><button class="btn" onclick="move(-1)">‹</button><button class="btn" onclick="goToday()">Hoy</button><button class="btn" onclick="move(1)">›</button><h2 id="period-title"></h2></div>
+        <div class="views" id="views"><button data-view="month">Mes</button><button data-view="week">Semana</button><button data-view="day">Día</button><button data-view="list">Lista</button></div>
+      </div>
+      <div id="view"></div>
+      <div class="legend">
+        <span><i class="dot d-deadline"></i>Tarea</span><span><i class="dot d-completado"></i>Terminada</span><span><i class="dot d-meeting"></i>Reunión</span><span><i class="dot d-event"></i>Evento</span><span><i class="dot d-appointment"></i>Cita</span><span><i class="dot d-reminder"></i>Recordatorio</span><span><i class="dot d-note"></i>Nota</span>
+      </div>
+    </section>
+    <aside class="side">
+      <section class="panel" style="margin-bottom:12px">
+        <div class="mini-head"><button onclick="moveMini(-1)" aria-label="Mes anterior">‹</button><h3 id="mini-title"></h3><button onclick="moveMini(1)" aria-label="Mes siguiente">›</button></div>
+        <div class="mini" id="mini"></div>
+      </section>
+      <section class="panel" id="day-summary"></section>
+      <section class="panel">
+        <h3>Resumen del mes</h3>
+        <div class="ring" id="ring"><div><b id="ring-pct">0%</b><small>tareas completadas</small></div></div>
+        <div class="stat-grid" id="month-stats"></div>
+      </section>
+      <section class="panel" style="margin-top:12px">
+        <h3>Actividad por proyecto</h3>
+        <div id="by-project" style="margin-top:10px"></div>
+      </section>
+      <section class="panel" style="margin-top:12px">
+        <h3>Próximos recordatorios</h3>
+        <div id="upcoming" style="margin-top:10px"></div>
+      </section>
+    </aside>
+  </div>
+  <div class="status" id="status">Cargando calendario…</div>
+</main>
+
+<script src="/toast.js"></script>
+<div class="modal-bg" id="form-bg"><div class="modal" id="form-modal"></div></div>
+
+<script>
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+function safeUrl(value){ if(!value) return ""; try{ const u = new URL(String(value), location.origin); return /^https?:$/.test(u.protocol) ? u.href : ""; }catch(e){ return ""; } }
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const parse = s => new Date(s + "T12:00:00");
+const TYPE_LABEL = { deadline:"Tarea", completado:"Tarea terminada", meeting:"Reunión", event:"Evento", appointment:"Cita", reminder:"Recordatorio", note:"Nota" };
+const CAL_KINDS = ["event","appointment","reminder","note"];
+const params = new URLSearchParams(location.search);
+const fixedProject = params.get("project");
+
+let events = [], projects = [], view = params.get("view") || "month", selectedDate = iso(new Date()), cursor = new Date();
+const filters = { project: fixedProject || "all", type: "all", person: "all" };
+
+function filtered(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  return events.filter(e =>
+    (!q || `${e.title} ${e.notes||""} ${e.person||""} ${e.project||""}`.toLowerCase().includes(q)) &&
+    (filters.project === "all" || e.project === filters.project || (e.type === "meeting" && !e.project)) && // meetings have no project in Notion
+    (filters.type === "all" || e.type === filters.type) &&
+    (filters.person === "all" || (e.person || "").includes(filters.person)));
+}
+const onDate = (date) => filtered().filter(e => e.date === date).sort((a,b) => (a.time||"99").localeCompare(b.time||"99"));
+function sub(e){
+  const parts = [TYPE_LABEL[e.type] || e.type];
+  if(e.time) parts.push(e.time + (e.endTime ? "–" + e.endTime : ""));
+  if(e.project) parts.push(e.project);
+  if(e.status && !["reminder"].includes(e.type)) parts.push(e.status);
+  if(e.place) parts.push(e.place);
+  return parts.map(esc).join(" · ");
+}
+
+/* ---------- Views ---------- */
+function setView(v){ view = v; if(v === "day") cursor = parse(selectedDate); render(); }
+function move(n){
+  if(view === "month" || view === "list") cursor = new Date(cursor.getFullYear(), cursor.getMonth() + n, 1);
+  else if(view === "week"){ cursor = new Date(cursor); cursor.setDate(cursor.getDate() + 7*n); }
+  else { const d = parse(selectedDate); d.setDate(d.getDate() + n); selectedDate = iso(d); cursor = d; }
+  render();
+}
+function goToday(){ cursor = new Date(); selectedDate = iso(cursor); render(); }
+function openDay(date){ selectedDate = date; cursor = parse(date); view = "day"; render(); }
+function mondayOf(d){ const m = new Date(d); m.setDate(m.getDate() - ((m.getDay()+6)%7)); return m; }
+
+function render(){
+  miniCursor = null;
+  document.querySelectorAll("#views button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  const title = document.getElementById("period-title"), el = document.getElementById("view");
+  const monthName = cursor.toLocaleDateString("es-MX", { month:"long", year:"numeric" });
+  if(view === "month"){ title.textContent = monthName; el.innerHTML = monthHTML(); }
+  else if(view === "week"){ const m = mondayOf(cursor), s = new Date(m); s.setDate(m.getDate()+6); title.textContent = `${m.getDate()} – ${s.toLocaleDateString("es-MX", { day:"numeric", month:"short", year:"numeric" })}`; el.innerHTML = weekHTML(m); }
+  else if(view === "list"){ title.textContent = monthName; el.innerHTML = listHTML(); }
+  else { title.textContent = parse(selectedDate).toLocaleDateString("es-MX", { weekday:"long", day:"numeric", month:"long", year:"numeric" }); el.innerHTML = dayHTML(selectedDate); }
+  bindView(el);
+  renderSide();
+}
+function monthHTML(){
+  const y = cursor.getFullYear(), m = cursor.getMonth(), first = new Date(y, m, 1), start = mondayOf(first), today = iso(new Date());
+  let h = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(d => `<div class="dow">${d}</div>`).join("");
+  for(let i = 0; i < 42; i++){
+    const d = new Date(start); d.setDate(start.getDate() + i); const key = iso(d), items = onDate(key);
+    if(i >= 35 && d.getMonth() !== m) break;
+    h += `<div class="day ${d.getMonth()!==m?"other":""} ${key===today?"today":""}" data-day="${key}"><span class="num">${d.getDate()}</span>${items.slice(0,3).map(e => `<span class="chip t-${esc(e.type)}" title="${esc(e.title)}">${e.time?esc(e.time)+" ":""}${esc(e.title)}</span>`).join("")}${items.length>3?`<span class="more">+${items.length-3} más</span>`:""}</div>`;
+  }
+  return `<div class="month-grid">${h}</div>`;
+}
+function weekHTML(monday){
+  const today = iso(new Date());
+  return `<div class="week-grid">${Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(monday.getDate()+i); const key = iso(d), items = onDate(key);
+    return `<div class="week-col ${key===today?"today":""}" data-day="${key}"><h4>${d.toLocaleDateString("es-MX", { weekday:"short", day:"numeric" })}</h4>${items.map(rowHTML).join("") || '<div class="empty">Sin elementos</div>'}</div>`; }).join("")}</div>`;
+}
+function listHTML(){
+  const y = cursor.getFullYear(), m = cursor.getMonth(), prefix = `${y}-${String(m+1).padStart(2,"0")}`;
+  const days = [...new Set(filtered().filter(e => e.date.startsWith(prefix)).map(e => e.date))].sort();
+  if(!days.length) return '<div class="empty">No hay elementos este mes con estos filtros.</div>';
+  return days.map(d => `<div class="list-day"><h4>${parse(d).toLocaleDateString("es-MX", { weekday:"long", day:"numeric", month:"long" })}</h4>${onDate(d).map(rowHTML).join("")}</div>`).join("");
+}
+function rowHTML(e){
+  const check = e.type === "reminder" ? `<input type="checkbox" data-done="${esc(e.id)}" ${e.done?"checked":""} title="Marcar como hecho">` : `<i class="dot d-${esc(e.type)}" style="margin-top:5px"></i>`;
+  return `<div class="row ${e.done||e.type==="completado"?"done":""}" data-open="${esc(e.id)}" data-type="${esc(e.type)}">${check}<div class="copy"><strong>${esc(e.title || "(sin título)")}</strong><small>${sub(e)}</small>${e.notes&&e.type==="note"?`<small style="display:block;margin-top:4px;white-space:pre-wrap">${esc(e.notes)}</small>`:""}</div>${e.time?`<span class="time">${esc(e.time)}</span>`:""}</div>`;
+}
+function section(title, kind, items, addLabel){
+  return `<div class="section"><div class="section-head"><h4>${title}<span class="count">(${items.length})</span></h4>${addLabel?`<button class="add-mini" data-add="${kind}">＋ ${addLabel}</button>`:""}</div>${items.map(rowHTML).join("") || '<div class="empty">Nada registrado.</div>'}</div>`;
+}
+function dayHTML(date){
+  const items = onDate(date);
+  const timed = items.filter(e => e.time);
+  const hours = [...new Set([7,8,9,10,11,12,13,14,15,16,17,18,19,20, ...timed.map(e => Number(e.time.slice(0,2)))])].sort((a,b) => a-b);
+  const timeline = hours.map(h => { const inHour = timed.filter(e => Number(e.time.slice(0,2)) === h); return `<div class="slot" data-slot="${String(h).padStart(2,"0")}:00"><span class="h">${String(h).padStart(2,"0")}:00</span><div>${inHour.map(rowHTML).join("")}</div></div>`; }).join("");
+  const files = items.filter(e => e.files && e.files.length).flatMap(e => e.files.map(f => ({ ...f, owner: e.title })));
+  return `<div class="day-grid">
+    <div><div class="timeline">${timeline}</div><div class="quick">
+      <button class="btn" data-add="event">＋ Evento</button><button class="btn" data-add="appointment">＋ Cita</button><button class="btn" data-add="deadline">＋ Tarea</button><button class="btn" data-add="reminder">＋ Recordatorio</button><button class="btn" data-add="note">＋ Nota</button><button class="btn" data-add="meeting">＋ Reunión</button></div>
+      <div class="quickbar"><input id="quick-title" placeholder="Escribe algo y elige qué es: tarea, reunión, nota o recordatorio…"></div></div>
+    <div>
+      ${section("Tareas que vencen", "deadline", items.filter(e => e.type==="deadline"), "Tarea")}
+      ${section("Trabajo terminado", "completado", items.filter(e => e.type==="completado"))}
+      ${section("Reuniones, citas y eventos", "event", items.filter(e => ["meeting","appointment","event"].includes(e.type)), "Evento")}
+      ${section("Recordatorios", "reminder", items.filter(e => e.type==="reminder"), "Recordatorio")}
+      ${section("Notas", "note", items.filter(e => e.type==="note"), "Nota")}
+      <div class="section"><div class="section-head"><h4>Archivos e imágenes<span class="count">(${files.length})</span></h4></div><div class="files">${files.map(f => `<a href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener">📎 ${esc(f.name)} <small style="color:var(--faint)">· ${esc(f.owner)}</small></a>`).join("") || '<div class="empty">Abre un evento, cita, recordatorio o nota para adjuntar archivos.</div>'}</div></div>
+    </div></div>`;
+}
+function bindView(el){
+  el.querySelectorAll("[data-day]").forEach(n => n.addEventListener("click", () => openDay(n.dataset.day)));
+  el.querySelectorAll("[data-open]").forEach(n => n.addEventListener("click", (ev) => { ev.stopPropagation(); if(ev.target.matches("input[type=checkbox]")) return; openForm(events.find(e => e.id === n.dataset.open && e.type === n.dataset.type)); }));
+  el.querySelectorAll("[data-done]").forEach(n => n.addEventListener("click", ev => ev.stopPropagation()));
+  el.querySelectorAll("[data-done]").forEach(n => n.addEventListener("change", () => save({ action:"calendar-item-save", pageId:n.dataset.done, done:n.checked }, n.checked ? "Recordatorio hecho" : "Recordatorio pendiente")));
+  el.querySelectorAll("[data-add]").forEach(n => n.addEventListener("click", (ev) => { ev.stopPropagation(); openForm({ type: n.dataset.add === "completado" ? "deadline" : n.dataset.add, date: selectedDate, title: document.getElementById("quick-title")?.value.trim() || "" }); }));
+  el.querySelector("#quick-title")?.addEventListener("keydown", ev => { if(ev.key === "Enter" && ev.target.value.trim()) openForm({ type:"event", date:selectedDate, title: ev.target.value.trim() }); });
+  el.querySelectorAll("[data-slot]").forEach(n => n.addEventListener("dblclick", () => openForm({ type:"event", date:selectedDate, time:n.dataset.slot })));
+}
+
+/* ---------- Side panel ---------- */
+let miniCursor = null;
+function moveMini(n){ const c = miniCursor || cursor; miniCursor = new Date(c.getFullYear(), c.getMonth() + n, 1); renderMini(); }
+function renderMini(){
+  const c = miniCursor || cursor, y = c.getFullYear(), m = c.getMonth(), start = mondayOf(new Date(y, m, 1));
+  const dates = new Set(filtered().map(e => e.date));
+  document.getElementById("mini-title").textContent = c.toLocaleDateString("es-MX", { month:"long", year:"numeric" }).replace(/^./, x => x.toUpperCase());
+  let h = ["L","M","M","J","V","S","D"].map(d => `<span>${d}</span>`).join("");
+  for(let i = 0; i < 42; i++){ const d = new Date(start); d.setDate(start.getDate()+i); if(i >= 35 && d.getMonth() !== m) break; const k = iso(d);
+    h += `<button class="${d.getMonth()!==m?"other":""} ${k===selectedDate?"sel":""} ${dates.has(k)?"has":""}" data-mini="${k}" title="Abrir el día">${d.getDate()}</button>`; }
+  const el = document.getElementById("mini"); el.innerHTML = h;
+  el.querySelectorAll("[data-mini]").forEach(b => b.addEventListener("click", () => { miniCursor = null; openDay(b.dataset.mini); }));
+}
+function renderDaySummary(){
+  const items = onDate(selectedDate), n = t => items.filter(e => t.includes(e.type)).length;
+  const label = parse(selectedDate).toLocaleDateString("es-MX", { weekday:"long", day:"numeric", month:"long" });
+  const rows = [["Tareas", n(["deadline","completado"]), "deadline"], ["Reuniones y citas", n(["meeting","appointment"]), "meeting"], ["Eventos", n(["event"]), "event"], ["Recordatorios", n(["reminder"]), "reminder"], ["Notas", n(["note"]), "note"]];
+  const box = document.getElementById("day-summary");
+  box.style.marginBottom = "12px";
+  box.innerHTML = `<h3>Resumen del día</h3><div style="color:var(--muted);font-size:12px;margin:4px 0 8px">${esc(label.replace(/^./, c => c.toUpperCase()))} · ${items.length} elementos</div>` +
+    rows.map(([l,v,t]) => `<div class="row" data-summary="${t}"><i class="dot d-${t}" style="margin-top:5px"></i><div class="copy"><strong>${v} ${l}</strong></div><span class="time">›</span></div>`).join("") +
+    (view !== "day" ? `<button class="btn" style="width:100%;margin-top:6px" onclick="openDay(selectedDate)">Abrir el día</button>` : "");
+  box.querySelectorAll("[data-summary]").forEach(r => r.addEventListener("click", () => openDay(selectedDate)));
+}
+function renderSide(){
+  renderMini(); renderDaySummary();
+  const y = cursor.getFullYear(), m = cursor.getMonth(), prefix = `${y}-${String(m+1).padStart(2,"0")}`;
+  const monthItems = filtered().filter(e => e.date && e.date.startsWith(prefix));
+  const count = t => monthItems.filter(e => e.type === t).length;
+  const done = count("completado"), due = count("deadline"), pct = done + due ? Math.round(done / (done + due) * 100) : 0;
+  document.getElementById("ring").style.background = `conic-gradient(var(--gold) ${pct}%, #16344e ${pct}% 100%)`;
+  document.getElementById("ring-pct").textContent = pct + "%";
+  document.getElementById("month-stats").innerHTML = [["Tareas con fecha", due], ["Terminadas", done], ["Reuniones", count("meeting")], ["Eventos y citas", count("event") + count("appointment")], ["Recordatorios", count("reminder")], ["Notas", count("note")]]
+    .map(([l,v]) => `<div class="stat"><strong>${v}</strong><span>${l}</span></div>`).join("");
+  const byProject = {}; monthItems.forEach(e => { const k = e.project || "Sin proyecto"; byProject[k] = (byProject[k]||0) + 1; });
+  const rows = Object.entries(byProject).sort((a,b) => b[1]-a[1]), max = Math.max(1, ...rows.map(r => r[1]));
+  document.getElementById("by-project").innerHTML = rows.map(([k,v]) => `<div class="bar"><span>${esc(k)}</span><b style="text-align:right">${v}</b><div class="track"><div class="fill" style="width:${Math.round(v/max*100)}%"></div></div></div>`).join("") || '<div class="empty">Sin actividad este mes.</div>';
+  const today = iso(new Date());
+  const upcoming = filtered().filter(e => e.type === "reminder" && !e.done && e.date >= today).sort((a,b) => (a.date+(a.time||"")).localeCompare(b.date+(b.time||""))).slice(0,6);
+  const up = document.getElementById("upcoming");
+  up.innerHTML = upcoming.map(e => `<div class="row" data-open="${esc(e.id)}" data-type="reminder"><i class="dot d-reminder" style="margin-top:5px"></i><div class="copy"><strong>${esc(e.title)}</strong><small>${esc(parse(e.date).toLocaleDateString("es-MX", { weekday:"short", day:"numeric", month:"short" }))}${e.time?" · "+esc(e.time):""}</small></div></div>`).join("") || '<div class="empty">No hay recordatorios pendientes.</div>';
+  up.querySelectorAll("[data-open]").forEach(n => n.addEventListener("click", () => openForm(events.find(e => e.id === n.dataset.open && e.type === "reminder"))));
+}
+
+/* ---------- Form: create / edit anything on the calendar ---------- */
+let editing = null;
+function openForm(e){
+  e = e || {}; editing = e.id ? e : null;
+  const type = e.type || "event", isCal = CAL_KINDS.includes(type), isTask = type === "deadline" || type === "completado", isMeeting = type === "meeting";
+  const projOpts = ['<option value="">Sin proyecto</option>', ...projects.map(p => `<option ${p===(e.project || (fixedProject||""))?"selected":""}>${esc(p)}</option>`)].join("");
+  const typeSelect = editing ? `<input value="${esc(TYPE_LABEL[type])}" disabled>` : `<select name="type">${["event","appointment","reminder","note","deadline","meeting"].map(t => `<option value="${t}" ${t===type?"selected":""}>${TYPE_LABEL[t]}</option>`).join("")}</select>`;
+  const files = (e.files || []).map(f => `<a href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener">📎 ${esc(f.name)}</a>`).join("");
+  document.getElementById("form-modal").innerHTML = `
+    <h2>${editing ? "Editar" : "Nuevo"} · <span id="form-kind">${TYPE_LABEL[type]}</span></h2>
+    <div class="sub">${isTask ? "Las tareas se guardan en tu base de tareas de Notion." : isMeeting ? "Las reuniones se guardan en tu base de Meetings de Notion." : "Se guarda en tu calendario de Jarvis en Notion."}</div>
+    <form class="form" id="item-form">
+      <label>Tipo${typeSelect}</label>
+      <label>Fecha<input type="date" name="date" value="${esc(e.date || selectedDate)}" required></label>
+      <label class="wide">Título<input name="title" value="${esc(e.title || "")}" required placeholder="¿Qué es?"></label>
+      <label class="f-time">Hora inicio<input type="time" name="time" value="${esc(e.time || "")}"></label>
+      <label class="f-time">Hora fin<input type="time" name="endTime" value="${esc(e.endTime || "")}"></label>
+      <label class="f-proj">Proyecto<select name="project">${projOpts}</select></label>
+      <label class="f-cal f-remind">Aviso<select name="remindMinutes">${[["","Sin aviso"],["0","A la hora"],["10","10 min antes"],["30","30 min antes"],["60","1 hora antes"],["1440","1 día antes"]].map(([v,l]) => `<option value="${v}" ${String(e.remindMinutes ?? "")===v?"selected":""}>${l}</option>`).join("")}</select></label>
+      <label class="f-cal f-place">Lugar<input name="place" value="${esc(e.place || "")}" placeholder="Oficina, Zoom…"></label>
+      <label class="f-cal f-place">Enlace<input type="url" name="link" value="${esc(e.link || "")}" placeholder="https://…"></label>
+      <label class="wide f-cal">Notas y contexto<textarea name="notes" placeholder="Detalles, contexto, próximos pasos…">${esc(e.notes || "")}</textarea></label>
+      <div class="wide f-cal f-files"><label>Archivos e imágenes</label><div class="files" id="form-files">${files || '<span class="empty">Sin archivos.</span>'}</div><input type="file" id="form-file" multiple style="margin-top:6px"><div class="empty" style="font-style:normal">Máx. 3 MB por archivo.</div></div>
+    </form>
+    <div class="modal-actions">
+      ${editing && (isCal || isTask || isMeeting) ? `<button class="btn danger left" id="form-delete">${isCal ? "Eliminar" : "Archivar"}</button>` : ""}
+      ${editing && e.url ? `<a class="btn" href="${esc(safeUrl(e.url))}" target="_blank" rel="noopener">Abrir en Notion ↗</a>` : ""}
+      <button class="btn" onclick="closeForm()">Cancelar</button>
+      <button class="btn primary" id="form-save">Guardar</button>
+    </div>`;
+  const f = document.getElementById("item-form");
+  const sync = () => {
+    const t = f.elements.type ? f.elements.type.value : type, cal = CAL_KINDS.includes(t);
+    document.getElementById("form-kind").textContent = TYPE_LABEL[t];
+    f.querySelectorAll(".f-cal").forEach(n => n.style.display = cal ? "" : "none");
+    f.querySelectorAll(".f-time").forEach(n => n.style.display = (cal && t !== "note") || t === "meeting" ? "" : "none");
+    f.querySelectorAll(".f-remind").forEach(n => n.style.display = cal && t !== "note" ? "" : "none");
+    f.querySelectorAll(".f-place").forEach(n => n.style.display = cal && (t === "event" || t === "appointment") ? "" : "none");
+    f.querySelectorAll(".f-proj").forEach(n => n.style.display = t === "meeting" ? "none" : "");
+  };
+  if(f.elements.type) f.elements.type.addEventListener("change", sync);
+  sync();
+  if(e.time && !editing) f.elements.time.value = e.time;
+  if(type === "completado") f.elements.date.disabled = true; // its day is the Completion Date
+  document.getElementById("form-save").addEventListener("click", submitForm);
+  document.getElementById("form-delete")?.addEventListener("click", deleteItem);
+  document.getElementById("form-bg").style.display = "flex";
+  f.elements.title.focus();
+}
+function closeForm(){ document.getElementById("form-bg").style.display = "none"; editing = null; }
+document.getElementById("form-bg").addEventListener("click", e => { if(e.target.id === "form-bg") closeForm(); });
+
+async function post(body){
+  const r = await fetch("/api/task-api", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if(!r.ok || d.error || d.ok === false) throw new Error(d.error || ("Error " + r.status));
+  return d;
+}
+async function save(body, okMsg){
+  const t = window.jarvisToast?.loading("Guardando…");
+  try{ await post(body); window.jarvisToast?.success(t, okMsg || "Guardado"); await load(); }
+  catch(err){ window.jarvisToast?.error(t, "No se pudo guardar: " + err.message); await load(); }
+}
+function readFile(file){ return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = rej; r.readAsDataURL(file); }); }
+
+async function submitForm(){
+  const f = document.getElementById("item-form"), v = Object.fromEntries(new FormData(f).entries());
+  const type = editing ? editing.type : v.type;
+  if(!v.title?.trim()){ window.jarvisToast?.error(null, "Escribe un título."); return; }
+  if(!v.date && type !== "completado"){ window.jarvisToast?.error(null, "Elige una fecha."); return; }
+  const files = [...(document.getElementById("form-file")?.files || [])];
+  if(files.some(x => x.size > 3*1024*1024)){ window.jarvisToast?.error(null, "Cada archivo debe pesar menos de 3 MB."); return; }
+  const btn = document.getElementById("form-save"); btn.disabled = true; btn.textContent = "Guardando…";
+  const t = window.jarvisToast?.loading("Guardando…");
+  try{
+    if(CAL_KINDS.includes(type)){
+      const d = await post({ action:"calendar-item-save", pageId: editing?.id, kind: type, title: v.title, date: v.date, time: type === "note" ? "" : (v.time || ""), endTime: v.endTime || "", project: v.project || "", notes: v.notes || "", place: v.place || "", link: v.link || "", remindMinutes: v.remindMinutes ?? "" });
+      for(const file of files) await post({ action:"calendar-item-file", pageId: d.item.id, filename: file.name, contentType: file.type, dataBase64: await readFile(file) });
+      if(type === "reminder" && v.remindMinutes !== "" && "Notification" in window && Notification.permission === "default") Notification.requestPermission();
+    } else if(type === "meeting"){
+      const when = { date: v.date, time: v.time || "", endTime: v.endTime || "" };
+      if(editing) await post({ action:"calendar-update", type:"meeting", pageId: editing.id, title: v.title, ...when });
+      else await post({ action:"calendar-create", type:"meeting", title: v.title, ...when });
+    } else if(type === "completado"){
+      await post({ action:"calendar-update", type:"completado", pageId: editing.id, title: v.title });
+    } else {
+      if(editing) await post({ action:"calendar-update", type:"deadline", pageId: editing.id, title: v.title, date: v.date });
+      else await post({ action:"calendar-create", type:"deadline", title: v.title, date: v.date, project: v.project || undefined });
+    }
+    window.jarvisToast?.success(t, "Guardado en Notion");
+    closeForm(); await load();
+  }catch(err){ window.jarvisToast?.error(t, "No se pudo guardar: " + err.message); btn.disabled = false; btn.textContent = "Guardar"; }
+}
+async function deleteItem(){
+  if(!editing) return;
+  const isCal = CAL_KINDS.includes(editing.type);
+  if(!confirm(isCal ? "¿Eliminar este elemento? Se moverá a la papelera de Notion." : "¿Archivar este registro en Notion?")) return;
+  const t = window.jarvisToast?.loading(isCal ? "Eliminando…" : "Archivando…");
+  try{
+    await post(isCal ? { action:"calendar-item-delete", pageId: editing.id } : { action:"calendar-archive", pageId: editing.id });
+    window.jarvisToast?.success(t, isCal ? "Eliminado" : "Archivado"); closeForm(); await load();
+  }catch(err){ window.jarvisToast?.error(t, "No se pudo: " + err.message); }
+}
+
+/* ---------- Reminders: browser notification while Jarvis is open ---------- */
+const notified = new Set();
+function checkReminders(){
+  if(!("Notification" in window) || Notification.permission !== "granted") return;
+  const now = new Date();
+  events.filter(e => e.type === "reminder" && !e.done && e.time && e.remindMinutes !== null && e.remindMinutes !== undefined).forEach(e => {
+    const at = new Date(`${e.date}T${e.time}:00`); at.setMinutes(at.getMinutes() - Number(e.remindMinutes));
+    if(now >= at && now - at < 10*60*1000 && !notified.has(e.id)){ notified.add(e.id); new Notification("Jarvis · Recordatorio", { body: `${e.title}${e.time ? " · " + e.time : ""}` }); }
+  });
+}
+setInterval(checkReminders, 60*1000);
+
+/* ---------- Filters & data ---------- */
+function renderFilters(){
+  const sel = document.getElementById("f-project"), cur = filters.project;
+  sel.innerHTML = '<option value="all">Proyecto · Todos</option>' + projects.map(p => `<option ${p===cur?"selected":""}>${esc(p)}</option>`).join("");
+  const people = [...new Set(events.map(e => e.person).filter(Boolean))].sort();
+  const ps = document.getElementById("f-person"); ps.innerHTML = '<option value="all">Responsable · Todos</option>' + people.map(p => `<option ${p===filters.person?"selected":""}>${esc(p)}</option>`).join("");
+}
+function clearFilters(){ filters.project = fixedProject || "all"; filters.type = "all"; filters.person = "all"; document.getElementById("search").value = ""; document.getElementById("f-type").value = "all"; renderFilters(); render(); }
+document.getElementById("f-project").addEventListener("change", e => { filters.project = e.target.value; render(); });
+document.getElementById("f-type").addEventListener("change", e => { filters.type = e.target.value; render(); });
+document.getElementById("f-person").addEventListener("change", e => { filters.person = e.target.value; render(); });
+document.getElementById("search").addEventListener("input", render);
+document.querySelectorAll("#views button").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+document.addEventListener("keydown", e => { if(e.key === "Escape") closeForm(); });
+
+async function load(){
+  const status = document.getElementById("status");
+  try{
+    const r = await fetch("/api/task-api?action=calendar&fresh=" + Date.now(), { cache:"no-store" });
+    const d = await r.json();
+    if(!r.ok || d.error) throw new Error(d.error || ("Error " + r.status));
+    events = (d.events || []).filter(e => e.date);
+    projects = [...new Set([...(d.projects || []), ...events.map(e => e.project).filter(Boolean), "One Night Guest", "RoutePup", "StatStrike", "Nikita", "Personal"])].sort((a,b) => a.localeCompare(b, "es"));
+    renderFilters(); render(); checkReminders();
+    status.textContent = `${events.length} elementos sincronizados desde Notion`;
+  }catch(err){ status.textContent = "No se pudo cargar el calendario: " + err.message; render(); }
+}
+if(fixedProject){
+  document.getElementById("hero-title").textContent = `${fixedProject} · Calendario`;
+  document.getElementById("crumb").innerHTML = `<b>${esc(fixedProject)}</b>　›　Calendario`;
+  document.title = `${fixedProject} · Calendario · Jarvis`;
+}
+if(params.get("date")){ selectedDate = params.get("date"); cursor = parse(selectedDate); }
+render(); load();
+</script>
+<script src="/gcal.js"></script>
+<script src="/sidebar.js"></script>
+</body>
+</html>

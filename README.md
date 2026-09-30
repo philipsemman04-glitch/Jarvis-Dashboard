@@ -93,6 +93,29 @@ audit of the live workspace; keep them if you restructure Notion:
   `Recurrence`, `Topics` (text), `Rating` (number), `Attachments` (files),
   `End Date` (date).
 
+Jarvis creates two databases by itself the first time they are needed
+(set `NOTION_DB_CALENDAR` / `NOTION_DB_TEMAS` to use existing ones):
+
+- **Jarvis · Calendario** (inside the Workspaces row "Calendario"): events,
+  appointments, reminders and notes from the calendar. Decision Log quick
+  notes are notes here with Proyecto = "Decision Log".
+- **Jarvis · Temas** (inside the Workspaces row "Mis Gustos & Conocimiento"):
+  cover, icon, description and board columns of each Mis Gustos topic. The
+  topic itself is still a `Tema` option on Referencias.
+- Habits get `Frequency`, `Category`, `Goal` and `Image` added on first use.
+
+Page covers (Mis Gustos, Decision Log, …) are saved on the page's row in
+Workspaces.
+
+### 5. Google Calendar and Penny
+
+- **Google Calendar:** "Ver en Google Calendar" gives a link to the iCal feed
+  `/api/task-api?action=ics` (optionally `&project=…`). Add it in Google
+  Calendar → Otros calendarios → Desde URL. It is read-only and public to
+  whoever has the link, like the dashboard itself.
+- **Penny AI** stays hidden on every page until the AI provider variables
+  above are set; the pages ask `GET /api/penny-ai` whether it is configured.
+
 ## How tasks are counted (every page)
 
 All task pages load `public/task-logic.js`, so the same Notion data always

@@ -162,9 +162,9 @@
     { name: "Aristóteles", icon: "🦉", route: "/aristoteles.html", type: "Personal", status: "Live", order: 4 },
     { name: "Personal OS", icon: "🧠", route: "/personal-os.html", type: "Personal", status: "Live", order: 5 },
     { name: "One Night Guest", icon: "🏛️", route: "/ong-command-center.html", type: "Business", status: "Live", order: 1 },
-    { name: "RoutePup", icon: "🐾", route: "/project-command-center.html?project=RoutePup", type: "Business", status: "Coming soon", order: 2 },
-    { name: "StatStrike", icon: "📊", route: "/project-command-center.html?project=StatStrike", type: "Business", status: "Coming soon", order: 3 },
-    { name: "Nikita", icon: "🤖", route: "/project-command-center.html?project=Nikita", type: "Business", status: "Coming soon", order: 4 },
+    { name: "RoutePup", icon: "🐾", route: "/project-command-center.html?project=RoutePup", type: "Business", status: "Live", order: 2 },
+    { name: "StatStrike", icon: "📊", route: "/project-command-center.html?project=StatStrike", type: "Business", status: "Live", order: 3 },
+    { name: "Nikita", icon: "🤖", route: "/project-command-center.html?project=Nikita", type: "Business", status: "Live", order: 4 },
     { name: "Sistemas & Ajustes", icon: "⚙️", route: "/sistemas-ajustes.html", type: "System", status: "Live", order: 999 },
   ];
 
