@@ -67,7 +67,7 @@ async function habitProperties(b) {
   if (b.frequency !== undefined) props.Frequency = b.frequency ? { select: { name: b.frequency } } : { select: null };
   if (b.category !== undefined) props.Area = b.category ? { select: { name: String(b.category).trim() } } : { select: null };
   if (b.goal !== undefined) props.Goal = richText(b.goal || "");
-  if (b.imageDataBase64) props.Image = await uploadFile(b.imageFilename || "habito.jpg", b.imageContentType || "image/jpeg", b.imageDataBase64);
+  if (b.imageDataBase64) props.Image = { files: await uploadFile(b.imageFilename || "habito.jpg", b.imageContentType || "image/jpeg", b.imageDataBase64) };
   else if (b.removeImage) props.Image = { files: [] };
   return props;
 }

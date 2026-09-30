@@ -92,6 +92,26 @@ async function setTemaOptions(options) {
   await notion(`/data_sources/${DB_REFERENCIAS}`, "PATCH", { properties: { "Tema": { multi_select: { options } } } });
 }
 
+// Notion's API ignores renaming a select option, so a rename adds the new
+// option, moves every reference to it and then removes the old option.
+async function renameTema(oldName, newName, options) {
+  const old = options.find((o) => o.name.toLowerCase() === oldName.toLowerCase());
+  const keep = options.map((o) => ({ id: o.id, name: o.name, color: o.color }));
+  await setTemaOptions([...keep, { name: newName, color: old?.color || "default" }]);
+  if (!old) return;
+  for (const p of await referencesOf(old.name)) {
+    const temas = (p.properties["Tema"]?.multi_select || []).map((o) => (o.name === old.name ? newName : o.name));
+    await notion(`/pages/${p.id}`, "PATCH", { properties: { "Tema": { multi_select: [...new Set(temas)].map((n) => ({ name: n })) } } });
+  }
+  const now = await temaOptions();
+  await setTemaOptions(now.filter((o) => o.name !== old.name).map((o) => ({ id: o.id, name: o.name, color: o.color })));
+}
+// References tagged with a topic ([] when the option doesn't exist).
+async function referencesOf(topic) {
+  if (!(await temaOptions()).some((o) => o.name === topic)) return [];
+  return queryDatabase(DB_REFERENCIAS, { filter: { property: "Tema", multi_select: { contains: topic } } });
+}
+
 /* ---------- Saving a topic ---------- */
 async function topicProperties(b) {
   const props = {};
@@ -123,10 +143,8 @@ async function saveTopic(b) {
     if (find(name)) throw fail("Ya existe un tema con ese nombre.", 409);
     await setTemaOptions([...keep, { name, color: "default" }]);
   } else if (oldName.toLowerCase() !== name.toLowerCase()) {
-    // Rename: renaming the option renames it on every reference.
-    const target = find(oldName);
     if (find(name)) throw fail("Ya existe un tema con ese nombre.", 409);
-    await setTemaOptions(target ? keep.map((o) => (o.id === target.id ? { ...o, name } : o)) : [...keep, { name, color: "default" }]);
+    await renameTema(oldName, name, options);
   } else if (!find(name)) {
     await setTemaOptions([...keep, { name, color: "default" }]);
   }
@@ -154,7 +172,7 @@ async function deleteTopic(name) {
 
 /* ---------- Columns of a topic board ---------- */
 async function referencesInColumn(topic, column) {
-  const pages = await queryDatabase(DB_REFERENCIAS, { filter: { property: "Tema", multi_select: { contains: topic } } });
+  const pages = await referencesOf(topic);
   return pages.filter((p) => (getRichText(p.properties, "Columna") || "").trim() === column);
 }
 

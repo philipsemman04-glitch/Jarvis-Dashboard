@@ -6,7 +6,7 @@
 // Body: { action: "create-reference", referencia, autor?, columna?, tipo?, temas?, tags?, enlace?, estado?, porQueMeInteresa?, importancia? }
 // Body: { action: "update-reference", pageId, ...same fields... }
 // Body: { action: "create-topic", name }  — adds a real new Tema option
-// Body: { action: "rename-topic", oldName, newName }
+// Body: { action: "rename-topic", oldName, newName } — same as topic-save with oldName
 // Body: { action: "comment", pageId, text }
 // Body: { action: "delete-reference", pageId }
 // Body: { action: "topic-save", name, oldName?, description?, cover/icon upload } — see _topics.js
@@ -100,25 +100,8 @@ async function handleCreateTopic(req, res) {
 }
 
 
-async function handleRenameTopic(req, res) {
-  const { oldName, newName } = req.body || {};
-  if (!oldName || !newName || !newName.trim()) { res.status(400).json({ ok: false, error: "oldName and newName are required" }); return; }
-  const schemaRes = await fetch(`https://api.notion.com/v1/data_sources/${DB_REFERENCIAS}`, { headers: headers() });
-  if (!schemaRes.ok) throw new Error(`Notion schema fetch failed (${schemaRes.status}): ${await schemaRes.text()}`);
-  const schema = await schemaRes.json();
-  const options = schema.properties?.["Tema"]?.multi_select?.options || [];
-  const target = options.find(o => o.name.toLowerCase() === oldName.trim().toLowerCase());
-  if (!target) { res.status(404).json({ ok: false, error: `Topic "${oldName}" was not found.` }); return; }
-  if (options.some(o => o.name.toLowerCase() === newName.trim().toLowerCase() && o.id !== target.id)) {
-    res.status(409).json({ ok: false, error: "A topic with that name already exists." }); return;
-  }
-  const updatedOptions = options.map(o => ({ id: o.id, name: o.id === target.id ? newName.trim() : o.name, color: o.color }));
-  const patchRes = await fetch(`https://api.notion.com/v1/data_sources/${DB_REFERENCIAS}`, {
-    method: "PATCH", headers: headers(), body: JSON.stringify({ properties: { "Tema": { multi_select: { options: updatedOptions } } } }),
-  });
-  if (!patchRes.ok) throw new Error(`Notion topic rename failed (${patchRes.status}): ${await patchRes.text()}`);
-  res.status(200).json({ ok: true });
-}
+// Notion answers 403 when the Jarvis integration can't comment.
+const COMMENTS_OFF = "Notion no permite comentar todavía: en notion.so/profile/integrations abre la integración de Jarvis y activa «Leer comentarios» e «Insertar comentarios».";
 
 async function handleComment(req, res) {
   const { pageId, text } = req.body || {};
@@ -127,6 +110,7 @@ async function handleComment(req, res) {
     method: "POST", headers: headers(),
     body: JSON.stringify({ parent: { page_id: pageId }, rich_text: richText(text.trim()).rich_text }),
   });
+  if (r.status === 403) throw Object.assign(new Error(COMMENTS_OFF), { status: 403 });
   if (!r.ok) throw new Error(`Notion comment failed (${r.status}): ${await r.text()}`);
   res.status(200).json({ ok: true });
 }
@@ -237,7 +221,7 @@ module.exports = async (req, res) => {
     if (action === "update-reference") return await handleUpdateReference(req, res);
     if (action === "delete-reference") return await handleDeleteReference(req, res);
     if (action === "create-topic") return await handleCreateTopic(req, res);
-    if (action === "rename-topic") return await handleRenameTopic(req, res);
+    if (action === "rename-topic") return res.status(200).json({ ok: true, topic: await topics.saveTopic({ name: req.body?.newName, oldName: req.body?.oldName }) });
     if (action === "delete-topic") { await topics.deleteTopic(req.body?.name); return res.status(200).json({ ok: true }); }
     if (action === "topic-save") return res.status(200).json({ ok: true, topic: await topics.saveTopic(req.body || {}) });
     if (action === "topic-columns") return res.status(200).json({ ok: true, columns: await topics.saveColumns(req.body || {}) });

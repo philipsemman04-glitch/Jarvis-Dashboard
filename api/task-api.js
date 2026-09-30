@@ -484,6 +484,7 @@ async function handleComment(req, res) {
     method: "POST", headers: headers(),
     body: JSON.stringify({ parent: { page_id: pageId }, rich_text: richText(commentText.trim()).rich_text }),
   });
+  if (r.status === 403) throw Object.assign(new Error("Notion no permite comentar todavía: en notion.so/profile/integrations abre la integración de Jarvis y activa «Leer comentarios» e «Insertar comentarios»."), { status: 403 });
   if (!r.ok) throw new Error(`Notion comment failed (${r.status}): ${await r.text()}`);
   res.status(200).json({ ok: true });
 }
