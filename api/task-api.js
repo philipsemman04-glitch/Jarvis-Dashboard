@@ -14,6 +14,7 @@
 // POST /api/task-api  body: { action: "create"|"update-status"|"update-full"|"update-area"|"comment", ... }
 
 const { createPage, updatePage, queryDatabase, getTitle, richText, todayISO, fitToSchema, personText } = require("./_notion");
+const calendarItems = require("./_calendar");
 
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -203,7 +204,7 @@ async function handleCalendar(req, res) {
     const completionDate = props["Completion Date"]?.date?.start;
     const status = select(props["Status"]);
     if (targetDate && status !== "Terminado" && status !== "Cancelado") {
-      events.push({ id: p.id, url: p.url, date: targetDate.slice(0, 10), title: taskName, type: "deadline", project, person, status });
+      events.push({ id: p.id, url: p.url, date: targetDate.slice(0, 10), title: taskName, type: "deadline", project, person, status, priority: select(props["Priority"]) });
     }
     if (completionDate) {
       events.push({ id: p.id, url: p.url, date: completionDate.slice(0, 10), title: taskName, type: "completado", project, person, status });
@@ -213,11 +214,16 @@ async function handleCalendar(req, res) {
     const props = p.properties;
     const date = props["Date"]?.date?.start;
     if (!date) return;
+    const when = calendarItems.splitDate(props["Date"]?.date);
     events.push({
-      id: p.id, url: p.url, date: date.slice(0, 10), title: text(props["Meeting Name"]),
-      type: "meeting", project: null, person: null, status: select(props["Status"]),
+      id: p.id, url: p.url, date: date.slice(0, 10), time: when.time, endTime: when.endTime, title: text(props["Meeting Name"]),
+      type: "meeting", project: null, person: null, status: select(props["Status"]), platform: text(props["Platform"]),
     });
   });
+  // Events, appointments, reminders and notes from the Jarvis calendar database.
+  (await calendarItems.listItems().catch((err) => { console.error("Calendar items unavailable:", err.message); return []; }))
+    .filter((it) => it.date)
+    .forEach((it) => events.push({ ...it, type: it.kind, status: it.kind === "reminder" ? (it.done ? "Hecho" : "Pendiente") : null, person: null }));
 
   const projects = [...new Set(events.map(e => e.project).filter(Boolean))].sort();
   res.status(200).json({ events, projects });
@@ -225,12 +231,12 @@ async function handleCalendar(req, res) {
 
 const DB_MEETINGS_DATA_SOURCE = process.env.NOTION_DB_MEETINGS || "ad03f382-6e63-4e86-b905-32772e16600c";
 async function handleCalendarCreate(req, res) {
-  const { type = "deadline", title, date, project, person, status = "Scheduled" } = req.body || {};
+  const { type = "deadline", title, date, time, endTime, project, person, status = "Scheduled" } = req.body || {};
   if (!title || !title.trim() || !date) { res.status(400).json({ error: "title and date are required" }); return; }
   if (type === "meeting") {
     const page = await createPage(DB_MEETINGS_DATA_SOURCE, {
       "Meeting Name": { title: [{ text: { content: title.trim() } }] },
-      Date: { date: { start: date } },
+      Date: calendarItems.dateValue(date.slice(0, 10), time, endTime),
       Status: { select: { name: status } },
     });
     res.status(200).json({ ok: true, pageId: page.id });
@@ -248,12 +254,14 @@ async function handleCalendarCreate(req, res) {
 }
 
 async function handleCalendarUpdate(req, res) {
-  const { pageId, type = "deadline", title, date, person, status } = req.body || {};
-  if (!pageId || !title || !title.trim() || !date) { res.status(400).json({ error: "pageId, title and date are required" }); return; }
+  const { pageId, type = "deadline", title, date, time, endTime, person, status } = req.body || {};
+  // A finished task is edited without a date: its calendar day is its
+  // Completion Date, which must not overwrite the Target Date.
+  if (!pageId || !title || !title.trim() || (!date && type !== "completado")) { res.status(400).json({ error: "pageId, title and date are required" }); return; }
   if (type === "meeting") {
     const result = await updatePage(pageId, {
       "Meeting Name": { title: [{ text: { content: title.trim() } }] },
-      Date: { date: { start: date } },
+      Date: calendarItems.dateValue(date.slice(0, 10), time, endTime),
       ...(status ? { Status: { select: { name: status } } } : {}),
     });
     res.status(200).json({ ok: true, pageId: result.id });
@@ -261,7 +269,7 @@ async function handleCalendarUpdate(req, res) {
   }
   const fitted = await fitToActionsSchema({
     "Task Name": { title: [{ text: { content: title.trim() } }] },
-    "Target Date": { date: { start: date } },
+    ...(date ? { "Target Date": { date: { start: date } } } : {}),
   }, person);
   const result = await updatePage(pageId, fitted.properties);
   res.status(200).json({ ok: true, pageId: result.id, skipped: fitted.skipped });
@@ -514,12 +522,23 @@ module.exports = async (req, res) => {
       if (action === "calendar-create") return await handleCalendarCreate(req, res);
       if (action === "calendar-update") return await handleCalendarUpdate(req, res);
       if (action === "calendar-archive") return await handleCalendarArchive(req, res);
+      if (action === "calendar-item-save") return res.status(200).json({ ok: true, item: await calendarItems.saveItem(req.body || {}) });
+      if (action === "calendar-item-delete") {
+        if (!req.body?.pageId) return res.status(400).json({ error: "pageId is required" });
+        await calendarItems.deleteItem(req.body.pageId);
+        return res.status(200).json({ ok: true });
+      }
+      if (action === "calendar-item-file") {
+        const { pageId, filename, contentType, dataBase64 } = req.body || {};
+        if (!pageId || !filename || !dataBase64) return res.status(400).json({ error: "pageId, filename and dataBase64 are required" });
+        return res.status(200).json({ ok: true, item: await calendarItems.addFile(pageId, filename, contentType, dataBase64) });
+      }
     }
     res.status(400).json({ error: "Unknown or missing action" });
   } catch (err) {
     // A real error status (not 200), so every page's `if (!r.ok)` check
     // shows the failure instead of a false "Guardado".
     console.error(err);
-    res.status(500).json({ ok: false, error: err.message });
+    res.status(err.status || 500).json({ ok: false, error: err.message });
   }
 };

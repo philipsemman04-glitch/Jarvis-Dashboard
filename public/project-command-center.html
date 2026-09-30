@@ -367,9 +367,7 @@ function updateGreeting(){
 }
 updateGreeting();
 function calendarHref(){
-  return currentProjectKey === "One Night Guest"
-    ? "/ong-calendar.html?project=One%20Night%20Guest"
-    : "/general-calendar.html?project=" + encodeURIComponent(currentProjectLabel || "");
+  return "/general-calendar.html?project=" + encodeURIComponent(currentProjectKey === "One Night Guest" ? "One Night Guest" : currentProjectLabel || "");
 }
 let filters = { area: "all", status: "all", priority: "all", priorityLevel: "all", person: "all" };
 
