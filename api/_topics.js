@@ -6,7 +6,7 @@
  * each topic looks and how its board is organised (set NOTION_DB_TEMAS to
  * use another one).
  */
-const { queryDatabase, getTitle, getRichText, getNumber, getFileUrl, richText, uploadFile } = require("./_notion");
+const { queryDatabase, getTitle, getRichText, getNumber, getFileUrl, richText, uploadFile, findChildDataSource } = require("./_notion");
 
 const NOTION_VERSION = "2025-09-03";
 const BASE_URL = "https://api.notion.com/v1";
@@ -33,14 +33,18 @@ async function notion(path, method = "GET", body) {
 const fail = (message, status = 400) => Object.assign(new Error(message), { status });
 
 let cachedId = process.env.NOTION_DB_TEMAS || null;
+// Lives inside the Workspaces row "Mis Gustos & Conocimiento"; found by
+// reading that page's children (search can lag behind a new database).
 async function topicsSource(create) {
   if (cachedId) return cachedId;
-  const found = await notion("/search", "POST", { query: TITLE, filter: { property: "object", value: "data_source" } }).catch(() => ({ results: [] }));
-  const hit = (found.results || []).find((r) => (r.title || []).map((t) => t.plain_text).join("") === TITLE);
-  if (hit) return (cachedId = hit.id);
-  if (!create) return null;
   const rows = await queryDatabase(DB_WORKSPACES, { filter: { property: "Name", title: { contains: "Mis Gustos" } } });
-  if (!rows[0]) throw new Error('No se encontró la página "Mis Gustos & Conocimiento" en Workspaces.');
+  if (!rows[0]) {
+    if (!create) return null;
+    throw new Error('No se encontró la página "Mis Gustos & Conocimiento" en Workspaces.');
+  }
+  const found = await findChildDataSource(rows[0].id, TITLE);
+  if (found) return (cachedId = found);
+  if (!create) return null;
   const db = await notion("/databases", "POST", {
     parent: { type: "page_id", page_id: rows[0].id },
     title: [{ type: "text", text: { content: TITLE } }],

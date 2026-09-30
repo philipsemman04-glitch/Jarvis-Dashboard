@@ -7,7 +7,7 @@
  * Tasks (Master Actions) and meetings (Meetings) keep living in their own
  * databases; the calendar shows all three together.
  */
-const { queryDatabase, getTitle, getRichText, getSelect, getCheckbox, getNumber, richText, uploadFile } = require("./_notion");
+const { queryDatabase, getTitle, getRichText, getSelect, getCheckbox, getNumber, richText, uploadFile, findChildDataSource } = require("./_notion");
 
 const NOTION_VERSION = "2025-09-03";
 const BASE_URL = "https://api.notion.com/v1";
@@ -39,21 +39,19 @@ function headers() {
 let cachedId = process.env.NOTION_DB_CALENDAR || null;
 
 // The calendar data source id; with create=true it is created if missing.
+// It lives inside the Workspaces row "Calendario" and is found by reading
+// that page's children (search can lag behind a new database).
 async function calendarSource(create) {
   if (cachedId) return cachedId;
-  const found = await fetch(`${BASE_URL}/search`, {
-    method: "POST", headers: headers(),
-    body: JSON.stringify({ query: TITLE, filter: { property: "object", value: "data_source" } }),
-  });
-  if (found.ok) {
-    const hit = ((await found.json()).results || []).find((r) => (r.title || []).map((t) => t.plain_text).join("") === TITLE);
-    if (hit) return (cachedId = hit.id);
-  }
-  if (!create) return null;
-
   const rows = await queryDatabase(DB_WORKSPACES, { filter: { property: "Name", title: { equals: "Calendario" } } });
   const parent = rows[0]?.id;
-  if (!parent) throw new Error('No se encontró la página "Calendario" en Workspaces para crear la base del calendario.');
+  if (!parent) {
+    if (!create) return null;
+    throw new Error('No se encontró la página "Calendario" en Workspaces para crear la base del calendario.');
+  }
+  const found = await findChildDataSource(parent, TITLE);
+  if (found) return (cachedId = found);
+  if (!create) return null;
   const res = await fetch(`${BASE_URL}/databases`, {
     method: "POST", headers: headers(),
     body: JSON.stringify({

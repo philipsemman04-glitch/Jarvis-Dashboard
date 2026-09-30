@@ -220,6 +220,29 @@ function getFileUrl(props, key) {
   return f ? (f.file?.url || f.external?.url || null) : null;
 }
 
+/**
+ * The data source id of the inline database called `title` inside page
+ * `pageId`, or null. Reads the page's children directly — unlike search,
+ * this sees a database the moment it is created, so two server instances
+ * never create the same database twice.
+ */
+async function findChildDataSource(pageId, title) {
+  let cursor;
+  do {
+    const res = await fetch(`${BASE_URL}/blocks/${pageId}/children?page_size=100${cursor ? "&start_cursor=" + cursor : ""}`, { headers: headers() });
+    if (!res.ok) throw new Error(`Notion children fetch failed (${res.status}): ${await res.text()}`);
+    const data = await res.json();
+    const hit = (data.results || []).find((b) => b.type === "child_database" && b.child_database?.title === title);
+    if (hit) {
+      const db = await fetch(`${BASE_URL}/databases/${hit.id}`, { headers: headers() });
+      if (!db.ok) throw new Error(`Notion database fetch failed (${db.status}): ${await db.text()}`);
+      return (await db.json()).data_sources?.[0]?.id || null;
+    }
+    cursor = data.has_more ? data.next_cursor : undefined;
+  } while (cursor);
+  return null;
+}
+
 /* ---------- Small helpers for reading common Notion property shapes ---------- */
 
 function getTitle(props, key) {
@@ -259,6 +282,7 @@ module.exports = {
   ensureProperties,
   uploadFile,
   getFileUrl,
+  findChildDataSource,
   personText,
   getTitle,
   getRichText,
