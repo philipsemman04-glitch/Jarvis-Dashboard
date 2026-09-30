@@ -187,6 +187,7 @@ body{background:radial-gradient(900px 520px at 65% -10%,#0c3658 0%,transparent 6
 @media(max-width:900px){.stat-row{grid-template-columns:repeat(2,1fr)!important}}
 </style>
 <script src="/task-logic.js"></script>
+<script src="/penny.js"></script>
 </head>
 <body>
 <div class="main"><div class="global-topbar"><input class="global-search" placeholder="⌕ Search anything…" onkeydown="if(event.key==='Enter'&&this.value.trim())document.getElementById('f-person')?.focus()"><button class="global-round" onclick="toggleAddTask()">＋</button><button class="global-round" onclick="window.jarvisToast?.info?.('No hay notificaciones nuevas')">♟</button><div class="global-avatar">AM</div><div class="global-greeting" id="global-greeting">Good morning, Aurelio.<br><small>Build. Ship. Freedom.</small></div></div>
@@ -257,7 +258,7 @@ body{background:radial-gradient(900px 520px at 65% -10%,#0c3658 0%,transparent 6
         <h3 id="critical-title">🔴 Tareas Críticas (P0) <button class="rail-view-all" type="button" onclick="showCritical()">Ver todas →</button></h3>
         <div id="critical-list"></div>
       </div>
-      <div class="assistant-panel"><h3>◉ Jarvis Assistant</h3><p style="margin-top:5px">Here are key insights for this workspace:</p><ul><li id="assistant-critical">Critical work is visible in the panel above.</li><li id="assistant-progress">Progress is calculated from real Notion records.</li><li>Priorities and operations are ready for review.</li></ul><a class="assistant-btn" id="assistant-notion" href="https://app.notion.com/p/RoutePup-3b664152b99e81218f44c13452dc54d2" target="_blank" rel="noopener noreferrer">Open in Notion ↗</a></div><div class="penny-panel" id="penny-panel"><div class="penny-head"><div class="penny-orb">◉</div><div><h3>Penny AI</h3><p>RoutePup strategic assistant</p></div></div><p class="penny-copy">Ask Penny about RoutePup tasks, priorities, progress, areas, or next steps.</p><button class="assistant-btn penny-open" type="button" onclick="openPenny()">Chat with Penny</button></div>
+      <div class="assistant-panel"><h3>◉ Jarvis Assistant</h3><p style="margin-top:5px">Here are key insights for this workspace:</p><ul><li id="assistant-critical">Critical work is visible in the panel above.</li><li id="assistant-progress">Progress is calculated from real Notion records.</li><li>Priorities and operations are ready for review.</li></ul><a class="assistant-btn" id="assistant-notion" href="https://app.notion.com/p/RoutePup-3b664152b99e81218f44c13452dc54d2" target="_blank" rel="noopener noreferrer">Open in Notion ↗</a></div><div class="penny-panel" id="penny-panel" data-penny><div class="penny-head"><div class="penny-orb">◉</div><div><h3>Penny AI</h3><p>RoutePup strategic assistant</p></div></div><p class="penny-copy">Ask Penny about RoutePup tasks, priorities, progress, areas, or next steps.</p><button class="assistant-btn penny-open" type="button" onclick="openPenny()">Chat with Penny</button></div>
     </div>
   </div>
 
@@ -842,15 +843,11 @@ async function archiveArea(areaId, name){
   }catch(e){ window.jarvisToast?.error(t, "No se pudo archivar: " + e.message); }
 }
 
-function renderIntegrations(label){
-  document.getElementById("integrations-panel").innerHTML = `
-    <h3>🔌 Integraciones y Datos del Negocio</h3>
-    <div class="integ-row-wrap">
-      <div class="integ-card"><div class="ic">📊</div><div class="nm">Google Ads</div><div class="badge">No conectado</div><button disabled>Conectar cuenta</button></div>
-      <div class="integ-card"><div class="ic">📈</div><div class="nm">Google Analytics</div><div class="badge">No conectado</div><button disabled>Conectar cuenta</button></div>
-      <div class="integ-card"><div class="ic">👥</div><div class="nm">Base de Leads (CRM)</div><div class="badge">No conectado</div><button disabled>Conectar base</button></div>
-      <div class="integ-card"><div class="ic">🏛️</div><div class="nm">Plataforma ${esc(label)}</div><div class="badge">No conectado</div><button disabled>Conectar plataforma</button></div>
-    </div>`;
+// Google Ads / Analytics / CRM connections don't exist yet, so the panel
+// stays hidden instead of showing buttons that can't connect anything.
+function renderIntegrations(){
+  const panel = document.getElementById("integrations-panel");
+  if(panel){ panel.innerHTML = ""; panel.style.display = "none"; }
 }
 
 let pennyHistory=[];

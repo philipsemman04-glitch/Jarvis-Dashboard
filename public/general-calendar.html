@@ -124,6 +124,7 @@ button,input,select,textarea{font-family:inherit}
     <div class="crumb" id="crumb"><b>Calendario</b></div>
     <div class="actions">
       <button class="btn" onclick="location.href='/'">⌂ Inicio</button>
+      <button class="btn" onclick="JarvisGcal.open(fixedProject)">◉ Ver en Google Calendar</button>
       <button class="btn primary" onclick="openForm({ date: selectedDate })">＋ Nuevo</button>
     </div>
   </div>
@@ -491,6 +492,7 @@ if(fixedProject){
 if(params.get("date")){ selectedDate = params.get("date"); cursor = parse(selectedDate); }
 render(); load();
 </script>
+<script src="/gcal.js"></script>
 <script src="/sidebar.js"></script>
 </body>
 </html>

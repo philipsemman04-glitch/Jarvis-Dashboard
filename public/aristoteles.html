@@ -130,6 +130,7 @@
   @keyframes bannerSheen{0%,55%{transform:translateX(-48%);opacity:0}70%{opacity:1}100%{transform:translateX(48%);opacity:0}}
   @media(max-width:1000px){.workspace-banner h1{font-size:32px}.workspace-banner{min-height:170px}}
 </style>
+<script src="/penny.js"></script>
 </head>
 <body>
 <div class="main">
@@ -160,13 +161,13 @@
           <div class="panel-head"><h3>🕐 Documentos Recientes</h3></div>
           <div id="recent-docs"></div>
         </div>
-        <div class="panel">
+        <div class="panel" data-penny>
           <div class="pw-avatar">P</div>
-          <h3 style="margin-bottom:6px;">Pennyworth AI</h3>
-          <p style="font-size:11.5px; color:var(--text-dim); margin-bottom:10px;">Tu asistente personal para entenderte mejor y tomar mejores decisiones.</p>
-          <input id="pw-question" placeholder="Pennyworth AI próximamente" disabled style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:8px; padding:10px 12px; font-size:12px; color:var(--text); margin-bottom:8px;">
-          <div class="head-btn" aria-disabled="true" title="Pennyworth AI próximamente" style="width:100%; justify-content:center; opacity:.55; cursor:not-allowed;">Pennyworth AI · Próximamente</div>
-          <div id="pw-response" style="font-size:11.5px; color:var(--text-faint); margin-top:8px; line-height:1.5;"></div>
+          <h3 style="margin-bottom:6px;">Penny AI</h3>
+          <p style="font-size:11.5px; color:var(--text-dim); margin-bottom:10px;">Pregunta sobre tus documentos de Aristóteles.</p>
+          <input id="pw-question" placeholder="Escribe tu pregunta…" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:8px; padding:10px 12px; font-size:12px; color:var(--text); margin-bottom:8px;">
+          <button class="head-btn" id="pw-send" type="button" style="width:100%; justify-content:center;" onclick="askPennyworth()">Preguntar a Penny</button>
+          <div id="pw-response" style="font-size:11.5px; color:var(--text-dim); margin-top:8px; line-height:1.5; white-space:pre-wrap;"></div>
         </div>
       </div>
     </div>
@@ -307,14 +308,22 @@ async function createSection(){
   }catch(e){ jarvisToast.error(t, "No se pudo crear la sección: " + e.message); }
 }
 
-function askPennyworth(){
+async function askPennyworth(){
   const input = document.getElementById("pw-question");
   const resp = document.getElementById("pw-response");
-  if(!input.value.trim()){ return; }
-  resp.textContent = "Pennyworth todavía no está conectado a un modelo de IA en vivo — esta función llega en la siguiente fase. Por ahora, tu contexto está organizado y listo arriba para cuando se conecte.";
-  input.value = "";
+  const message = input.value.trim();
+  if(!message) return;
+  resp.textContent = "Penny está pensando…";
+  try{
+    const context = { project:"Aristóteles", totals:{ secciones:(allData?.sections||[]).map(s => ({ nombre:s.name, documentos:s.count })), documentos:(allData?.docs||[]).slice(0, 80).map(d => ({ nombre:d.name, seccion:d.seccion, estado:d.estado })) } };
+    const r = await fetch("/api/penny-ai", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ message, context }) });
+    const d = await r.json();
+    if(!r.ok || d.error) throw new Error(d.error || ("Error " + r.status));
+    resp.textContent = d.answer; input.value = "";
+  }catch(e){ resp.textContent = "Penny no pudo responder: " + e.message; }
 }
 
+document.getElementById("pw-question").addEventListener("keydown", e => { if(e.key === "Enter") askPennyworth(); });
 document.getElementById("global-search").addEventListener("keydown", (e) => {
   if(e.key === "Enter" && e.target.value.trim()){
     const q = e.target.value.trim().toLowerCase();

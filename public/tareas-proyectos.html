@@ -136,6 +136,19 @@
   #result-count{color:#86a2b6}.view-tabs button{background:#0d2031;border-color:#31536e;color:#9bb5c8}.view-tabs button.active{background:#0b4266;color:#84d4ff;border-color:#3ea9e5}
   @media(max-width:900px){.shell{padding:22px 18px 40px}.stat-row{grid-template-columns:repeat(3,1fr)}}
 
+.tv-hidden{display:none!important}
+.tv-board{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;align-items:flex-start}
+.tv-col{background:var(--panel);border:1px solid var(--border-soft);border-radius:11px;padding:10px;min-width:250px;width:250px;flex-shrink:0;max-height:70vh;overflow-y:auto}
+.tv-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:12px;margin:0 0 8px}
+.tv-head b{background:rgba(255,255,255,.08);border-radius:999px;padding:2px 8px;font-size:11px}
+.tv-card{background:#0c1a28;border:1px solid var(--border-soft);border-radius:9px;padding:9px 10px;margin-bottom:8px;cursor:pointer}
+.tv-card:hover{border-color:var(--gold)}
+.tv-sub{color:var(--text-faint);font-size:11px;margin-top:3px}
+.tv-group{margin-bottom:14px}
+.tv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.tv-menu{position:absolute;z-index:90;background:#0d1d30;border:1px solid var(--border-soft);border-radius:10px;padding:5px;width:250px;box-shadow:0 18px 40px #000a}
+.tv-menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);padding:8px 10px;border-radius:7px;font-size:12px;cursor:pointer}
+.tv-menu button:hover{background:rgba(255,255,255,.07)}
 </style>
 <style>
 /* Phones: each task becomes a compact card instead of a wide table row, so the page fits the screen. */
@@ -165,12 +178,12 @@
         <p>Todo lo pendiente, en un solo lugar</p>
       </div>
     </div>
-    <div class="topbar-actions"><input class="top-search" placeholder="⌕ Search tasks, projects…"><div class="icon-btn" onclick="window.location.href='/'" title="Home">⌂</div><div class="icon-btn" onclick="window.location.href='/general-calendar.html'" title="Calendar">▣</div><div class="icon-btn">♧</div><div class="add-btn" id="toggle-add-btn">＋ New Task　⌄</div></div>
+    <div class="topbar-actions"><input class="top-search" id="top-search" placeholder="⌕ Buscar tareas, proyectos…"><div class="icon-btn" onclick="window.location.href='/'" title="Home">⌂</div><div class="icon-btn" onclick="window.location.href='/general-calendar.html'" title="Calendar">▣</div><div class="add-btn" id="toggle-add-btn">＋ New Task　⌄</div></div>
   </div>
 
 
 <div class="shell">
-<section class="workspace-banner" style="background-image:url('/assets/covers/tareas-proyectos-cover-v2.jpg')"><div class="workspace-banner-content"><div><div class="workspace-banner-kicker">JARVIS · TAREAS &amp; PROYECTOS</div><div class="workspace-banner-title">Tareas &amp; Proyectos</div><div class="workspace-banner-subtitle">Different projects. A bigger picture.<br>Same direction.</div><div class="workspace-banner-signature">— Jarvis</div><button class="edit-cover-btn" id="edit-cover-btn">✎ Edit Cover</button></div></div></section>
+<section class="workspace-banner" style="background-image:url('/assets/covers/tareas-proyectos-cover-v2.jpg')"><div class="workspace-banner-content"><div><div class="workspace-banner-kicker">JARVIS · TAREAS &amp; PROYECTOS</div><div class="workspace-banner-title">Tareas &amp; Proyectos</div><div class="workspace-banner-subtitle">Different projects. A bigger picture.<br>Same direction.</div><div class="workspace-banner-signature">— Jarvis</div><button class="edit-cover-btn" id="edit-cover-btn">✎ Editar portada</button></div></div></section>
     <div class="stat-row" id="stat-row"></div>
     <div class="reconcile" id="reconcile" style="font-size:11px;color:var(--text-faint);margin:-6px 2px 14px"></div>
 
@@ -193,11 +206,11 @@
       <div class="cancel-btn" id="cancel-add-btn">Cancelar</div>
     </div>
 
-    <div class="tasks-toolbar"><div><h3>Tasks <span class="task-total-badge" id="task-total-badge"></span></h3><small>Showing live tasks from Notion across all projects.</small></div><div class="view-tabs"><button class="active">▤ Table</button><button>▦ Board</button><button>⌁ Timeline</button><button>•••</button></div><span id="result-count"></span></div><div class="table-head"><span></span><span>Task</span><span>Project</span><span>P-Level</span><span>Priority</span><span>Status</span><span>Responsible</span><span>Due Date</span></div>
+    <div class="tasks-toolbar"><div><h3>Tasks <span class="task-total-badge" id="task-total-badge"></span></h3><small>Showing live tasks from Notion across all projects.</small></div><div class="view-tabs" id="view-tabs"><button data-view="table" class="active">▤ Tabla</button><button data-view="board">▦ Tablero</button><button data-view="timeline">⌁ Cronología</button><button id="more-btn" title="Más acciones">•••</button></div><span id="result-count"></span></div><div class="table-head"><span></span><span>Task</span><span>Project</span><span>P-Level</span><span>Priority</span><span>Status</span><span>Responsible</span><span>Due Date</span></div>
     <div class="task-list" id="task-list"></div>
     <span id="sync-note"></span>
   </div>
-  <div id="cover-editor-backdrop" class="cover-editor-backdrop" style="display:none"><div class="cover-editor"><div class="cover-editor-head"><div><h2>Edit Tasks &amp; Projects</h2><p>Update the banner title or upload a new cover image.</p></div><button class="modal-close" id="close-cover-editor">×</button></div><label>Banner title<input id="cover-title-input" maxlength="80"></label><label>Cover image<input id="cover-file-input" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="cover-editor-preview" id="cover-editor-preview"></div><div class="cover-editor-actions"><button class="cancel-btn" id="cancel-cover-editor">Cancel</button><button class="save-btn" id="save-cover-editor">Save changes</button></div></div></div>
+  <div id="cover-editor-backdrop" class="cover-editor-backdrop" style="display:none"><div class="cover-editor"><div class="cover-editor-head"><div><h2>Editar Tareas &amp; Proyectos</h2><p>Cambia el título o sube una nueva imagen de portada.</p></div><button class="modal-close" id="close-cover-editor">×</button></div><label>Título<input id="cover-title-input" maxlength="80"></label><label>Imagen de portada<input id="cover-file-input" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="cover-editor-preview" id="cover-editor-preview"></div><div class="cover-editor-actions"><button class="cancel-btn" id="cancel-cover-editor">Cancelar</button><button class="save-btn" id="save-cover-editor">Guardar cambios</button></div></div></div>
 
   <!-- Task Detail modal — matches the shared reference for ONG too -->
   <div id="task-modal-backdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; align-items:center; justify-content:center; padding:20px;">
@@ -333,7 +346,9 @@ function applyFilters(){
   renderPersonFilterOptions();
   renderStats();
 
+  const q = (document.getElementById("top-search")?.value || "").trim().toLowerCase();
   let filtered = allTasks.filter(t => {
+    if(q && !`${t.taskName||""} ${t.project||""} ${t.area||""} ${t.collaborators||""}`.toLowerCase().includes(q)) return false;
     if(activeProject !== "all" && t.project !== activeProject) return false;
     if(priority !== "all" && (JarvisTasks.priorityOf(t) || "none") !== priority) return false;
     if(pLevel !== "all" && t.priorityLevel !== pLevel) return false;
@@ -379,9 +394,68 @@ function renderPersonFilterOptions(){
   if(sorted.includes(prevValue)) sel.value = prevValue;
 }
 
+let taskView = (() => { try{ return localStorage.getItem("jarvis-tareas-view") || "table"; }catch(e){ return "table"; } })();
+let lastShown = [];
+function setTaskView(v){
+  taskView = v; try{ localStorage.setItem("jarvis-tareas-view", v); }catch(e){}
+  document.querySelectorAll("#view-tabs [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === v));
+  renderTaskList(lastShown);
+}
+function taskCard(t){
+  return `<div class="tv-card" data-open="${esc(t.id)}"><div class="task-name ${t.status==='Terminado'?'done':''}">${esc(t.taskName || "(sin título)")}</div><div class="task-meta">${priorityTag(t.priority)}<span class="tv-sub">${esc(t.project || "Sin proyecto")}${t.area ? " · " + esc(t.area) : ""}</span></div><div class="tv-sub">${esc(t.collaborators || "Sin responsable")}${t.targetDate ? " · " + esc(t.targetDate) : ""}</div></div>`;
+}
+// Board: one column per status. Timeline: grouped by due date.
+function renderAltView(list, tasks){
+  if(taskView === "board"){
+    list.innerHTML = `<div class="tv-board">${STATUS_OPTIONS.map(st => { const col = tasks.filter(t => t.status === st); return col.length || !["Cancelado","En validación","Preparación"].includes(st) ? `<div class="tv-col"><div class="tv-head"><span>${esc(st)}</span><b>${col.length}</b></div>${col.map(taskCard).join("") || '<div class="tv-sub" style="padding:6px">Sin tareas</div>'}</div>` : ""; }).join("")}</div>`;
+  } else {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const t0 = iso(today), wk = new Date(today); wk.setDate(today.getDate() + 7); const t7 = iso(wk);
+    const open = tasks.filter(t => JarvisTasks.isActive(t));
+    const groups = [
+      ["Vencidas", open.filter(t => t.targetDate && t.targetDate < t0)],
+      ["Hoy", open.filter(t => t.targetDate === t0)],
+      ["Próximos 7 días", open.filter(t => t.targetDate > t0 && t.targetDate <= t7)],
+      ["Más adelante", open.filter(t => t.targetDate > t7)],
+      ["Sin fecha límite", open.filter(t => !t.targetDate)],
+      ["Terminadas o canceladas", tasks.filter(t => !JarvisTasks.isActive(t))],
+    ];
+    list.innerHTML = groups.filter(([, g]) => g.length).map(([name, g]) => `<div class="tv-group"><div class="tv-head"><span>${name}</span><b>${g.length}</b></div><div class="tv-grid">${[...g].sort((a,b) => String(a.targetDate||"9").localeCompare(String(b.targetDate||"9"))).map(taskCard).join("")}</div></div>`).join("");
+  }
+  list.querySelectorAll("[data-open]").forEach(c => c.addEventListener("click", () => openTaskDetail(c.dataset.open)));
+}
+function exportCsv(){
+  const cols = [["Tarea","taskName"],["Proyecto","project"],["Área","area"],["Prioridad","priority"],["Estado","status"],["Responsable","collaborators"],["Fecha límite","targetDate"],["Terminada","completedOn"]];
+  const cell = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const csv = [cols.map(c => cell(c[0])).join(","), ...lastShown.map(t => cols.map(c => cell(t[c[1]])).join(","))].join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type:"text/csv;charset=utf-8" })); a.download = "tareas-jarvis.csv"; a.click();
+}
+function toggleMoreMenu(e){
+  e.stopPropagation();
+  let m = document.getElementById("more-menu");
+  if(m){ m.remove(); return; }
+  m = document.createElement("div"); m.id = "more-menu"; m.className = "tv-menu";
+  m.innerHTML = `<button data-act="csv">⇩ Exportar tareas visibles (CSV)</button><button data-act="refresh">↻ Actualizar desde Notion</button><button data-act="clear">× Limpiar filtros y búsqueda</button>`;
+  const r = e.currentTarget.getBoundingClientRect(); m.style.top = (r.bottom + scrollY + 4) + "px"; m.style.left = Math.max(8, r.right + scrollX - 250) + "px";
+  document.body.appendChild(m);
+  m.addEventListener("click", ev => { const act = ev.target.dataset.act; m.remove();
+    if(act === "csv") exportCsv();
+    if(act === "refresh") loadData();
+    if(act === "clear"){ document.getElementById("top-search").value = ""; document.getElementById("clear-filters")?.click(); applyFilters(); } });
+}
+document.addEventListener("click", e => { const m = document.getElementById("more-menu"); if(m && !m.contains(e.target)) m.remove(); });
+document.querySelectorAll("#view-tabs [data-view]").forEach(b => b.addEventListener("click", () => setTaskView(b.dataset.view)));
+document.getElementById("more-btn").addEventListener("click", toggleMoreMenu);
+document.getElementById("top-search").addEventListener("input", () => applyFilters());
+document.querySelectorAll("#view-tabs [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === taskView));
+
 function renderTaskList(tasks){
+  lastShown = tasks;
   const list = document.getElementById("task-list");
   document.getElementById("task-total-badge").textContent = `(${tasks.length})`;
+  document.querySelector(".table-head")?.classList.toggle("tv-hidden", taskView !== "table");
+  if(tasks.length && taskView !== "table") return renderAltView(list, tasks);
   if(!tasks.length){ list.innerHTML = `<div class="empty-state">No hay tareas que coincidan con estos filtros.</div>`; return; }
   list.innerHTML = "";
   tasks.forEach(t => {
@@ -636,7 +710,7 @@ let pendingCoverData = null;
 function openCoverEditor(){const b=document.getElementById('cover-editor-backdrop');document.getElementById('cover-title-input').value=document.querySelector('.workspace-banner-title').textContent;document.getElementById('cover-editor-preview').style.backgroundImage=document.querySelector('.workspace-banner').style.backgroundImage;b.style.display='flex'}
 function closeCoverEditor(){document.getElementById('cover-editor-backdrop').style.display='none';pendingCoverData=null;document.getElementById('cover-file-input').value=''}
 document.getElementById('edit-cover-btn').addEventListener('click',openCoverEditor);document.getElementById('close-cover-editor').addEventListener('click',closeCoverEditor);document.getElementById('cancel-cover-editor').addEventListener('click',closeCoverEditor);document.getElementById('cover-file-input').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;if(f.size>3*1024*1024){alert('La portada debe pesar menos de 3MB.');e.target.value='';return}const r=new FileReader();r.onload=()=>{pendingCoverData={dataBase64:r.result,filename:f.name,contentType:f.type};document.getElementById('cover-editor-preview').style.backgroundImage=`url(${r.result})`};r.readAsDataURL(f)});
-document.getElementById('save-cover-editor').addEventListener('click',async()=>{if(!workspaceBranding){alert('Workspace branding is not available yet.');return}const btn=document.getElementById('save-cover-editor');btn.textContent='Saving…';try{const body={workspaceId:workspaceBranding.id,name:document.getElementById('cover-title-input').value};if(pendingCoverData)Object.assign(body,{coverDataBase64:pendingCoverData.dataBase64,coverFilename:pendingCoverData.filename,coverContentType:pendingCoverData.contentType});const r=await fetch('/api/workspaces-data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok||d.error)throw Error(d.error||'Save failed');document.querySelector('.workspace-banner-title').textContent=body.name; if(pendingCoverData){document.querySelector('.workspace-banner').style.backgroundImage=`url(${pendingCoverData.dataBase64})`;};closeCoverEditor()}catch(e){alert('Could not save branding: '+e.message)}finally{btn.textContent='Save changes'}});
+document.getElementById('save-cover-editor').addEventListener('click',async()=>{if(!workspaceBranding){alert('No se encontró este espacio en Workspaces de Notion.');return}const btn=document.getElementById('save-cover-editor');btn.textContent='Guardando…';try{const body={workspaceId:workspaceBranding.id,name:document.getElementById('cover-title-input').value};if(pendingCoverData)Object.assign(body,{coverDataBase64:pendingCoverData.dataBase64,coverFilename:pendingCoverData.filename,coverContentType:pendingCoverData.contentType});const r=await fetch('/api/workspaces-data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok||d.error)throw Error(d.error||'No se pudo guardar');document.querySelector('.workspace-banner-title').textContent=body.name; if(pendingCoverData){document.querySelector('.workspace-banner').style.backgroundImage=`url(${pendingCoverData.dataBase64})`;};closeCoverEditor()}catch(e){alert('No se pudo guardar la portada: '+e.message)}finally{btn.textContent='Guardar cambios'}});
 async function loadData(){
   const syncNote = document.getElementById("sync-note");
   try{

@@ -14,6 +14,7 @@
 // POST /api/task-api  body: { action: "create"|"update-status"|"update-full"|"update-area"|"comment", ... }
 
 const { createPage, updatePage, queryDatabase, getTitle, richText, todayISO, fitToSchema, personText } = require("./_notion");
+const TIMEZONE = process.env.JARVIS_TIMEZONE || "America/Mexico_City";
 const calendarItems = require("./_calendar");
 
 const NOTION_VERSION = "2025-09-03";
@@ -187,7 +188,7 @@ async function handleUpdateArea(req, res) {
 // General Calendar — merges Master Actions (deadlines + completions, which
 // already carry a real Project) with the Meetings database. One combined,
 // filterable event list instead of separate disconnected calendars.
-async function handleCalendar(req, res) {
+async function calendarEvents() {
   const DB_MEETINGS_DATA_SOURCE = process.env.NOTION_DB_MEETINGS || "ad03f382-6e63-4e86-b905-32772e16600c";
   const [actionPages, meetingPages] = await Promise.all([
     queryDatabase(DB_ACTIONS, {}),
@@ -226,7 +227,43 @@ async function handleCalendar(req, res) {
     .forEach((it) => events.push({ ...it, type: it.kind, status: it.kind === "reminder" ? (it.done ? "Hecho" : "Pendiente") : null, person: null }));
 
   const projects = [...new Set(events.map(e => e.project).filter(Boolean))].sort();
-  res.status(200).json({ events, projects });
+  return { events, projects };
+}
+async function handleCalendar(req, res) {
+  res.status(200).json(await calendarEvents());
+}
+
+// iCalendar feed of the whole Jarvis calendar (optionally one project), so
+// Google Calendar can subscribe to it with "Otros calendarios → Desde URL".
+async function handleIcs(req, res) {
+  const { events } = await calendarEvents();
+  const project = req.query?.project;
+  const clean = (v) => String(v || "").replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/([,;])/g, "\\$1");
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+  const nextDay = (d) => { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() + 1); return x.toISOString().slice(0, 10).replace(/-/g, ""); };
+  const label = { deadline: "Tarea", completado: "Terminada", meeting: "Reunión", event: "Evento", appointment: "Cita", reminder: "Recordatorio", note: "Nota" };
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Jarvis//Calendario//ES", "CALSCALE:GREGORIAN", `X-WR-CALNAME:${clean(project ? "Jarvis · " + project : "Jarvis")}`, `X-WR-TIMEZONE:${TIMEZONE}`];
+  events.filter((e) => e.date && (!project || e.project === project || (e.type === "meeting" && !e.project))).forEach((e) => {
+    const day = e.date.replace(/-/g, "");
+    lines.push("BEGIN:VEVENT", `UID:${e.id}-${e.type}@jarvis`, `DTSTAMP:${stamp}`);
+    if (e.time) {
+      lines.push(`DTSTART;TZID=${TIMEZONE}:${day}T${e.time.replace(":", "")}00`);
+      const end = e.endTime || `${String(Math.min(23, Number(e.time.slice(0, 2)) + 1)).padStart(2, "0")}:${e.time.slice(3, 5)}`;
+      lines.push(`DTEND;TZID=${TIMEZONE}:${day}T${end.replace(":", "")}00`);
+    } else {
+      lines.push(`DTSTART;VALUE=DATE:${day}`, `DTEND;VALUE=DATE:${nextDay(e.date)}`);
+    }
+    lines.push(`SUMMARY:${clean(`${label[e.type] || ""}: ${e.title || "(sin título)"}`)}`);
+    const desc = [e.project, e.status, e.notes].filter(Boolean).join(" · ");
+    if (desc) lines.push(`DESCRIPTION:${clean(desc)}`);
+    if (e.place) lines.push(`LOCATION:${clean(e.place)}`);
+    if (e.url) lines.push(`URL:${e.url}`);
+    lines.push("END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+  res.setHeader("Content-Disposition", 'inline; filename="jarvis.ics"');
+  res.status(200).send(lines.map((l) => l.length > 74 ? l.match(/.{1,73}/gu).join("\r\n ") : l).join("\r\n"));
 }
 
 const DB_MEETINGS_DATA_SOURCE = process.env.NOTION_DB_MEETINGS || "ad03f382-6e63-4e86-b905-32772e16600c";
@@ -503,6 +540,13 @@ module.exports = async (req, res) => {
   try {
     if (req.method === "GET" && req.query?.action === "detail") return await handleDetail(req, res);
     if (req.method === "GET" && req.query?.action === "calendar") return await handleCalendar(req, res);
+    if (req.method === "GET" && req.query?.action === "ics") return await handleIcs(req, res);
+    // Just the Jarvis calendar items (events, reminders, notes), optionally for one project.
+    if (req.method === "GET" && req.query?.action === "calendar-items") {
+      const project = req.query.project;
+      const items = (await calendarItems.listItems()).filter((it) => !project || it.project === project);
+      return res.status(200).json({ items });
+    }
     if (req.method === "GET" && req.query?.action === "decisions") return await handleDecisionsList(req, res);
     if (req.method === "GET" && req.query?.action === "meetings") return await handleMeetingsList(req, res);
     if (req.method === "POST") {

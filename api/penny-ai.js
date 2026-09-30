@@ -31,6 +31,9 @@ function compactContext(context = {}) {
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store, max-age=0");
+  // GET tells the pages whether Penny can answer, so they hide Penny's
+  // buttons instead of showing ones that can't work yet.
+  if (req.method === "GET") { res.status(200).json({ configured: !!providerConfig() }); return; }
   if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
   const { message, history = [], context = {} } = req.body || {};
   if (!message || !String(message).trim()) { res.status(400).json({ error: "message is required" }); return; }
