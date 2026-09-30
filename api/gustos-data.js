@@ -7,7 +7,27 @@
 // Hobby plan caps deployments at 12, and this project is already at that
 // limit after today's earlier fix.
 
-const { queryDatabase, getTitle, getRichText, getSelect, getNumber } = require("./_notion");
+const { queryDatabase, getTitle, getRichText, getSelect, getNumber, getFileUrl } = require("./_notion");
+const topicSettings = require("./_topics");
+
+const DB_WORKSPACES = process.env.NOTION_DB_WORKSPACES || "0c06b31c-8503-4cf6-85cb-65884d7e7a26";
+const IMAGE = /\.(png|jpe?g|gif|webp|avif)(\?|$)/i;
+
+// The Mis Gustos row in Workspaces: the page title, description, cover and
+// icon shown in the hero (edited from the page itself).
+async function pageSettings() {
+  const rows = await queryDatabase(DB_WORKSPACES, { filter: { property: "Name", title: { contains: "Mis Gustos" } } }).catch(() => []);
+  const p = rows[0];
+  if (!p) return null;
+  const props = p.properties;
+  return {
+    workspaceId: p.id,
+    title: getRichText(props, "Display Name") || getTitle(props, "Name"),
+    description: getRichText(props, "Description"),
+    coverUrl: getFileUrl(props, "Cover Image") || props["Cover URL"]?.url || props["Cover"]?.url || null,
+    iconUrl: getFileUrl(props, "Icon Image"),
+  };
+}
 
 const DB_REFERENCIAS = process.env.NOTION_DB_REFERENCIAS || "7456b43c-50ef-4e15-bea4-ab2f824add71";
 
@@ -49,7 +69,7 @@ async function handleReferenceDetail(req, res) {
     temas: getMultiSelect(props, "Tema"), tags: getMultiSelect(props, "Tags"),
     enlace: getUrl(props, "Enlace"), estado: getSelect(props, "Estado"),
     porQueMeInteresa: getRichText(props, "Por qué me interesa"),
-    importancia: getNumber(props, "Importancia"), comments,
+    importancia: getNumber(props, "Importancia"), comments, createdTime: page.created_time,
     attachments: (props["Attachments"]?.files || []).map((f) => ({
       name: f.name, url: f.type === "file" ? f.file?.url : f.external?.url,
     })),
@@ -60,9 +80,11 @@ module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store, max-age=0");
   try {
     if (req.method === "GET" && req.query?.action === "detail") return await handleReferenceDetail(req, res);
-    const pages = await queryDatabase(DB_REFERENCIAS, {
-      sorts: [{ property: "Referencia", direction: "ascending" }],
-    });
+    const [pages, rows, page] = await Promise.all([
+      queryDatabase(DB_REFERENCIAS, { sorts: [{ property: "Referencia", direction: "ascending" }] }),
+      topicSettings.listTopicRows().catch((err) => { console.error("Topic settings unavailable:", err.message); return []; }),
+      pageSettings(),
+    ]);
 
     const referencias = pages.map((p) => ({
       id: p.id,
@@ -78,6 +100,9 @@ module.exports = async (req, res) => {
       porQueMeInteresa: getRichText(p.properties, "Por qué me interesa"),
       importancia: getNumber(p.properties, "Importancia"),
       createdTime: p.created_time,
+      files: (p.properties["Attachments"]?.files || []).length,
+      // First attached image, used as the card thumbnail.
+      imageUrl: (p.properties["Attachments"]?.files || []).map((f) => ({ name: f.name, url: f.file?.url || f.external?.url })).find((f) => IMAGE.test(f.name || "") || IMAGE.test(f.url || ""))?.url || null,
     }));
 
     // Real topic counts from actual references...
@@ -100,7 +125,11 @@ module.exports = async (req, res) => {
         topicNames = [...new Set([...schemaTopics, ...topicNames])];
       }
     } catch (e) { /* falls back to reference-derived topics only */ }
-    const topics = topicNames.map((name) => ({ name, count: temaCounts[name] || 0 })).sort((a, b) => b.count - a.count);
+    const rowFor = (name) => rows.find((r) => r.name.toLowerCase() === name.toLowerCase()) || {};
+    const topics = topicNames.map((name) => {
+      const r = rowFor(name);
+      return { name, count: temaCounts[name] || 0, description: r.description || "", coverUrl: r.coverUrl || null, iconUrl: r.iconUrl || null, columns: r.columns || [], order: r.order ?? null };
+    }).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "es"));
 
     // Recent references — real, sorted by actual creation time
     const recent = [...referencias].sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime)).slice(0, 8);
@@ -126,6 +155,7 @@ module.exports = async (req, res) => {
     res.status(200).json({
       source: "notion-live",
       fetchedAt: new Date().toISOString(),
+      page,
       referencias,
       topics,
       recent,
@@ -137,6 +167,6 @@ module.exports = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(err.status || 500).json({ error: err.message });
   }
 };
