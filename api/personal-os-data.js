@@ -13,7 +13,7 @@ const DB_HABITS = process.env.NOTION_DB_HABITS_TRACKER || "d6385a58-5315-47a7-a7
 const DB_HABIT_LOG = process.env.NOTION_DB_HABIT_LOG || "d6ab476f-5034-4f79-b8a4-b9b202f9df1d";
 const DB_ACTIONS = process.env.NOTION_DB_ACTIONS || "de671725-0aef-44f7-9ec4-a577b1c7e254";
 
-const { queryDatabase, todayISO } = require("./_notion");
+const { queryDatabase, todayISO, getFileUrl } = require("./_notion");
 
 // Paginated: Notion returns at most 100 rows per request, and the habit
 // log passes that within a few weeks — without paging, streaks and the
@@ -41,15 +41,23 @@ module.exports = async (req, res) => {
   }
   try {
     const [habitsRes, logRes, tasksRes] = await Promise.all([
-      notionQuery(DB_HABITS, { filter: { property: "Status", select: { equals: "Active" } } }),
+      notionQuery(DB_HABITS, {}), // active and archived (Stopped) — archived ones can be restored
       notionQuery(DB_HABIT_LOG, {}),
       notionQuery(DB_ACTIONS, { filter: { property: "Project", select: { equals: "Personal" } } }),
     ]);
 
     const today = todayISO();
-    const habits = (habitsRes.results || []).map(p => ({
+    const allHabitPages = habitsRes.results || [];
+    const archivedHabits = allHabitPages
+      .filter(p => select(p.properties["Status"]) === "Stopped")
+      .map(p => ({ id: p.id, name: text(p.properties["Habit"]), category: select(p.properties["Category"]) }));
+    const habits = allHabitPages.filter(p => select(p.properties["Status"]) !== "Stopped").map(p => ({
       id: p.id,
       name: text(p.properties["Habit"]),
+      category: select(p.properties["Category"]),
+      frequency: select(p.properties["Frequency"]),
+      goal: text(p.properties["Goal"]),
+      imageUrl: getFileUrl(p.properties, "Image"),
       // "Done Today?" is never reset at midnight, so it only counts when
       // it was ticked today; the habit log (checked below) is the main source.
       doneToday: checkbox(p.properties["Done Today?"]) && p.properties["Last Completed Date"]?.date?.start === today,
@@ -90,6 +98,7 @@ module.exports = async (req, res) => {
       source: "notion-live",
       fetchedAt: new Date().toISOString(),
       habits,
+      archivedHabits,
       pendingTasks,
       completedTasks,
       stats: {

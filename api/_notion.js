@@ -181,6 +181,45 @@ async function fitToSchema(dataSourceId, properties, person) {
   return { properties: fitted, skipped };
 }
 
+/**
+ * Make sure a data source has the given properties, adding only the missing
+ * ones (never renaming or removing). `wanted` is { name: schemaConfig }, e.g.
+ * { Category: { select: {} }, Image: { files: {} } }.
+ */
+async function ensureProperties(dataSourceId, wanted) {
+  const schema = await dataSourceSchema(dataSourceId);
+  const missing = Object.fromEntries(Object.entries(wanted).filter(([name]) => !schema[name]));
+  if (!Object.keys(missing).length) return schema;
+  const res = await fetch(`${BASE_URL}/data_sources/${dataSourceId}`, { method: "PATCH", headers: headers(), body: JSON.stringify({ properties: missing }) });
+  if (!res.ok) throw new Error(`Notion field creation failed (${res.status}): ${await res.text()}`);
+  delete schemaCache[dataSourceId];
+  return dataSourceSchema(dataSourceId);
+}
+
+/**
+ * Upload a file (base64, optionally as a data: URL) to Notion and return the
+ * value for a Files property: [{ type: "file_upload", file_upload: { id }, name }].
+ * Vercel caps request bodies at ~4.5 MB, so pages keep files under 3 MB.
+ */
+async function uploadFile(filename, contentType, dataBase64, maxBytes = 3 * 1024 * 1024) {
+  const buffer = Buffer.from(String(dataBase64).replace(/^data:[^;]+;base64,/, ""), "base64");
+  if (buffer.length > maxBytes) throw new Error(`El archivo debe pesar menos de ${Math.round(maxBytes / 1024 / 1024)} MB.`);
+  const slot = await fetch(`${BASE_URL}/file_uploads`, { method: "POST", headers: headers(), body: JSON.stringify({}) });
+  if (!slot.ok) throw new Error(`Upload slot failed (${slot.status}): ${await slot.text()}`);
+  const upload = await slot.json();
+  const form = new FormData();
+  form.append("file", new Blob([buffer], { type: contentType || "application/octet-stream" }), filename || "archivo");
+  const sent = await fetch(upload.upload_url, { method: "POST", headers: { Authorization: headers().Authorization, "Notion-Version": headers()["Notion-Version"] }, body: form });
+  if (!sent.ok) throw new Error(`Upload failed (${sent.status}): ${await sent.text()}`);
+  return [{ type: "file_upload", file_upload: { id: upload.id }, name: filename || "archivo" }];
+}
+
+// First file URL of a Files property (uploaded or external).
+function getFileUrl(props, key) {
+  const f = props?.[key]?.files?.[0];
+  return f ? (f.file?.url || f.external?.url || null) : null;
+}
+
 /* ---------- Small helpers for reading common Notion property shapes ---------- */
 
 function getTitle(props, key) {
@@ -217,6 +256,9 @@ module.exports = {
   completedOn,
   createdOn,
   fitToSchema,
+  ensureProperties,
+  uploadFile,
+  getFileUrl,
   personText,
   getTitle,
   getRichText,
