@@ -50,11 +50,11 @@ module.exports = async (req, res) => {
     const allHabitPages = habitsRes.results || [];
     const archivedHabits = allHabitPages
       .filter(p => select(p.properties["Status"]) === "Stopped")
-      .map(p => ({ id: p.id, name: text(p.properties["Habit"]), category: select(p.properties["Category"]) }));
+      .map(p => ({ id: p.id, name: text(p.properties["Habit"]), category: select(p.properties["Area"]) }));
     const habits = allHabitPages.filter(p => select(p.properties["Status"]) !== "Stopped").map(p => ({
       id: p.id,
       name: text(p.properties["Habit"]),
-      category: select(p.properties["Category"]),
+      category: select(p.properties["Area"]),
       frequency: select(p.properties["Frequency"]),
       goal: text(p.properties["Goal"]),
       imageUrl: getFileUrl(p.properties, "Image"),

@@ -53,9 +53,10 @@ async function handleToggle(req, res) {
   res.status(200).json({ ok: true });
 }
 
-// Habit fields shown in Personal OS. Category, Goal and Image are added to
-// the Habits database the first time they are needed (never removed).
-const HABIT_FIELDS = { Frequency: { select: {} }, Category: { select: {} }, Goal: { rich_text: {} }, Image: { files: {} } };
+// Habit fields shown in Personal OS. The category is the Habits database's
+// own "Area" select; Goal and Image are added the first time they are needed
+// (never removed).
+const HABIT_FIELDS = { Frequency: { select: {} }, Area: { select: {} }, Goal: { rich_text: {} }, Image: { files: {} } };
 
 async function habitProperties(b) {
   const props = {};
@@ -64,7 +65,7 @@ async function habitProperties(b) {
     props.Habit = { title: [{ text: { content: String(b.name).trim() } }] };
   }
   if (b.frequency !== undefined) props.Frequency = b.frequency ? { select: { name: b.frequency } } : { select: null };
-  if (b.category !== undefined) props.Category = b.category ? { select: { name: String(b.category).trim() } } : { select: null };
+  if (b.category !== undefined) props.Area = b.category ? { select: { name: String(b.category).trim() } } : { select: null };
   if (b.goal !== undefined) props.Goal = richText(b.goal || "");
   if (b.imageDataBase64) props.Image = await uploadFile(b.imageFilename || "habito.jpg", b.imageContentType || "image/jpeg", b.imageDataBase64);
   else if (b.removeImage) props.Image = { files: [] };

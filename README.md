@@ -102,7 +102,8 @@ Jarvis creates two databases by itself the first time they are needed
 - **Jarvis · Temas** (inside the Workspaces row "Mis Gustos & Conocimiento"):
   cover, icon, description and board columns of each Mis Gustos topic. The
   topic itself is still a `Tema` option on Referencias.
-- Habits get `Frequency`, `Category`, `Goal` and `Image` added on first use.
+- Habits: the category is the existing `Area` field; `Goal` and `Image` are
+  added on first use.
 
 Page covers (Mis Gustos, Decision Log, …) are saved on the page's row in
 Workspaces.
