@@ -14,7 +14,7 @@ middleware.js              → optional login gate, off unless enabled (see "Acc
     ong-command-center.html  → One Night Guest board + Penny AI chat
     project-command-center.html → same board for any project (?project=RoutePup, StatStrike, Nikita…)
     tareas-proyectos.html    → every task across all projects, with filters
-    personal-os.html         → habits, personal tasks, notes, Spotify link
+    personal-os.html         → habits, personal tasks, agenda, notes, stats (tabs)
     mis-gustos-aprendizajes.html → references and topics ("Referencias" database)
     aristoteles.html         → self-knowledge documents, grouped by section
     meetings.html, decision-log.html, general-calendar.html, ong-calendar.html

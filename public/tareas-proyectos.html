@@ -137,6 +137,11 @@
   @media(max-width:900px){.shell{padding:22px 18px 40px}.stat-row{grid-template-columns:repeat(3,1fr)}}
 
 .tv-hidden{display:none!important}
+.tv-pager{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 4px 4px}
+.tv-pages{display:flex;gap:6px;align-items:center}
+.tv-pages button,#per-page{background:#0c1a28;border:1px solid var(--border-soft);color:var(--text);border-radius:8px;min-width:34px;height:32px;padding:0 10px;cursor:pointer;font-size:12px}
+.tv-pages button.on{background:#0b4266;border-color:#3ea9e5;color:#84d4ff}
+.tv-pages button:disabled{opacity:.35;cursor:default}
 .tv-board{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;align-items:flex-start}
 .tv-col{background:var(--panel);border:1px solid var(--border-soft);border-radius:11px;padding:10px;min-width:250px;width:250px;flex-shrink:0;max-height:70vh;overflow-y:auto}
 .tv-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:12px;margin:0 0 8px}
@@ -207,7 +212,7 @@
     </div>
 
     <div class="tasks-toolbar"><div><h3>Tasks <span class="task-total-badge" id="task-total-badge"></span></h3><small>Showing live tasks from Notion across all projects.</small></div><div class="view-tabs" id="view-tabs"><button data-view="table" class="active">▤ Tabla</button><button data-view="board">▦ Tablero</button><button data-view="timeline">⌁ Cronología</button><button id="more-btn" title="Más acciones">•••</button></div><span id="result-count"></span></div><div class="table-head"><span></span><span>Task</span><span>Project</span><span>P-Level</span><span>Priority</span><span>Status</span><span>Responsible</span><span>Due Date</span></div>
-    <div class="task-list" id="task-list"></div>
+    <div class="task-list" id="task-list"></div><div class="tv-pager" id="task-pager"></div>
     <span id="sync-note"></span>
   </div>
   <div id="cover-editor-backdrop" class="cover-editor-backdrop" style="display:none"><div class="cover-editor"><div class="cover-editor-head"><div><h2>Editar Tareas &amp; Proyectos</h2><p>Cambia el título o sube una nueva imagen de portada.</p></div><button class="modal-close" id="close-cover-editor">×</button></div><label>Título<input id="cover-title-input" maxlength="80"></label><label>Imagen de portada<input id="cover-file-input" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="cover-editor-preview" id="cover-editor-preview"></div><div class="cover-editor-actions"><button class="cancel-btn" id="cancel-cover-editor">Cancelar</button><button class="save-btn" id="save-cover-editor">Guardar cambios</button></div></div></div>
@@ -334,7 +339,7 @@ function renderProjectFilters(){
   });
 }
 
-function applyFilters(){
+function applyFilters(keepPage){
   const priority = document.getElementById("priority-filter").value;
   const pLevel = document.getElementById("priority-level-filter").value;
   const areaFilter = document.getElementById("area-filter").value;
@@ -366,6 +371,7 @@ function applyFilters(){
 
   document.getElementById("result-count").textContent =
     `${filtered.length} de ${allTasks.length} tareas`;
+  if(!keepPage) taskPage = 1;
   renderTaskList(filtered);
 }
 
@@ -450,10 +456,26 @@ document.getElementById("more-btn").addEventListener("click", toggleMoreMenu);
 document.getElementById("top-search").addEventListener("input", () => applyFilters());
 document.querySelectorAll("#view-tabs [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === taskView));
 
-function renderTaskList(tasks){
-  lastShown = tasks;
+// The table shows one page at a time (Aurelio's list has 370+ tasks).
+let taskPage = 1, perPage = (() => { try{ return Number(localStorage.getItem("jarvis-tareas-per-page")) || 50; }catch(e){ return 50; } })();
+function renderPager(total){
+  const el = document.getElementById("task-pager"), pages = Math.max(1, Math.ceil(total / perPage));
+  if(taskView !== "table" || !total){ el.innerHTML = ""; return; }
+  taskPage = Math.min(taskPage, pages);
+  const from = (taskPage - 1) * perPage + 1, to = Math.min(total, taskPage * perPage);
+  const nums = [...new Set([1, taskPage - 1, taskPage, taskPage + 1, pages].filter(n => n >= 1 && n <= pages))].sort((a,b) => a - b);
+  let btns = "", prev = 0;
+  nums.forEach(n => { if(n - prev > 1) btns += '<span class="tv-sub">…</span>'; btns += `<button data-page="${n}" class="${n===taskPage?"on":""}">${n}</button>`; prev = n; });
+  el.innerHTML = `<span class="tv-sub">Mostrando ${from}–${to} de ${total} tareas</span><div class="tv-pages"><button data-page="${taskPage-1}" ${taskPage===1?"disabled":""} aria-label="Anterior">‹</button>${btns}<button data-page="${taskPage+1}" ${taskPage===pages?"disabled":""} aria-label="Siguiente">›</button></div><select id="per-page">${[25,50,100,200].map(n => `<option value="${n}" ${n===perPage?"selected":""}>${n} por página</option>`).join("")}</select>`;
+  el.querySelectorAll("[data-page]").forEach(b => b.addEventListener("click", () => { taskPage = Number(b.dataset.page); renderTaskList(lastShown); document.querySelector(".tasks-toolbar")?.scrollIntoView({ behavior:"smooth", block:"start" }); }));
+  el.querySelector("#per-page").addEventListener("change", e => { perPage = Number(e.target.value); try{ localStorage.setItem("jarvis-tareas-per-page", perPage); }catch(err){} taskPage = 1; renderTaskList(lastShown); });
+}
+function renderTaskList(allTasks){
+  lastShown = allTasks;
+  renderPager(allTasks.length);
+  const tasks = taskView === "table" ? allTasks.slice((taskPage - 1) * perPage, taskPage * perPage) : allTasks;
   const list = document.getElementById("task-list");
-  document.getElementById("task-total-badge").textContent = `(${tasks.length})`;
+  document.getElementById("task-total-badge").textContent = `(${allTasks.length})`;
   document.querySelector(".table-head")?.classList.toggle("tv-hidden", taskView !== "table");
   if(tasks.length && taskView !== "table") return renderAltView(list, tasks);
   if(!tasks.length){ list.innerHTML = `<div class="empty-state">No hay tareas que coincidan con estos filtros.</div>`; return; }
@@ -472,7 +494,7 @@ function renderTaskList(tasks){
       <div class="task-date">${esc(t.targetDate || "—")}</div>`;
     row.querySelector(".task-main").addEventListener("click", () => openTaskDetail(t.id));
     const sel=row.querySelector(".status-select"); sel.addEventListener("click",e=>e.stopPropagation());
-    sel.addEventListener("change", async()=>{ const old=sel.className; try{const res=await fetch("/api/task-api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"update-status",pageId:t.id,status:sel.value})});if(!res.ok)throw Error("Update failed");t.status=sel.value;sel.className="status-select "+statusClass(t.status);applyFilters()}catch(e){sel.className=old;alert("No se pudo actualizar en Notion: "+e.message)}});
+    sel.addEventListener("change", async()=>{ const old=sel.className; try{const res=await fetch("/api/task-api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"update-status",pageId:t.id,status:sel.value})});if(!res.ok)throw Error("Update failed");t.status=sel.value;sel.className="status-select "+statusClass(t.status);applyFilters(true)}catch(e){sel.className=old;alert("No se pudo actualizar en Notion: "+e.message)}});
     list.appendChild(row);
   });
 }
@@ -646,11 +668,11 @@ document.querySelectorAll('[data-status]').forEach(chip => {
     applyFilters();
   });
 });
-document.getElementById("priority-filter").addEventListener("change", applyFilters);
-document.getElementById("priority-level-filter").addEventListener("change", applyFilters);
-document.getElementById("area-filter").addEventListener("change", applyFilters);
-document.getElementById("person-filter").addEventListener("change", applyFilters);
-document.getElementById("date-range-filter").addEventListener("change", applyFilters);document.getElementById("clear-filters").addEventListener("click",()=>{activeProject="all";activeStatus="active";["date-range-filter","priority-filter","priority-level-filter","area-filter","person-filter"].forEach(id=>document.getElementById(id).value="all");applyFilters()});
+document.getElementById("priority-filter").addEventListener("change", () => applyFilters());
+document.getElementById("priority-level-filter").addEventListener("change", () => applyFilters());
+document.getElementById("area-filter").addEventListener("change", () => applyFilters());
+document.getElementById("person-filter").addEventListener("change", () => applyFilters());
+document.getElementById("date-range-filter").addEventListener("change", () => applyFilters());document.getElementById("clear-filters").addEventListener("click",()=>{activeProject="all";activeStatus="active";["date-range-filter","priority-filter","priority-level-filter","area-filter","person-filter"].forEach(id=>document.getElementById(id).value="all");applyFilters()});
 
 // ---- Quick add ----
 const projectSelect = document.getElementById("new-task-project");
