@@ -16,12 +16,13 @@ middleware.js              → optional login gate, off unless enabled (see "Acc
     tareas-proyectos.html    → every task across all projects, with filters
     personal-os.html         → habits, personal tasks, agenda, notes, stats (tabs)
     mis-gustos-aprendizajes.html → references and topics ("Referencias" database)
-    aristoteles.html         → self-knowledge documents, grouped by section
+    aristoteles.html         → self-knowledge documents by section: tabs, explore, connections, stats, notes, quotes
     meetings.html, decision-log.html, general-calendar.html, ong-calendar.html
     sistemas-ajustes.html    → Notion connection health + workspace branding
     new-project.html         → creates a new project with its standard areas
     coming-soon.html         → placeholder for workspaces not built yet
     sidebar.js               → shared sidebar, built from the Workspaces database
+    ws-icons.js              → workspace line icons (Home + sidebar), used when no logo is uploaded
     toast.js                 → shared "Guardando… / Guardado / error" messages
 /api                       → serverless functions (run on Vercel, hold the Notion token)
     _notion.js               → shared helpers: paginated queries, create/update, richText, todayISO
@@ -33,6 +34,7 @@ middleware.js              → optional login gate, off unless enabled (see "Acc
     habit-api.js             → habit toggle / create / stop
     gustos-data.js           → Referencias read (+ single reference detail)
     capture.js               → Referencias writes, topics, Aristóteles docs/sections
+    _topics.js / _sections.js → Mis Gustos topics / Aristóteles sections and documents
     scaffold-project.js      → new project + its areas + Workspaces card
     system-health.js         → pings every database for the Settings page
     penny-ai.js              → Penny AI chat (server-side AI provider key)
@@ -93,8 +95,8 @@ audit of the live workspace; keep them if you restructure Notion:
   `Recurrence`, `Topics` (text), `Rating` (number), `Attachments` (files),
   `End Date` (date).
 
-Jarvis creates two databases by itself the first time they are needed
-(set `NOTION_DB_CALENDAR` / `NOTION_DB_TEMAS` to use existing ones):
+Jarvis creates three databases by itself the first time they are needed
+(set `NOTION_DB_CALENDAR` / `NOTION_DB_TEMAS` / `NOTION_DB_SECCIONES` to use existing ones):
 
 - **Jarvis · Calendario** (inside the Workspaces row "Calendario"): events,
   appointments, reminders and notes from the calendar. Decision Log quick
@@ -102,6 +104,11 @@ Jarvis creates two databases by itself the first time they are needed
 - **Jarvis · Temas** (inside the Workspaces row "Mis Gustos & Conocimiento"):
   cover, icon, description and board columns of each Mis Gustos topic. The
   topic itself is still a `Tema` option on Referencias.
+- **Jarvis · Secciones** (inside the Workspaces row "Aristóteles"): description,
+  icon, cover and order of each Aristóteles section. Created on the first
+  section edit with Aurelio's 15 sections; the section itself is still a
+  `Sección` option on "Aristóteles — Documentos". Deleting a section never
+  deletes documents — they are moved to the section chosen in the dialog.
 - Habits: the category is the existing `Area` field; `Goal` and `Image` are
   added on first use.
 

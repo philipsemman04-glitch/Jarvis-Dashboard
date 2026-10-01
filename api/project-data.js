@@ -19,6 +19,7 @@
 // clicked.
 
 const { richText, fitToSchema, personText, completedOn, createdOn, todayISO } = require("./_notion");
+const sectionsLib = require("./_sections");
 
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -29,27 +30,6 @@ const DB_PROJECTS = process.env.NOTION_DB_PROJECTS || "1d136483-524c-4045-b466-1
 const DB_WORKSPACES = process.env.NOTION_DB_WORKSPACES || "0c06b31c-8503-4cf6-85cb-65884d7e7a26";
 const DB_ROUTEPUP_CARDS = process.env.NOTION_DB_ROUTEPUP_CARDS || "f9fc7996-b03d-4ed2-bb16-fa2d616d8e46";
 const DB_ARISTOTELES_DOCS = process.env.NOTION_DB_ARISTOTELES_DOCS || "650f515d-4540-4a67-9066-f04b0944e394";
-
-// Aug 16: order + short descriptions matching Aurelio's own written spec —
-// text only, no invented content. A section with no real documents still
-// shows here (0 documents), never hidden or faked as "in progress."
-const ARISTOTELES_SECTIONS = [
-  { name: "Mi Historia", icon: "📖", desc: "Mi pasado, infancia, familia, formación, carrera y experiencias clave." },
-  { name: "Quién Soy", icon: "👤", desc: "Quién soy hoy, mi esencia actual y mi identidad." },
-  { name: "Valores", icon: "💎", desc: "Principios y valores que guían mis decisiones." },
-  { name: "Personalidad", icon: "🎭", desc: "Rasgos, comportamiento, tendencias y características." },
-  { name: "Fortalezas", icon: "💪", desc: "Mis fortalezas naturales y desarrolladas." },
-  { name: "Debilidades", icon: "⚠️", desc: "Áreas que necesito mejorar o trabajar." },
-  { name: "Qué me da energía", icon: "⚡", desc: "Personas, actividades y situaciones que me impulsan y me hacen mejor." },
-  { name: "Qué me quita energía", icon: "🔋", desc: "Lo que me drena, me estresa o me desconecta." },
-  { name: "Cómo funciona mi mente", icon: "🧠", desc: "Mis patrones de pensamiento, decisión, trabajo y enfoque." },
-  { name: "Momentos de Inflexión", icon: "⭐", desc: "Eventos o decisiones que cambiaron el rumbo de mi vida." },
-  { name: "Objetivos", icon: "🎯", desc: "Objetivos personales y profesionales importantes." },
-  { name: "Visión a 10 años", icon: "👁️", desc: "Dónde quiero estar y qué quiero lograr en el largo plazo." },
-  { name: "Líneas de Investigación", icon: "🔍", desc: "Temas que quiero entender o investigar más a fondo." },
-  { name: "Registro de Cambios", icon: "🔄", desc: "Evolución personal, cambios de mentalidad y decisiones clave." },
-  { name: "Contexto Actual", icon: "📅", desc: "Qué está pasando en mi vida, qué me enfoco y qué cambia." },
-];
 
 const CARDS_DB_BY_PROJECT = { "RoutePup": DB_ROUTEPUP_CARDS };
 const ICON_BY_PROJECT = { "One Night Guest": "🏛️", "RoutePup": "🐾", "Nikita": "🤖", "StatStrike": "📊", "Transversal": "🔗" };
@@ -140,6 +120,7 @@ async function handleAristoteles(req, res) {
     name: text(p.properties["Documento"]),
     seccion: select(p.properties["Sección"]),
     estado: select(p.properties["Estado"]),
+    notas: text(p.properties["Notas"]),
     lastEditedTime: p.last_edited_time,
     createdTime: p.created_time,
   }));
@@ -147,19 +128,11 @@ async function handleAristoteles(req, res) {
   const docCountBySeccion = {};
   docs.forEach(d => { if (d.seccion) docCountBySeccion[d.seccion] = (docCountBySeccion[d.seccion] || 0) + 1; });
 
-  // The 15 standard sections first (Aurelio's own order and descriptions),
-  // then any section created later with "Nueva sección" — those only exist
-  // as options on the Notion "Sección" field (or on documents), so without
-  // this they were saved in Notion but never appeared on the page.
-  const knownNames = new Set(ARISTOTELES_SECTIONS.map(s => s.name));
-  const extraNames = [
-    ...(schemaRes?.properties?.["Sección"]?.select?.options || []).map(o => o.name),
-    ...docs.map(d => d.seccion).filter(Boolean),
-  ].filter((name, i, all) => !knownNames.has(name) && all.indexOf(name) === i);
-  const sections = [
-    ...ARISTOTELES_SECTIONS,
-    ...extraNames.map(name => ({ name, icon: "📁", desc: "" })),
-  ].map(s => ({
+  // Section list, order, descriptions and covers come from _sections.js
+  // (Aurelio's 15 sections until he edits them, plus any section that only
+  // exists as a Notion "Sección" option or on a document).
+  const optionNames = (schemaRes?.properties?.["Sección"]?.select?.options || []).map(o => o.name);
+  const sections = (await sectionsLib.listSections(docs.map(d => d.seccion), optionNames)).map(s => ({
     ...s,
     count: docCountBySeccion[s.name] || 0,
   }));

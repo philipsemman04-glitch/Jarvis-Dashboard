@@ -1,363 +1,777 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aristóteles — Jarvis</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aristóteles · Jarvis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#08090d; --panel:#12141d; --panel-alt:#1a1d29;
-    --border:rgba(201,169,97,0.18); --border-soft:rgba(255,255,255,0.09);
-    --gold:#d4af6a; --gold-bright:#f0cd8e; --gold-dim:rgba(212,175,106,0.16);
-    --text:#f8f6f0; --text-dim:#a8a496; --text-faint:#6f6c62;
-    --blue:#4f8fe8; --blue-dim:rgba(79,143,232,0.18);
-    --green:#3ecf8e; --green-dim:rgba(62,207,142,0.18);
-    --radius:14px; --serif:'Fraunces',serif; --sans:'Inter',sans-serif;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{
-    background: radial-gradient(ellipse 1400px 900px at 15% -10%, #181420 0%, transparent 55%),
-                radial-gradient(ellipse 1100px 800px at 100% 0%, #101a26 0%, transparent 50%), var(--bg);
-    color:var(--text); font-family:var(--sans); min-height:100vh; -webkit-font-smoothing:antialiased;
-  }
-  a{color:inherit; text-decoration:none;} button,select,input{font-family:inherit; cursor:pointer;}
-  ::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:var(--panel-alt); border-radius:8px;}
-
-  .main{ padding:22px 26px 60px; max-width:1400px; margin:0 auto;}
-  .page-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
-  .page-head h2{ font-family:var(--serif); font-size:22px; font-weight:600; display:flex; align-items:center; gap:8px;}
-  .page-head p{ font-size:12px; color:var(--text-dim); margin-top:3px;}
-  .head-actions{ display:flex; align-items:center; gap:8px;}
-  .head-btn{ background:var(--panel); border:1px solid var(--border-soft); color:var(--text); font-weight:600; font-size:12px;
-    padding:9px 14px; border-radius:8px; display:flex; align-items:center; gap:6px;}
-  .head-btn:hover{ border-color:var(--gold); }
-  .head-btn.primary{ background:linear-gradient(155deg,var(--gold-bright),var(--gold)); color:#181205; border:none;}.home-btn{border-color:rgba(99,198,255,.34);color:#d9efff;background:rgba(36,73,103,.24)}.home-btn:hover{border-color:#63c6ff;color:#fff}
-  .search-box{ background:var(--panel); border:1px solid var(--border-soft); border-radius:8px; padding:9px 14px; color:var(--text); font-size:12.5px; min-width:200px;}
-
-  .layout{ display:grid; grid-template-columns:1fr 320px; gap:16px; align-items:start;}
-  .panel{ background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px; box-shadow:0 8px 24px rgba(0,0,0,0.28);}
-  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
-  .panel-head h3{ font-size:13px; font-weight:600;}
-
-  .sections-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
-  .section-card{ background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:12px; padding:16px;}
-  .section-card .ic{ width:34px; height:34px; border-radius:9px; background:var(--gold-dim); display:flex; align-items:center; justify-content:center; font-size:15px; margin-bottom:10px;}
-  .section-card .nm{ font-size:13.5px; font-weight:600; margin-bottom:2px;}
-  .section-card .ct{ font-size:10.5px; color:var(--text-faint); margin-bottom:8px;}
-  .section-card .desc{ font-size:11px; color:var(--text-dim); line-height:1.4; margin-bottom:12px; min-height:30px;}
-  .section-card .action{ font-size:11.5px; font-weight:600; cursor:pointer;}
-  .section-card .action.open{ color:var(--green);}
-  .section-card .action.add{ color:var(--gold-bright);}
-  .section-card.new{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; border-style:dashed; cursor:pointer; color:var(--text-dim);}
-
-  .stat-line-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-soft); font-size:12.5px;}
-  .stat-line-row:last-child{ border-bottom:none;}
-  .stat-num{ font-family:var(--serif); font-size:16px; font-weight:700; min-width:26px;}
-  .coverage-bar{ display:flex; gap:3px; margin:10px 0 6px;}
-  .coverage-seg{ flex:1; height:6px; border-radius:3px; background:var(--panel-alt);}
-  .coverage-seg.filled{ background:var(--green);}
-  .coverage-label{ font-size:11px; color:var(--text-faint);}
-
-  .recent-row{ display:flex; align-items:center; gap:9px; padding:8px 0; border-bottom:1px solid var(--border-soft); font-size:12px; cursor:pointer;}
-  .recent-row:last-child{ border-bottom:none;}
-  .recent-row:hover .rn{ color:var(--gold-bright);}
-  .rn{ font-weight:500;}
-  .rd{ font-size:10px; color:var(--text-faint); margin-top:1px;}
-
-  .pw-avatar{ width:40px; height:40px; border-radius:50%; background:var(--gold-dim); color:var(--gold-bright); font-family:var(--serif); font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
-  .pw-input{ background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:8px; padding:10px 12px; font-size:12px; color:var(--text-faint); cursor:pointer;}
-
-  .empty-note{ font-size:12px; color:var(--text-faint); font-style:italic; padding:14px 0; text-align:center;}
-  #sync-note{ display:block; text-align:center; font-size:11px; color:var(--text-faint); margin-top:14px;}
-
-  #section-view{ display:none;}
-  .doc-row{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;}
-  .doc-row:hover .dn{ color:var(--gold-bright);}
-  .doc-row:last-child{ border-bottom:none;}
-  .dn{ flex:1; font-size:13px; font-weight:500;}
-  .estado-pill{ font-size:9.5px; padding:3px 9px; border-radius:6px;}
-  .estado-pill.Escrito{ background:var(--green-dim); color:var(--green);}
-  .estado-pill.Borrador{ background:rgba(232,195,79,0.18); color:#e8c34f;}
-  .estado-pill.Vacío{ background:var(--panel-alt); color:var(--text-faint);}
-
-
-  .workspace-banner{height:174px;background-position:center;background-size:cover;background-image:linear-gradient(90deg,rgba(4,7,12,.88),rgba(4,7,12,.38)),url('/assets/covers/aristoteles-cover-v2.jpg');display:flex;align-items:flex-end;padding:24px;border:1px solid rgba(212,175,106,.35);border-radius:16px;margin-bottom:14px;position:relative;overflow:hidden}
-  .workspace-banner h1{font:600 34px var(--serif);margin:0}.workspace-banner p{font-size:12px;color:#d8d3c8;margin-top:5px;max-width:620px}.banner-kicker{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-bright);font-weight:800}.banner-edit{position:absolute;right:16px;bottom:16px;background:rgba(8,9,13,.68);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:8px;padding:9px 12px;font-size:11px;font-weight:700}
-  .mock-nav{display:flex;gap:25px;align-items:center;border-bottom:1px solid var(--border-soft);margin-bottom:14px;padding:0 4px}.mock-nav button{background:none;border:0;color:var(--text-dim);font-size:11px;padding:10px 0;border-bottom:2px solid transparent}.mock-nav button.active,.mock-nav button:hover{color:var(--gold-bright);border-color:var(--gold)}
-  .date-filter{background:var(--panel);border:1px solid var(--border-soft);border-radius:8px;color:var(--text);font-size:11px;padding:9px 10px}.section-card{position:relative;overflow:hidden;min-height:190px;background:linear-gradient(180deg,rgba(26,29,41,.65),rgba(26,29,41,.98))}.section-card::before{content:"";position:absolute;inset:0 0 auto;height:72px;background:linear-gradient(180deg,rgba(5,7,12,.1),rgba(5,7,12,.8)),url('/assets/covers/aristoteles-cover-v2.jpg') center/cover;opacity:.75}.section-card>*{position:relative}.section-card .ic{margin-top:58px}.section-card .menu{position:absolute;right:10px;top:10px;border:1px solid var(--border-soft);background:#080a0dcc;color:#fff;border-radius:6px;padding:4px 7px;font-size:13px}.section-card .progress{height:5px;background:#0d1119;border-radius:4px;margin:10px 0 7px;overflow:hidden}.section-card .progress i{display:block;height:100%;background:var(--green);border-radius:4px}.section-card .open-link{display:block;text-align:right;color:var(--text);font-size:11px;font-weight:600}.date-label{font-size:10px;color:var(--text-faint);margin-left:auto}
-  @media(max-width:1000px){.sections-grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.mock-nav{overflow-x:auto}.date-label{display:none}}
-
-  @media (max-width:1000px){ .sections-grid{ grid-template-columns:repeat(2,1fr);} .layout{ grid-template-columns:1fr;} }
-
-  .workspace-banner{position:relative;min-height:156px;margin:0 0 18px;border:1px solid rgba(255,255,255,.10);border-radius:16px;overflow:hidden;background-position:center;background-size:cover;box-shadow:0 16px 40px rgba(0,0,0,.30)}
-  .workspace-banner::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,7,12,.90),rgba(5,7,12,.48) 46%,rgba(5,7,12,.18)),linear-gradient(0deg,rgba(5,7,12,.46),transparent 60%)}
-  .workspace-banner-content{position:relative;z-index:1;min-height:156px;display:flex;align-items:flex-end;padding:20px 24px}
-  .workspace-banner-kicker{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#f0cf8d;font-weight:800}
-  /* Mockup polish: luminous banner, cinematic card imagery, and clearer color hierarchy. */
-  body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 800px 420px at 68% 4%,rgba(176,116,42,.12),transparent 64%),radial-gradient(ellipse 700px 500px at 18% 55%,rgba(33,100,126,.10),transparent 65%);z-index:-1}
-  .workspace-banner{min-height:190px;background-color:#243344;background-image:linear-gradient(90deg,rgba(3,6,11,.52) 0%,rgba(3,6,11,.18) 48%,rgba(3,6,11,.04) 100%),linear-gradient(0deg,rgba(3,6,11,.28),transparent 62%),url('/assets/covers/aristoteles-cover-v2.jpg');box-shadow:0 0 0 1px rgba(240,205,142,.10),0 20px 55px rgba(0,0,0,.48),0 0 42px rgba(194,139,61,.13);}
-  .workspace-banner:after{background:linear-gradient(90deg,rgba(5,7,12,.34),rgba(5,7,12,.08) 62%,rgba(5,7,12,.02)),linear-gradient(0deg,rgba(5,7,12,.20),transparent 65%)}
-  .workspace-banner:before{content:"";position:absolute;inset:-20% -8%;background:linear-gradient(115deg,transparent 30%,rgba(255,221,150,.13) 48%,transparent 60%);transform:translateX(-40%);animation:bannerSheen 9s ease-in-out infinite;pointer-events:none}
-  .workspace-banner h1{font-size:40px;text-shadow:0 3px 22px rgba(0,0,0,.8)}
-  .workspace-banner p{font-size:13px;color:#eee8da;text-shadow:0 2px 12px rgba(0,0,0,.85)}
-  .banner-edit{z-index:2;box-shadow:0 0 18px rgba(212,175,106,.15);backdrop-filter:blur(8px)}
-  .page-head{align-items:center;margin-top:4px}
-  .head-btn,.search-box,.date-filter{box-shadow:0 8px 18px rgba(0,0,0,.18);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
-  .head-btn:hover,.search-box:focus,.date-filter:focus{transform:translateY(-1px);border-color:rgba(240,205,142,.72);box-shadow:0 0 0 3px rgba(212,175,106,.10),0 10px 24px rgba(0,0,0,.25);outline:none}
-  .mock-nav{background:linear-gradient(180deg,rgba(18,20,29,.45),transparent);padding:0 8px;border-bottom-color:rgba(240,205,142,.20)}
-  .mock-nav button{font-weight:600;padding:12px 5px}
-  .layout>.panel,.layout .panel{box-shadow:0 14px 34px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.025)}
-  .section-card{min-height:218px;border-color:rgba(255,255,255,.10);background:linear-gradient(180deg,rgba(24,29,42,.68),rgba(14,17,26,.98));box-shadow:0 10px 24px rgba(0,0,0,.22);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
-  .section-card:before{height:92px;opacity:.92;filter:saturate(1.24) contrast(1.08)}
-  .section-card:after{content:"";position:absolute;left:0;right:0;top:0;height:92px;background:linear-gradient(90deg,var(--card-glow,rgba(212,175,106,.20)),transparent 72%);mix-blend-mode:screen;pointer-events:none}
-  .section-card:hover{transform:translateY(-4px);border-color:var(--card-accent,#d4af6a);box-shadow:0 15px 32px rgba(0,0,0,.34),0 0 24px color-mix(in srgb,var(--card-accent,#d4af6a) 18%,transparent)}
-  .section-card .ic{position:relative;z-index:1;background:color-mix(in srgb,var(--card-accent,#d4af6a) 22%,transparent);border:1px solid color-mix(in srgb,var(--card-accent,#d4af6a) 40%,transparent);box-shadow:0 0 18px color-mix(in srgb,var(--card-accent,#d4af6a) 18%,transparent)}
-  .section-card .nm{font-size:14px;color:#fff}
-  .section-card .ct{color:var(--card-accent,#d4af6a);font-weight:600}
-  .section-card .progress i{background:linear-gradient(90deg,var(--card-accent,#3ecf8e),#f0cd8e);box-shadow:0 0 10px color-mix(in srgb,var(--card-accent,#3ecf8e) 45%,transparent)}
-  .section-card .open-link{padding-top:2px}.section-card .open-link:hover{color:var(--card-accent,#f0cd8e)}
-  .section-card.tone-0{--card-accent:#63c6ff;--card-glow:rgba(99,198,255,.24)}
-  .section-card.tone-1{--card-accent:#c38cff;--card-glow:rgba(195,140,255,.24)}
-  .section-card.tone-2{--card-accent:#f0cd65;--card-glow:rgba(240,205,101,.24)}
-  .section-card.tone-3{--card-accent:#67dfb0;--card-glow:rgba(103,223,176,.24)}
-  .section-card.tone-4{--card-accent:#ff9d70;--card-glow:rgba(255,157,112,.24)}
-  .section-card.tone-5{--card-accent:#79a9ff;--card-glow:rgba(121,169,255,.24)}
-  .stat-line-row{padding:10px 0}.stat-line-row span:first-child{filter:saturate(1.3)}
-  .coverage-seg.filled{background:linear-gradient(90deg,#3ecf8e,#79e7be);box-shadow:0 0 8px rgba(62,207,142,.35)}
-  .recent-row{padding:11px 0}.recent-row:before{content:"";width:4px;height:28px;border-radius:4px;background:linear-gradient(#d4af6a,#63c6ff);opacity:.8}
-  @keyframes bannerSheen{0%,55%{transform:translateX(-48%);opacity:0}70%{opacity:1}100%{transform:translateX(48%);opacity:0}}
-  @media(max-width:1000px){.workspace-banner h1{font-size:32px}.workspace-banner{min-height:170px}}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="/cover-editor.js"></script>
 <script src="/penny.js"></script>
+<style>
+:root{--bg:#07080c;--p:#11131b;--p2:#171a24;--line:#ffffff17;--line2:#d4af6a3d;--text:#f6f2e8;--muted:#b3ab99;--faint:#7f7868;--gold:#d4af6a;--gold2:#f0cd8e;--green:#46d49c;--blue:#63a9f0;--purple:#a585f2;--orange:#f0a64a;--red:#ef6d73;--serif:Fraunces,Georgia,serif;--sans:Inter,system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{overflow-x:clip}
+body{margin:0;background:radial-gradient(1000px 520px at 70% -12%,#3a2a1499,transparent 62%),radial-gradient(700px 480px at 4% 20%,#1a2a3a55,transparent 70%),var(--bg);color:var(--text);font-family:var(--sans);font-size:13px}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.shell{max-width:1560px;margin:auto;padding:16px 24px 96px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.crumb{color:var(--muted);font-size:12px}.crumb b{color:var(--text)}.crumb button{background:none;border:0;color:var(--muted);padding:0}.crumb button:hover{color:var(--gold2)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line2);background:#15171f;color:var(--text);border-radius:10px;padding:8px 13px;font-size:12px;font-weight:700;white-space:nowrap}
+.btn:hover{border-color:var(--gold)}
+.btn.gold{background:linear-gradient(135deg,#f2d27e,#cf9f3f);color:#1f1606;border-color:#f3da8f}
+.btn.danger{color:#ff9aa0;border-color:#ef6d7366}
+.btn.sm{padding:5px 9px;font-size:11px}
+.input,.select{background:#0d0f15;border:1px solid var(--line2);color:var(--text);border-radius:10px;padding:8px 11px;font-size:12px;min-width:0}
+#search{width:220px}
+.hero{position:relative;border:1px solid #d4af6a55;border-radius:16px;overflow:hidden;min-height:190px;background:#1a1610 url('/assets/covers/aristoteles-cover-v2.jpg') center/cover no-repeat;margin-bottom:12px;box-shadow:0 20px 50px #0008}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#07080cf2,#07080c99 50%,#07080c33)}
+.hero-in{position:relative;z-index:1;display:flex;gap:18px;align-items:flex-end;padding:26px 28px;min-height:190px}
+.hero-kicker{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold2);font-weight:800}
+.hero h1{font-family:var(--serif);font-weight:600;font-size:40px;margin:4px 0;text-shadow:0 3px 20px #000c}
+.hero p{color:#e4ddcc;margin:0;max-width:640px;line-height:1.45}
+.hero-quote{margin-left:auto;max-width:300px;font-family:var(--serif);font-style:italic;font-size:16px;color:#efe7d4;text-align:right;align-self:center}
+.hero-quote small{display:block;font-family:var(--sans);font-style:normal;font-size:10px;letter-spacing:.14em;color:var(--gold2);margin-top:6px}
+.hero-edit{position:absolute;z-index:2;right:14px;top:14px;background:#07080cb3}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}
+.tabs button{background:none;border:0;color:var(--muted);font-weight:700;padding:10px 14px;position:relative;white-space:nowrap}
+.tabs button.active{color:var(--gold2)}
+.tabs button.active::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px;background:var(--gold)}
+.filter-note{display:none;align-items:center;gap:10px;background:#d4af6a14;border:1px solid var(--line2);border-radius:10px;padding:8px 12px;margin-bottom:12px;color:var(--gold2);font-size:12px}
+.filter-note.on{display:flex}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.layout.full{grid-template-columns:minmax(0,1fr)}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel{background:linear-gradient(160deg,#14161ff2,#0c0d13f2);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.panel-head h3{margin:0;font-family:var(--serif);font-weight:600;font-size:18px}
+.panel-head .sub{color:var(--faint);font-size:11.5px;margin-top:3px}
+.link{background:none;border:0;color:var(--gold2);font-weight:800;font-size:11.5px;padding:0}
+.link:hover{text-decoration:underline}
+.empty{color:var(--faint);font-style:italic;font-size:12px;padding:10px 2px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:9px;overflow:hidden}
+.seg button{background:transparent;border:0;color:var(--muted);padding:6px 12px;font-weight:700;font-size:11.5px}
+.seg button.on{background:#d4af6a26;color:var(--gold2)}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:relative}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.card{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--p);display:flex;flex-direction:column;cursor:pointer;transition:transform .18s,border-color .18s}
+.card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.c-img{height:96px;background:#1c1810 center/cover no-repeat;position:relative}
+.c-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,#11131bee),linear-gradient(90deg,var(--tint,#d4af6a33),transparent 70%)}
+.c-icon{position:absolute;left:12px;bottom:-14px;z-index:1;width:34px;height:34px;border-radius:10px;background:#11131b;border:1px solid var(--line2);display:grid;place-items:center;font-size:16px}
+.c-menu{position:absolute;right:8px;top:8px;z-index:2;border:1px solid #ffffff33;background:#07080ccc;color:#fff;border-radius:7px;padding:2px 8px;font-size:14px;font-weight:800}
+.c-body{padding:20px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
+.c-body strong{font-size:14px}
+.c-body small{color:var(--faint);font-size:11px}
+.c-body p{margin:4px 0 0;color:var(--muted);font-size:11.5px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.prog{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:10px}
+.prog .bar{flex:1;height:5px;border-radius:4px;background:#ffffff12;overflow:hidden}
+.prog .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#9be8c6);border-radius:4px}
+.prog span{color:var(--muted);font-size:10.5px;min-width:32px;text-align:right}
+.c-open{border-top:1px solid var(--line);text-align:center;padding:8px;font-weight:700;font-size:11.5px;color:var(--text);background:none;border-left:0;border-right:0;border-bottom:0}
+.c-open:hover{color:var(--gold2)}
+.card.add{border-style:dashed;align-items:center;justify-content:center;color:var(--muted);gap:8px;font-weight:700;min-height:230px;background:transparent}
+.plus{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;color:var(--gold);font-size:20px}
+.list-row{display:grid;grid-template-columns:40px minmax(0,1fr) 110px 140px auto;gap:12px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--line)}
+.list-row:last-child{border-bottom:0}
+.list-row .ic{width:34px;height:34px;border-radius:9px;background:#ffffff0d;display:grid;place-items:center;font-size:16px}
+.list-row strong{display:block}.list-row small{color:var(--faint);font-size:11px}
+.menu-pop{position:absolute;z-index:60;background:#15171f;border:1px solid var(--line2);border-radius:10px;padding:5px;min-width:190px;box-shadow:0 16px 40px #000a}
+.menu-pop button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);padding:8px 10px;border-radius:7px;font-size:12.5px}
+.menu-pop button:hover{background:#d4af6a1f}
+.menu-pop button.danger{color:#ff9aa0}
+.menu-pop button:disabled{opacity:.4;cursor:default}
+.menu-pop label{display:flex;gap:8px;align-items:center;padding:8px 10px;font-size:12.5px;color:var(--text)}
+.menu-pop .lbl{color:var(--faint);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:6px 10px 2px}
+.stat{display:flex;gap:12px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line)}
+.stat:last-of-type{border-bottom:0}
+.stat .ic{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.stat b{font-family:var(--serif);font-size:19px;min-width:30px}
+.stat span{color:var(--muted)}
+.meter{display:flex;gap:4px;margin:12px 0 6px}
+.meter i{flex:1;height:7px;border-radius:4px;background:#ffffff14}
+.meter i.on{background:linear-gradient(90deg,var(--green),#8fe6c0)}
+.meter-label{display:flex;justify-content:space-between;color:var(--faint);font-size:11px}
+.doc{display:flex;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line)}
+.doc:last-child{border-bottom:0}
+.doc .ic{width:30px;height:34px;border-radius:6px;background:#ffffff0d;border:1px solid var(--line);display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.doc .copy{flex:1;min-width:0}
+.doc a{text-decoration:none;font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc a:hover{color:var(--gold2)}
+.doc small{color:var(--faint);font-size:11px}
+.pill{font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.pill.Escrito{background:#46d49c22;color:#7fe3b9}.pill.Borrador{background:#f0c05022;color:#f3d47c}.pill.Vacío,.pill.none{background:#ffffff10;color:var(--muted)}
+.quote{font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.5;text-align:center;color:#efe7d4;margin:6px 4px 4px;min-height:78px}
+.quote-by{text-align:center;color:var(--gold2);font-size:10.5px;letter-spacing:.14em;font-weight:800;margin-bottom:12px}
+.center{display:flex;justify-content:center;gap:8px}
+.icon-btn{background:none;border:1px solid var(--line2);color:var(--muted);border-radius:8px;width:30px;height:30px;padding:0;font-size:14px}
+.icon-btn:hover{color:var(--gold2);border-color:var(--gold)}
+.table{width:100%;border-collapse:collapse}
+.table th{text-align:left;color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;padding:8px 8px;border-bottom:1px solid var(--line);font-weight:800}
+.table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.table td a{text-decoration:none;font-weight:600}.table td a:hover{color:var(--gold2)}
+.table tr:hover td{background:#ffffff05}
+.table-wrap{overflow-x:auto}
+.explore-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--p)}
+.kpi strong{display:block;font-size:24px;font-family:var(--serif)}
+.kpi span{color:var(--muted);font-size:11px}
+.hbar{display:grid;grid-template-columns:170px minmax(0,1fr) 40px;gap:10px;align-items:center;padding:5px 0;font-size:12px}
+.hbar .t{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#ffffff0d}
+.hbar .t i{display:block;height:100%}
+.hbar span{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar b{text-align:right}
+.g2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px}
+.donut-wrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.donut{width:140px;height:140px;border-radius:50%;flex-shrink:0;display:grid;place-items:center}
+.donut>div{width:92px;height:92px;border-radius:50%;background:#11131b;display:grid;place-items:center;text-align:center}
+.donut b{font-size:26px;font-family:var(--serif);display:block}.donut small{color:var(--muted);font-size:10.5px}
+.legend-row{display:flex;justify-content:space-between;gap:18px;padding:4px 0;color:var(--muted);font-size:12px}
+.legend-row i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px}
+.legend-row b{color:var(--text)}
+.chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding:8px 4px 0;border-bottom:1px solid var(--line)}
+.chart .colb{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.chart .colb i{width:70%;max-width:38px;border-radius:5px 5px 0 0;background:linear-gradient(#f0cd8e,#b48a3e);min-height:2px}
+.chart .colb b{font-size:10.5px;color:var(--muted)}
+.chart-labels{display:flex;gap:10px;padding:6px 4px 0}.chart-labels span{flex:1;text-align:center;color:var(--faint);font-size:10.5px}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.node{border:1px solid var(--line);border-radius:12px;background:var(--p);padding:12px}
+.node h4{margin:0 0 8px;font-size:13.5px;display:flex;gap:8px;align-items:center}
+.node h4 small{color:var(--faint);font-weight:500;margin-left:auto}
+.chip{display:inline-block;border:1px solid var(--line2);border-radius:999px;padding:4px 10px;font-size:11px;color:var(--muted);margin:0 5px 5px 0;text-decoration:none}
+.chip:hover{color:var(--gold2);border-color:var(--gold)}
+.conn{display:flex;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.conn:last-child{border-bottom:0}
+.conn .mid{color:var(--gold2);font-size:11px;font-weight:800;white-space:nowrap}
+.conn a{text-decoration:none;font-weight:600}.conn a:hover{color:var(--gold2)}
+.conn small{color:var(--faint)}
+.notes{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.note{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--p);cursor:pointer}
+.note:hover{border-color:#d4af6a99}
+.note small{color:var(--faint);font-size:11px}
+.note strong{display:block;margin:4px 0;font-size:13px}
+.note p{margin:0;color:var(--muted);font-size:12px;line-height:1.45;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+.sec-head{display:flex;gap:16px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.sec-cover{width:120px;height:80px;border-radius:12px;background:#1c1810 center/cover no-repeat;border:1px solid var(--line2);display:grid;place-items:center;font-size:30px;flex-shrink:0}
+.sec-head h2{font-family:var(--serif);font-weight:600;font-size:28px;margin:0}
+.sec-head p{color:var(--muted);margin:4px 0 0;max-width:680px}
+.sec-head .actions{margin-left:auto}
+.quickbar{position:fixed;left:var(--sbw,0px);right:0;bottom:0;z-index:40;display:flex;gap:8px;align-items:center;padding:10px 24px;background:#07080cee;backdrop-filter:blur(12px);border-top:1px solid var(--line);overflow-x:auto}
+.quickbar .lbl{color:var(--gold2);font-weight:800;font-size:12px;white-space:nowrap;margin-right:4px}
+.sync{margin-left:auto;color:var(--green);font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.sync.err{color:#ff9aa0}.sync.err i{background:var(--red);box-shadow:none}
+.modal-bg{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:16px;z-index:90}
+.modal{background:linear-gradient(180deg,#171a24,#0e1017);border:1px solid var(--line2);border-radius:16px;padding:20px;width:min(560px,100%);max-height:92vh;overflow:auto}
+.modal h2{margin:0 0 4px;font-family:var(--serif);font-weight:600;font-size:22px}
+.modal .sub{color:var(--muted);font-size:12px;margin-bottom:12px;line-height:1.45}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .wide{grid-column:1/-1}
+.form label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted);font-weight:700}
+.form input,.form select,.form textarea{background:#0d0f15;border:1px solid var(--line2);color:var(--text);border-radius:9px;padding:9px 11px;font-size:13px;width:100%}
+.form textarea{min-height:110px;resize:vertical}
+.form .hint{font-weight:500;color:var(--faint)}
+.radio{display:flex;gap:14px;flex-wrap:wrap}.radio label{flex-direction:row;align-items:center;gap:6px;font-size:12.5px;color:var(--text)}
+.img-field{display:flex;gap:10px;align-items:center}
+.img-prev{width:110px;height:70px;border-radius:9px;border:1px solid var(--line2);background:#0d0f15 center/cover no-repeat;flex-shrink:0}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.modal-actions .left{margin-right:auto}
+.status{text-align:center;color:var(--faint);font-size:11px;margin-top:12px}
+[data-tabs]:not(.tab-on){display:none}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}.g2{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.shell{padding:12px 12px 110px}.hero-in{flex-wrap:wrap;padding:20px 16px;align-items:flex-start}.hero h1{font-size:30px}.hero-quote{display:none}.hero-edit{top:auto;bottom:10px}#search{width:100%}.top .actions{width:100%}.form{grid-template-columns:1fr}.list-row{grid-template-columns:34px minmax(0,1fr) auto}.list-row .hide-m{display:none}.hbar{grid-template-columns:110px minmax(0,1fr) 30px}.cards{grid-template-columns:1fr 1fr}.table .hide-m{display:none}}
+</style>
 </head>
 <body>
-<div class="main">
-
-  <div id="dashboard-view">
-      <section class="workspace-banner"><div><div class="banner-kicker">Jarvis · Personal Context Center</div><h1>Aristóteles</h1><p>Tu Centro de Contexto Personal — una base estructurada sobre quién eres, cómo piensas, qué te importa y hacia dónde vas.</p></div><button class="banner-edit" onclick="window.location.href='/sistemas-ajustes.html'">✎ Editar portada</button></section>
-  <div class="page-head">
-      <div><h2>Mis Secciones</h2><p>Organiza, edita y construye tu marco personal.</p></div>
-      <div class="head-actions"><a class="head-btn home-btn" href="/index.html" title="Volver a la página principal">⌂ Inicio</a><input class="search-box" id="global-search" placeholder="Buscar en Aristóteles…"><input class="date-filter" id="date-filter" type="date"><div class="head-btn primary" onclick="openNewDocPrompt()">+ Nuevo documento</div></div>
+<div class="shell">
+  <header class="top">
+    <div class="crumb" id="crumb"><b>Aristóteles</b></div>
+    <div class="actions">
+      <a class="btn" href="/index.html" style="text-decoration:none">⌂ Inicio</a>
+      <input class="input" id="search" type="search" placeholder="⌕ Buscar en Aristóteles…">
+      <select class="select" id="period" title="Filtrar documentos por fecha de edición">
+        <option value="all">Todas las fechas</option><option value="week">Esta semana</option><option value="month">Este mes</option><option value="year">Este año</option><option value="range">Rango…</option>
+      </select>
+      <span id="range" style="display:none" class="actions"><input class="input" type="date" id="from"><input class="input" type="date" id="to"></span>
+      <button class="btn gold" onclick="openDocForm()">＋ Nuevo documento</button>
     </div>
-    <nav class="mock-nav"><button class="active" onclick="showHomeTab(this)">Inicio</button><button onclick="showHomeTab(this)">Secciones</button><button onclick="showHomeTab(this)">Explorar</button><button onclick="showHomeTab(this)">Conexiones</button><button onclick="showHomeTab(this)">Estadísticas</button><button onclick="showHomeTab(this)">Notas</button><span class="date-label" id="date-label">Vista actual</span></nav>
+  </header>
 
-    <div class="layout">
+  <section class="hero" id="hero">
+    <div class="hero-in">
       <div>
-        <div class="panel">
-          <div class="panel-head"><h3>📂 Secciones de mi Identidad</h3></div>
-          <div class="sections-grid" id="sections-grid"></div>
-        </div>
+        <div class="hero-kicker">Jarvis · Centro de Contexto Personal</div>
+        <h1 id="hero-title">Aristóteles</h1>
+        <p id="hero-sub">Tu Centro de Contexto Personal — la base estructurada sobre quién eres, cómo piensas, qué te importa y hacia dónde vas.</p>
       </div>
-      <div>
-        <div class="panel">
-          <div class="panel-head"><h3>📊 Estado de Aristóteles</h3></div>
-          <div id="state-stats"></div>
-          <div class="coverage-bar" id="coverage-bar"></div>
-          <div class="coverage-label" id="coverage-label"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-head"><h3>🕐 Documentos Recientes</h3></div>
-          <div id="recent-docs"></div>
-        </div>
-        <div class="panel" data-penny>
-          <div class="pw-avatar">P</div>
-          <h3 style="margin-bottom:6px;">Penny AI</h3>
-          <p style="font-size:11.5px; color:var(--text-dim); margin-bottom:10px;">Pregunta sobre tus documentos de Aristóteles.</p>
-          <input id="pw-question" placeholder="Escribe tu pregunta…" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); border-radius:8px; padding:10px 12px; font-size:12px; color:var(--text); margin-bottom:8px;">
-          <button class="head-btn" id="pw-send" type="button" style="width:100%; justify-content:center;" onclick="askPennyworth()">Preguntar a Penny</button>
-          <div id="pw-response" style="font-size:11.5px; color:var(--text-dim); margin-top:8px; line-height:1.5; white-space:pre-wrap;"></div>
-        </div>
-      </div>
+      <div class="hero-quote">“Conócete a ti mismo y conocerás el universo.”<small>— ARISTÓTELES</small></div>
     </div>
-    <span id="sync-note"></span>
+    <button class="btn sm hero-edit" id="edit-cover">✎ Editar portada</button>
+  </section>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="inicio">Inicio</button><button data-tab="secciones">Secciones</button><button data-tab="explorar">Explorar</button><button data-tab="conexiones">Conexiones</button><button data-tab="estadisticas">Estadísticas</button><button data-tab="notas">Notas</button>
+  </nav>
+  <div class="filter-note" id="filter-note"><span id="filter-text"></span><button class="link" onclick="clearFilters()">Quitar filtros</button></div>
+
+  <!-- Section detail -->
+  <div id="section-view" style="display:none">
+    <div class="sec-head">
+      <div class="sec-cover" id="sv-cover"></div>
+      <div><div class="hero-kicker">Sección</div><h2 id="sv-title"></h2><p id="sv-desc"></p></div>
+      <div class="actions"><button class="btn" onclick="closeSection()">← Volver</button><button class="btn" id="sv-edit">✎ Editar sección</button><button class="btn gold" id="sv-new">＋ Nuevo documento</button></div>
+    </div>
+    <div class="panel"><div class="panel-head"><div><h3>Documentos</h3><div class="sub" id="sv-sub"></div></div></div><div id="sv-docs"></div></div>
   </div>
 
-  <div id="section-view">
-    <div class="page-head">
-      <div><h2 id="section-title">📖 Sección</h2><p id="section-desc"></p></div>
-      <div class="head-actions">
-        <div class="head-btn" onclick="backToDashboard()">← Volver a Aristóteles</div>
-        <div class="head-btn primary" id="add-doc-in-section-btn">+ Nuevo documento</div>
+  <div id="tab-view">
+    <div class="layout" id="main-layout" data-tabs="inicio secciones">
+      <div class="col">
+        <section class="panel">
+          <div class="panel-head">
+            <div><h3>Mis Secciones</h3><div class="sub">Organiza, edita y construye tu marco personal. Cada sección es un espacio vivo con documentos y notas.</div></div>
+            <div class="tools">
+              <div class="seg" id="view-seg"><button data-v="grid">▦ Grid</button><button data-v="list">☰ Lista</button></div>
+              <button class="btn sm" id="customize">⚙ Personalizar</button>
+              <button class="btn sm gold" onclick="openSectionForm()">＋ Nueva sección</button>
+            </div>
+          </div>
+          <div id="sections"><div class="empty">Cargando desde Notion…</div></div>
+        </section>
+      </div>
+      <div class="col" data-tabs="inicio">
+        <section class="panel">
+          <div class="panel-head"><h3>Estado de Aristóteles</h3><button class="link" onclick="setTab('estadisticas')">Ver más →</button></div>
+          <div id="state"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h3>Documentos recientes</h3><button class="link" onclick="setTab('explorar')">Ver todos →</button></div>
+          <div id="recent"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h3>Citas de Aristóteles</h3><button class="icon-btn" title="Otra cita" onclick="nextQuote()">↻</button></div>
+          <div class="quote" id="quote"></div><div class="quote-by">— ARISTÓTELES</div>
+          <div class="center"><button class="btn sm" onclick="openQuoteSave()">Guardar cita</button></div>
+        </section>
+        <section class="panel" data-penny>
+          <div class="panel-head"><h3>Penny AI</h3></div>
+          <div class="sub" style="color:var(--muted);font-size:12px;margin-bottom:8px">Pregunta sobre tus documentos de Aristóteles.</div>
+          <input class="input" id="pw-question" placeholder="Escribe tu pregunta…" style="width:100%;margin-bottom:8px">
+          <button class="btn" style="width:100%" onclick="askPenny()">Preguntar a Penny</button>
+          <div id="pw-response" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;white-space:pre-wrap"></div>
+        </section>
       </div>
     </div>
-    <div class="panel"><div id="section-docs"></div></div>
-  </div>
 
+    <section class="panel" data-tabs="explorar">
+      <div class="panel-head"><div><h3>Explorar documentos</h3><div class="sub">Todos tus documentos de Aristóteles. Ábrelos en Notion o cambia su estado y sección aquí.</div></div><button class="btn sm gold" onclick="openDocForm()">＋ Nuevo documento</button></div>
+      <div class="explore-tools">
+        <select class="select" id="x-section"><option value="">Todas las secciones</option></select>
+        <select class="select" id="x-estado"><option value="">Todos los estados</option><option>Escrito</option><option>Borrador</option><option>Vacío</option></select>
+        <select class="select" id="x-sort"><option value="recent">Más recientes</option><option value="old">Más antiguos</option><option value="az">A–Z</option><option value="section">Por sección</option></select>
+      </div>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Documento</th><th class="hide-m">Sección</th><th>Estado</th><th class="hide-m">Editado</th><th></th></tr></thead><tbody id="x-body"></tbody></table></div>
+      <div class="status" id="x-count"></div>
+    </section>
+
+    <div data-tabs="conexiones">
+      <section class="panel" style="margin-bottom:14px">
+        <div class="panel-head"><div><h3>Mapa de secciones</h3><div class="sub">Cada sección con sus documentos. Haz clic en un documento para abrirlo en Notion.</div></div></div>
+        <div class="map" id="map"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><h3>Conexiones entre documentos</h3><div class="sub">Documentos de secciones distintas que tratan el mismo tema (comparten palabras clave en el título).</div></div></div>
+        <div id="connections"></div>
+      </section>
+    </div>
+
+    <div data-tabs="estadisticas">
+      <div class="kpis" id="kpis"></div>
+      <div class="g2" style="margin-bottom:14px">
+        <section class="panel"><div class="panel-head"><div><h3>Documentos por sección</h3><div class="sub">Verde: escritos · amarillo: borradores · gris: vacíos</div></div></div><div id="by-section"></div></section>
+        <section class="panel"><div class="panel-head"><h3>Estado de los documentos</h3></div><div class="donut-wrap" id="estado-donut"></div></section>
+      </div>
+      <section class="panel"><div class="panel-head"><div><h3>Actividad</h3><div class="sub">Documentos creados por mes (últimos 6 meses)</div></div></div><div class="chart" id="activity"></div><div class="chart-labels" id="activity-labels"></div></section>
+    </div>
+
+    <section class="panel" data-tabs="notas">
+      <div class="panel-head"><div><h3>Notas</h3><div class="sub">Ideas sueltas y citas guardadas. Se guardan en Notion y aparecen también en el Calendario.</div></div><button class="btn sm gold" onclick="openNoteForm()">＋ Nueva nota</button></div>
+      <div class="notes" id="notes"><div class="empty">Cargando…</div></div>
+    </section>
+  </div>
+  <div class="status" id="status"></div>
 </div>
 
+<div class="quickbar">
+  <span class="lbl">⚡ Acceso rápido</span>
+  <button class="btn sm" onclick="openDocForm()">＋ Nuevo documento</button>
+  <button class="btn sm" onclick="openSectionForm()">＋ Nueva sección</button>
+  <button class="btn sm" onclick="document.getElementById('import-file').click()">⇪ Importar contenido</button>
+  <button class="btn sm" onclick="setTab('secciones')">◎ Explorar secciones</button>
+  <input type="file" id="import-file" accept=".txt,.md,.markdown,text/plain,text/markdown" hidden>
+  <span class="sync" id="sync"><i></i><span>Conectando con Notion…</span></span>
+</div>
+
+<div class="modal-bg" id="modal-bg"><div class="modal" id="modal"></div></div>
+
 <script>
-let allData = null;
-let activeSection = null;
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const safeUrl = u => { try{ const x = new URL(String(u || ""), location.origin); return /^https?:$/.test(x.protocol) ? x.href : "#"; }catch(e){ return "#"; } };
+const cssUrl = u => { const s = safeUrl(u); return s === "#" ? "" : `url("${s.replace(/"/g, "%22")}")`; };
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const TODAY = iso(new Date());
+const fmt = (s, o) => { const d = new Date(String(s).length === 10 ? s + "T12:00:00" : s); return isNaN(d) ? "" : d.toLocaleDateString("es-MX", o || { day:"numeric", month:"short", year:"numeric" }); };
+const ago = s => { const d = Math.floor((Date.now() - new Date(s)) / 864e5); return d <= 0 ? "Hoy" : d === 1 ? "Ayer" : d < 7 ? `${d} días` : d < 14 ? "1 semana" : d < 60 ? `${Math.floor(d/7)} semanas` : fmt(s, { day:"numeric", month:"short" }); };
+const TINTS = ["#63c6ff55","#c38cff55","#f0cd6555","#67dfb055","#ff9d7055","#79a9ff55"];
+const QUOTES = [
+  "Somos lo que hacemos repetidamente. La excelencia, entonces, no es un acto, sino un hábito.",
+  "Conocerse a uno mismo es el principio de toda sabiduría.",
+  "La felicidad depende de nosotros mismos.",
+  "Es propio de una mente educada poder considerar una idea sin aceptarla.",
+  "El sabio no dice todo lo que piensa, pero piensa todo lo que dice.",
+  "La paciencia es amarga, pero su fruto es dulce.",
+  "El placer en el trabajo pone perfección en la obra.",
+  "Lo que tenemos que aprender a hacer, lo aprendemos haciendo.",
+  "La esperanza es el sueño del hombre despierto.",
+  "El todo es mayor que la suma de sus partes.",
+  "La calidad no es un acto, es un hábito.",
+  "Considero más valiente al que conquista sus deseos que al que conquista a sus enemigos.",
+];
 
-function emptyNote(t){ return `<div class="empty-note">${t}</div>`; }
-// Document names and links come from Notion: escape before innerHTML, and
-// only ever navigate to http(s) URLs.
-function esc(value){ return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-function safeUrl(value){ try{ const u = new URL(String(value || ""), location.origin); return /^https?:$/.test(u.protocol) ? u.href : "#"; }catch(e){ return "#"; } }
-function goTo(url){ const safe = safeUrl(url); if(safe !== "#") window.location.href = safe; }
+let data = { sections:[], docs:[] }, notes = [], loaded = false;
+let tab = "inicio", openSec = null, quoteIdx = new Date().getDate() % QUOTES.length;
+const prefs = (() => { try{ return JSON.parse(localStorage.getItem("ari-prefs") || "{}"); }catch(e){ return {}; } })();
+prefs.view = prefs.view || "grid"; prefs.sort = prefs.sort || "mine"; prefs.hideEmpty = !!prefs.hideEmpty;
+const savePrefs = () => { try{ localStorage.setItem("ari-prefs", JSON.stringify(prefs)); }catch(e){} };
 
-function renderSections(sections){
-  const el = document.getElementById("sections-grid");
-  el.innerHTML = sections.map((s,i) => `
-    <div class="section-card tone-${i % 6}">
-      <button class="menu" data-menu="${s.name}" title="Acciones de sección">…</button>
-      <div class="ic">${s.icon}</div>
-      <div class="nm">${s.name}</div>
-      <div class="ct">${s.count} documento${s.count===1?'':'s'}</div>
-      <div class="desc">${s.desc}</div>
-      <div class="progress"><i style="width:${Math.min(100,Math.max(8,(s.count||0)*5))}%"></i></div>
-      <div class="open-link action ${s.count>0?'open':'add'}" data-section="${s.name}">${s.count>0?'Abrir →':'Agregar información'}</div>
-    </div>`).join("") + `<div class="section-card new" id="new-section-btn"><div style="font-size:22px; margin-bottom:6px;">+</div><div style="font-size:12.5px; font-weight:600;">Nueva sección</div></div>`;
-  el.querySelectorAll(".section-card:not(.new)").forEach(card => {
-    card.addEventListener("click", (event) => {
-      if(event.target.closest(".menu")) return;
-      openSection(card.querySelector("[data-section]")?.dataset.section);
-    });
-  });
-  el.querySelectorAll(".menu").forEach(menu => menu.addEventListener("click", (event) => {
-    event.stopPropagation();
-    const name = menu.dataset.menu;
-    const section = allData.sections.find(s => s.name === name);
-    if(section) openSection(section.name);
-  }));
-  document.getElementById("new-section-btn").addEventListener("click", createSection);
+async function post(url, body){
+  const r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if(!r.ok || d.error || d.ok === false) throw new Error(d.error || ("Error " + r.status));
+  return d;
 }
+async function run(msg, fn, okMsg){
+  const t = window.jarvisToast?.loading(msg);
+  try{ const out = await fn(); window.jarvisToast?.success(t, okMsg || "Guardado en Notion"); return out; }
+  catch(err){ window.jarvisToast?.error(t, "No se pudo: " + err.message); throw err; }
+}
+function openModal(html){ document.getElementById("modal").innerHTML = html; document.getElementById("modal-bg").style.display = "flex"; }
+function closeModal(){ document.getElementById("modal-bg").style.display = "none"; }
+document.getElementById("modal-bg").addEventListener("mousedown", e => { if(e.target.id === "modal-bg") closeModal(); });
+addEventListener("keydown", e => { if(e.key === "Escape"){ closeModal(); closeMenus(); } });
 
-function renderState(stats){
-  document.getElementById("state-stats").innerHTML = [
-    { icon:"📄", color:"var(--text)", value:stats.totalDocs, label:"Documentos escritos" },
-    { icon:"✅", color:"var(--green)", value:stats.sectionsWithInfo, label:"Secciones con información" },
-    { icon:"⏳", color:"var(--text-faint)", value:stats.sectionsPending, label:"Secciones pendientes" },
-    { icon:"📚", color:"var(--gold-bright)", value:stats.totalSections, label:"Secciones totales" },
-  ].map(s => `<div class="stat-line-row"><span>${s.icon}</span><span class="stat-num" style="color:${s.color}">${s.value}</span><span>${s.label}</span></div>`).join("");
+/* ---------- filters: search + date ---------- */
+function periodRange(){
+  const p = document.getElementById("period").value, now = new Date(); now.setHours(0,0,0,0);
+  if(p === "week"){ const d = new Date(now); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return [iso(d), null]; }
+  if(p === "month") return [iso(new Date(now.getFullYear(), now.getMonth(), 1)), null];
+  if(p === "year") return [iso(new Date(now.getFullYear(), 0, 1)), null];
+  if(p === "range") return [document.getElementById("from").value || null, document.getElementById("to").value || null];
+  return [null, null];
+}
+const q = () => document.getElementById("search").value.trim().toLowerCase();
+function docsInPeriod(){
+  const [from, to] = periodRange();
+  return data.docs.filter(d => { const day = iso(new Date(d.lastEditedTime)); return (!from || day >= from) && (!to || day <= to); });
+}
+function visibleDocs(){ const s = q(); return docsInPeriod().filter(d => !s || [d.name, d.seccion, d.notas].join(" ").toLowerCase().includes(s)); }
+function renderFilterNote(){
+  const p = document.getElementById("period"), s = q(), parts = [];
+  if(p.value !== "all"){ const [from, to] = periodRange(); parts.push(p.value === "range" ? `editados ${from ? "desde " + fmt(from) : ""} ${to ? "hasta " + fmt(to) : ""}`.trim() : `editados ${p.options[p.selectedIndex].text.toLowerCase()}`); }
+  if(s) parts.push(`que contienen “${document.getElementById("search").value.trim()}”`);
+  document.getElementById("filter-note").classList.toggle("on", parts.length > 0);
+  document.getElementById("filter-text").textContent = parts.length ? `Mostrando ${visibleDocs().length} documentos ${parts.join(" y ")}.` : "";
+}
+function clearFilters(){ document.getElementById("search").value = ""; document.getElementById("period").value = "all"; document.getElementById("range").style.display = "none"; render(); }
 
-  document.getElementById("coverage-bar").innerHTML = Array.from({length: stats.totalSections}).map((_,i) =>
-    `<div class="coverage-seg ${i < stats.sectionsWithInfo ? 'filled' : ''}"></div>`).join("");
-  document.getElementById("coverage-label").textContent = `${stats.sectionsWithInfo} de ${stats.totalSections} secciones iniciadas`;
+/* ---------- sections ---------- */
+function sectionStats(name){
+  const docs = visibleDocs().filter(d => d.seccion === name);
+  const written = docs.filter(d => d.estado === "Escrito").length;
+  return { docs, count: docs.length, pct: docs.length ? Math.round(written / docs.length * 100) : 0 };
 }
-
-function renderRecent(recent){
-  const el = document.getElementById("recent-docs");
-  if(!recent.length){ el.innerHTML = emptyNote("Sin documentos todavía."); return; }
-  el.innerHTML = recent.map(d => `
-    <div class="recent-row" data-url="${esc(d.notionUrl)}">
-      <div><div class="rn">${esc(d.name)}</div><div class="rd">${esc(d.seccion)} · ${new Date(d.lastEditedTime).toLocaleDateString('es-MX',{day:'numeric',month:'short'})}</div></div>
-    </div>`).join("");
-  el.querySelectorAll("[data-url]").forEach(row => row.addEventListener("click", () => goTo(row.dataset.url)));
+function shownSections(){
+  const s = q(), filtering = s || document.getElementById("period").value !== "all";
+  let list = data.sections.map((x, i) => ({ ...x, idx:i, ...sectionStats(x.name) }));
+  if(s) list = list.filter(x => (x.name + " " + x.desc).toLowerCase().includes(s) || x.count > 0);
+  else if(filtering) list = list.filter(x => x.count > 0);
+  if(prefs.hideEmpty) list = list.filter(x => x.count > 0);
+  if(prefs.sort === "docs") list.sort((a,b) => b.count - a.count || a.idx - b.idx);
+  if(prefs.sort === "az") list.sort((a,b) => a.name.localeCompare(b.name, "es"));
+  return list;
 }
-
-function openSection(sectionName){
-  activeSection = sectionName;
-  const section = allData.sections.find(s => s.name === sectionName);
-  document.getElementById("dashboard-view").style.display = "none";
-  document.getElementById("section-view").style.display = "block";
-  document.getElementById("section-title").textContent = `${section.icon} ${section.name}`;
-  document.getElementById("section-desc").textContent = section.desc;
-  document.getElementById("add-doc-in-section-btn").onclick = () => openNewDocPrompt(sectionName);
-  renderSectionDocs();
-}
-function backToDashboard(){
-  document.getElementById("section-view").style.display = "none";
-  document.getElementById("dashboard-view").style.display = "block";
-  activeSection = null;
-}
-function renderSectionDocs(){
-  const docs = allData.docs.filter(d => d.seccion === activeSection);
-  const el = document.getElementById("section-docs");
-  if(!docs.length){ el.innerHTML = emptyNote("Sin documentos en esta sección todavía."); return; }
-  el.innerHTML = docs.map(d => `
-    <div class="doc-row" data-url="${esc(d.notionUrl)}">
-      <span class="dn">${esc(d.name)}</span>
-      <span class="estado-pill ${esc(d.estado)}">${esc(d.estado)}</span>
-    </div>`).join("");
-  el.querySelectorAll("[data-url]").forEach(row => row.addEventListener("click", () => goTo(row.dataset.url)));
-}
-
-async function openNewDocPrompt(prefillSection){
-  const seccion = prefillSection || prompt("¿En qué sección va este documento?\n\n" + allData.sections.map(s=>s.name).join(", "));
-  if(!seccion) return;
-  const validSection = allData.sections.find(s => s.name.toLowerCase() === seccion.toLowerCase());
-  if(!validSection){ alert("Sección no encontrada. Usa exactamente uno de los nombres listados."); return; }
-  const documento = prompt("Título del nuevo documento:");
-  if(!documento || !documento.trim()) return;
-  const t = jarvisToast.loading("Creando documento…");
-  try{
-    const res = await fetch("/api/capture", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ action:"create-aristoteles-doc", documento, seccion: validSection.name })
-    });
-    const result = await res.json();
-    if(!res.ok || result.error) throw new Error(result.error || "Error desconocido");
-    jarvisToast.success(t, "Documento creado");
-    await loadData();
-    if(result.notionUrl) goTo(result.notionUrl);
-  }catch(e){ jarvisToast.error(t, "No se pudo crear el documento: " + e.message); }
-}
-async function createSection(){
-  const name = prompt("Nombre de la nueva sección:");
-  if(!name || !name.trim()) return;
-  const t = jarvisToast.loading("Creando sección…");
-  try{
-    const r = await fetch("/api/capture", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ action:"create-aristoteles-section", name }) });
-    const result = await r.json();
-    if(!r.ok || result.error) throw new Error(result.error || "Error desconocido");
-    jarvisToast.success(t, "Sección creada");
-    loadData();
-  }catch(e){ jarvisToast.error(t, "No se pudo crear la sección: " + e.message); }
-}
-
-async function askPennyworth(){
-  const input = document.getElementById("pw-question");
-  const resp = document.getElementById("pw-response");
-  const message = input.value.trim();
-  if(!message) return;
-  resp.textContent = "Penny está pensando…";
-  try{
-    const context = { project:"Aristóteles", totals:{ secciones:(allData?.sections||[]).map(s => ({ nombre:s.name, documentos:s.count })), documentos:(allData?.docs||[]).slice(0, 80).map(d => ({ nombre:d.name, seccion:d.seccion, estado:d.estado })) } };
-    const r = await fetch("/api/penny-ai", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ message, context }) });
-    const d = await r.json();
-    if(!r.ok || d.error) throw new Error(d.error || ("Error " + r.status));
-    resp.textContent = d.answer; input.value = "";
-  }catch(e){ resp.textContent = "Penny no pudo responder: " + e.message; }
-}
-
-document.getElementById("pw-question").addEventListener("keydown", e => { if(e.key === "Enter") askPennyworth(); });
-document.getElementById("global-search").addEventListener("keydown", (e) => {
-  if(e.key === "Enter" && e.target.value.trim()){
-    const q = e.target.value.trim().toLowerCase();
-    const match = allData.docs.find(d => d.name.toLowerCase().includes(q));
-    if(match) goTo(match.notionUrl);
-    else {
-      const sectionMatch = allData.sections.find(s => s.name.toLowerCase().includes(q));
-      if(sectionMatch) openSection(sectionMatch.name);
-    }
+function coverStyle(s, i){ return s.coverUrl && cssUrl(s.coverUrl) ? `background-image:${cssUrl(s.coverUrl)}` : `background-image:url('/assets/covers/aristoteles-cover-v2.jpg');background-position:${(i * 37) % 100}% ${(i * 53) % 100}%;background-size:260%`; }
+function renderSections(){
+  const el = document.getElementById("sections"), list = shownSections();
+  document.querySelectorAll("#view-seg button").forEach(b => b.classList.toggle("on", b.dataset.v === prefs.view));
+  if(!loaded){ return; }
+  if(prefs.view === "list"){
+    el.innerHTML = list.map(s => `<div class="list-row"><div class="ic">${esc(s.icon)}</div><div><strong>${esc(s.name)}</strong><small>${esc(s.desc || "Sin descripción")}</small></div>
+      <small class="hide-m">${s.count} documento${s.count === 1 ? "" : "s"}</small><div class="prog hide-m" style="padding:0"><div class="bar"><i style="width:${s.pct}%"></i></div><span>${s.pct}%</span></div>
+      <div class="actions"><button class="btn sm" data-open="${esc(s.name)}">Abrir →</button><button class="c-menu" style="position:static" data-menu="${esc(s.name)}" title="Acciones">⋯</button></div></div>`).join("")
+      || `<div class="empty">Ninguna sección coincide con los filtros.</div>`;
+  } else {
+    el.innerHTML = `<div class="cards">${list.map(s => `<article class="card" data-open="${esc(s.name)}" style="--tint:${TINTS[s.idx % TINTS.length]}">
+      <div class="c-img" style="${coverStyle(s, s.idx)}"><div class="c-icon">${esc(s.icon)}</div></div>
+      <button class="c-menu" data-menu="${esc(s.name)}" title="Acciones de la sección">⋯</button>
+      <div class="c-body"><strong>${esc(s.name)}</strong><small>${s.count} documento${s.count === 1 ? "" : "s"}</small><p>${esc(s.desc || "Sin descripción — usa ⋯ › Editar para añadirla.")}</p>
+      <div class="prog" title="${s.pct}% de sus documentos están escritos"><div class="bar"><i style="width:${s.pct}%"></i></div><span>${s.pct}%</span></div></div>
+      <button class="c-open" data-open="${esc(s.name)}">${s.count ? "Abrir →" : "＋ Agregar documento"}</button></article>`).join("")}
+      <button class="card add" onclick="openSectionForm()"><span class="plus">＋</span>Nueva sección<small style="color:var(--faint);font-weight:500">Crea un espacio para un tema nuevo</small></button></div>`;
   }
+  el.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", e => { if(e.target.closest("[data-menu]")) return; e.stopPropagation(); const s = data.sections.find(x => x.name === b.dataset.open); if(!s) return; if(b.classList.contains("c-open") && !sectionStats(s.name).count) openDocForm({ seccion:s.name }); else openSection(s.name); }));
+  el.querySelectorAll("[data-menu]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); sectionMenu(b, b.dataset.menu); }));
+}
+function closeMenus(){ document.querySelectorAll(".menu-pop").forEach(m => m.remove()); }
+addEventListener("click", e => { if(!e.target.closest(".menu-pop")) closeMenus(); });
+function popMenu(anchor, html){
+  closeMenus();
+  const m = document.createElement("div"); m.className = "menu-pop"; m.innerHTML = html; document.body.appendChild(m);
+  const r = anchor.getBoundingClientRect(), w = m.offsetWidth;
+  m.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w + scrollX)) + "px"; m.style.top = (r.bottom + 6 + scrollY) + "px";
+  return m;
+}
+function sectionMenu(anchor, name){
+  const i = data.sections.findIndex(s => s.name === name);
+  const m = popMenu(anchor, `<button data-a="edit">✎ Editar sección</button><button data-a="cover">🖼 Cambiar portada</button>
+    <button data-a="up" ${i <= 0 ? "disabled" : ""}>↑ Mover antes</button><button data-a="down" ${i >= data.sections.length - 1 ? "disabled" : ""}>↓ Mover después</button>
+    <button data-a="dup">⧉ Duplicar</button><button data-a="new">＋ Nuevo documento aquí</button><button data-a="del" class="danger">🗑 Eliminar</button>`);
+  const s = data.sections[i];
+  m.querySelectorAll("[data-a]").forEach(b => b.addEventListener("click", async e => {
+    e.stopPropagation(); closeMenus();
+    const a = b.dataset.a;
+    if(a === "edit" || a === "cover") return openSectionForm(s, a === "cover");
+    if(a === "new") return openDocForm({ seccion:s.name });
+    if(a === "del") return openSectionDelete(s);
+    try{
+      if(a === "up" || a === "down") await run("Moviendo sección…", () => post("/api/capture", { action:"section-move", name:s.name, dir: a === "up" ? -1 : 1 }), "Orden guardado");
+      if(a === "dup") await run("Duplicando sección…", () => post("/api/capture", { action:"section-duplicate", name:s.name }), "Sección duplicada");
+      await load();
+    }catch(err){}
+  }));
+}
+function customizeMenu(anchor){
+  const m = popMenu(anchor, `<div class="lbl">Ordenar secciones</div>
+    <button data-s="mine">${prefs.sort === "mine" ? "● " : "○ "}Mi orden</button><button data-s="docs">${prefs.sort === "docs" ? "● " : "○ "}Más documentos primero</button><button data-s="az">${prefs.sort === "az" ? "● " : "○ "}A–Z</button>
+    <div class="lbl">Mostrar</div><label><input type="checkbox" id="hide-empty" ${prefs.hideEmpty ? "checked" : ""}> Ocultar secciones vacías</label>`);
+  m.querySelectorAll("[data-s]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); prefs.sort = b.dataset.s; savePrefs(); closeMenus(); renderSections(); }));
+  m.querySelector("#hide-empty").addEventListener("change", e => { prefs.hideEmpty = e.target.checked; savePrefs(); renderSections(); });
+}
+document.getElementById("customize").addEventListener("click", e => { e.stopPropagation(); customizeMenu(e.currentTarget); });
+document.querySelectorAll("#view-seg button").forEach(b => b.addEventListener("click", () => { prefs.view = b.dataset.v; savePrefs(); renderSections(); }));
+
+/* ---------- section detail ---------- */
+function openSection(name){ openSec = name; location.hash = "seccion=" + encodeURIComponent(name); renderView(); }
+function closeSection(){ openSec = null; location.hash = tab; renderView(); }
+function renderSectionView(){
+  if(!loaded) return; // the page opened on a section link: wait for the data
+  const s = data.sections.find(x => x.name === openSec), i = data.sections.indexOf(s);
+  if(!s){ openSec = null; location.hash = tab; return renderView(); }
+  const cov = document.getElementById("sv-cover");
+  cov.setAttribute("style", coverStyle(s, i)); cov.textContent = s.coverUrl ? "" : s.icon;
+  document.getElementById("sv-title").textContent = s.name;
+  document.getElementById("sv-desc").textContent = s.desc || "";
+  document.getElementById("sv-edit").onclick = () => openSectionForm(s);
+  document.getElementById("sv-new").onclick = () => openDocForm({ seccion:s.name });
+  const docs = visibleDocs().filter(d => d.seccion === s.name).sort((a,b) => String(b.lastEditedTime).localeCompare(String(a.lastEditedTime)));
+  const st = sectionStats(s.name);
+  document.getElementById("sv-sub").textContent = `${docs.length} documento${docs.length === 1 ? "" : "s"} · ${st.pct}% escrito`;
+  document.getElementById("sv-docs").innerHTML = docs.map(docRow).join("") || `<div class="empty">Esta sección no tiene documentos todavía. Usa “＋ Nuevo documento”.</div>`;
+  bindDocRows(document.getElementById("sv-docs"));
+  document.getElementById("crumb").innerHTML = `<button onclick="closeSection()">Aristóteles</button> › <b>${esc(s.name)}</b>`;
+}
+function docRow(d){
+  return `<div class="doc"><div class="ic">📄</div><div class="copy"><a href="${esc(safeUrl(d.notionUrl))}" target="_blank" rel="noopener">${esc(d.name || "Sin título")}</a><small>${esc(d.seccion || "Sin sección")} · ${ago(d.lastEditedTime)}${d.notas ? " · " + esc(d.notas.slice(0, 80)) : ""}</small></div>
+    <span class="pill ${esc(d.estado || "none")}">${esc(d.estado || "Sin estado")}</span><button class="icon-btn" data-doc="${esc(d.id)}" title="Editar documento">✎</button></div>`;
+}
+function bindDocRows(root){ root.querySelectorAll("[data-doc]").forEach(b => b.addEventListener("click", () => openDocEdit(data.docs.find(d => d.id === b.dataset.doc)))); }
+
+/* ---------- right column ---------- */
+function renderState(){
+  const docs = visibleDocs(), withInfo = data.sections.filter(s => docs.some(d => d.seccion === s.name)).length, total = data.sections.length;
+  const written = docs.filter(d => d.estado === "Escrito").length;
+  document.getElementById("state").innerHTML = [
+    ["📄","#ffffff12", written, "Documentos escritos"], ["✅","#46d49c22", withInfo, "Secciones con información"], ["⏳","#f0a64a22", total - withInfo, "Secciones pendientes"], ["📚","#d4af6a22", total, "Secciones totales"],
+  ].map(([i, bg, v, l]) => `<div class="stat"><span class="ic" style="background:${bg}">${i}</span><b>${v}</b><span>${l}</span></div>`).join("")
+    + `<div class="meter">${data.sections.map(s => `<i class="${docs.some(d => d.seccion === s.name) ? "on" : ""}" title="${esc(s.name)}"></i>`).join("")}</div>
+    <div class="meter-label"><span>${withInfo} de ${total} secciones iniciadas</span><b style="color:var(--text)">${total ? Math.round(withInfo / total * 100) : 0}%</b></div>`;
+}
+function renderRecent(){
+  const list = [...visibleDocs()].sort((a,b) => String(b.lastEditedTime).localeCompare(String(a.lastEditedTime))).slice(0, 5);
+  document.getElementById("recent").innerHTML = list.map(docRow).join("") || `<div class="empty">Sin documentos en este periodo.</div>`;
+  bindDocRows(document.getElementById("recent"));
+}
+function renderQuote(){ document.getElementById("quote").textContent = `“${QUOTES[quoteIdx]}”`; }
+function nextQuote(){ quoteIdx = (quoteIdx + 1) % QUOTES.length; renderQuote(); }
+
+/* ---------- explorar ---------- */
+function renderExplore(){
+  const xs = document.getElementById("x-section"), cur = xs.value;
+  xs.innerHTML = `<option value="">Todas las secciones</option>` + data.sections.map(s => `<option ${s.name === cur ? "selected" : ""}>${esc(s.name)}</option>`).join("");
+  const sec = xs.value, est = document.getElementById("x-estado").value, sort = document.getElementById("x-sort").value;
+  let list = visibleDocs().filter(d => (!sec || d.seccion === sec) && (!est || d.estado === est));
+  const order = n => data.sections.findIndex(s => s.name === n);
+  list.sort(sort === "old" ? (a,b) => String(a.lastEditedTime).localeCompare(String(b.lastEditedTime)) : sort === "az" ? (a,b) => a.name.localeCompare(b.name, "es") : sort === "section" ? (a,b) => order(a.seccion) - order(b.seccion) || a.name.localeCompare(b.name, "es") : (a,b) => String(b.lastEditedTime).localeCompare(String(a.lastEditedTime)));
+  document.getElementById("x-body").innerHTML = list.map(d => `<tr><td><a href="${esc(safeUrl(d.notionUrl))}" target="_blank" rel="noopener">${esc(d.name || "Sin título")}</a></td>
+    <td class="hide-m"><button class="link" data-sec="${esc(d.seccion || "")}">${esc(d.seccion || "—")}</button></td>
+    <td><select class="select" data-estado="${esc(d.id)}">${["Escrito","Borrador","Vacío"].map(e => `<option ${e === d.estado ? "selected" : ""}>${e}</option>`).join("")}</select></td>
+    <td class="hide-m" style="color:var(--muted)">${fmt(d.lastEditedTime)}</td><td><button class="icon-btn" data-doc="${esc(d.id)}" title="Editar documento">✎</button></td></tr>`).join("")
+    || `<tr><td colspan="5"><div class="empty">Ningún documento coincide con los filtros.</div></td></tr>`;
+  document.getElementById("x-count").textContent = `${list.length} de ${data.docs.length} documentos`;
+  bindDocRows(document.getElementById("x-body"));
+  document.querySelectorAll("#x-body [data-sec]").forEach(b => b.addEventListener("click", () => b.dataset.sec && openSection(b.dataset.sec)));
+  document.querySelectorAll("#x-body [data-estado]").forEach(sel => sel.addEventListener("change", async () => {
+    try{ await run("Guardando estado…", () => post("/api/capture", { action:"update-aristoteles-doc", pageId:sel.dataset.estado, estado:sel.value }), "Estado guardado"); const d = data.docs.find(x => x.id === sel.dataset.estado); if(d){ d.estado = sel.value; d.lastEditedTime = new Date().toISOString(); } render(); }catch(e){ load(); }
+  }));
+}
+["x-section","x-estado","x-sort"].forEach(id => document.getElementById(id).addEventListener("change", renderExplore));
+
+/* ---------- conexiones ---------- */
+const STOP = new Set("sobre entre desde hasta donde cuando porque como cómo para pero también mismo misma este esta estos estas aunque cuál cual quién quien todo toda todos todas otro otra otros otras años parte capítulo".split(" "));
+// Keywords of a title, keyed by their first 6 letters so word families
+// match ("descubrir" / "descubrimiento").
+const words = s => { const out = new Map(); (String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").match(/[a-zñ]{5,}/g) || []).filter(w => !STOP.has(w)).forEach(w => out.has(w.slice(0, 6)) || out.set(w.slice(0, 6), w)); return out; };
+function renderConnections(){
+  const docs = visibleDocs();
+  document.getElementById("map").innerHTML = data.sections.map(s => { const ds = docs.filter(d => d.seccion === s.name); return `<div class="node"><h4>${esc(s.icon)} ${esc(s.name)}<small>${ds.length}</small></h4>${ds.map(d => `<a class="chip" href="${esc(safeUrl(d.notionUrl))}" target="_blank" rel="noopener">${esc(d.name)}</a>`).join("") || `<div class="empty" style="padding:2px">Sin documentos</div>`}</div>`; }).join("");
+  const pairs = [];
+  for(let i = 0; i < docs.length; i++) for(let j = i + 1; j < docs.length; j++){
+    const a = docs[i], b = docs[j]; if(!a.seccion || a.seccion === b.seccion) continue;
+    const wa = words(a.name), wb = words(b.name), shared = [...wa.keys()].filter(k => wb.has(k)).map(k => wa.get(k));
+    if(shared.length) pairs.push({ a, b, shared });
+  }
+  pairs.sort((x,y) => y.shared.length - x.shared.length);
+  document.getElementById("connections").innerHTML = pairs.slice(0, 30).map(p => `<div class="conn"><div><a href="${esc(safeUrl(p.a.notionUrl))}" target="_blank" rel="noopener">${esc(p.a.name)}</a><br><small>${esc(p.a.seccion)}</small></div>
+    <span class="mid">⟷ ${p.shared.map(esc).join(", ")}</span><div><a href="${esc(safeUrl(p.b.notionUrl))}" target="_blank" rel="noopener">${esc(p.b.name)}</a><br><small>${esc(p.b.seccion)}</small></div></div>`).join("")
+    || `<div class="empty">Todavía no hay documentos de secciones distintas con temas en común.</div>`;
+}
+
+/* ---------- estadísticas ---------- */
+function renderStats(){
+  const docs = visibleDocs(), n = e => docs.filter(d => d.estado === e).length;
+  document.getElementById("kpis").innerHTML = [[docs.length, "Documentos"], [n("Escrito"), "Escritos"], [n("Borrador"), "Borradores"], [n("Vacío") + docs.filter(d => !d.estado).length, "Vacíos / sin estado"]].map(([v, l]) => `<div class="kpi"><strong>${v}</strong><span>${l}</span></div>`).join("");
+  const max = Math.max(1, ...data.sections.map(s => docs.filter(d => d.seccion === s.name).length));
+  document.getElementById("by-section").innerHTML = data.sections.map(s => { const ds = docs.filter(d => d.seccion === s.name), c = e => ds.filter(d => d.estado === e).length, w = x => (x / max * 100).toFixed(1);
+    return `<div class="hbar"><span title="${esc(s.name)}">${esc(s.icon)} ${esc(s.name)}</span><div class="t"><i style="width:${w(c("Escrito"))}%;background:var(--green)"></i><i style="width:${w(c("Borrador"))}%;background:#f0c050"></i><i style="width:${w(ds.length - c("Escrito") - c("Borrador"))}%;background:#6b6659"></i></div><b>${ds.length}</b></div>`; }).join("");
+  const parts = [["Escrito", n("Escrito"), "#46d49c"], ["Borrador", n("Borrador"), "#f0c050"], ["Vacío", docs.length - n("Escrito") - n("Borrador"), "#6b6659"]];
+  let acc = 0; const stops = parts.map(([, v, c]) => { const a = acc; acc += docs.length ? v / docs.length * 360 : 0; return `${c} ${a}deg ${acc}deg`; });
+  document.getElementById("estado-donut").innerHTML = `<div class="donut" style="background:${docs.length ? `conic-gradient(${stops.join(",")})` : "#ffffff12"}"><div><b>${docs.length}</b><small>documentos</small></div></div>
+    <div style="flex:1">${parts.map(([l, v, c]) => `<div class="legend-row"><span><i style="background:${c}"></i>${l}</span><b>${v} · ${docs.length ? Math.round(v / docs.length * 100) : 0}%</b></div>`).join("")}</div>`;
+  const months = [...Array(6)].map((_, i) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 5 + i); return d; });
+  const counts = months.map(m => docs.filter(d => { const c = new Date(d.createdTime); return c.getFullYear() === m.getFullYear() && c.getMonth() === m.getMonth(); }).length);
+  const cmax = Math.max(1, ...counts);
+  document.getElementById("activity").innerHTML = counts.map(c => `<div class="colb"><b>${c}</b><i style="height:${c / cmax * 100}%"></i></div>`).join("");
+  document.getElementById("activity-labels").innerHTML = months.map(m => `<span>${m.toLocaleDateString("es-MX", { month:"short" })}</span>`).join("");
+}
+
+/* ---------- notas ---------- */
+function renderNotes(){
+  const s = q(), list = notes.filter(n => !s || (n.title + " " + n.notes).toLowerCase().includes(s)).sort((a,b) => String(b.date).localeCompare(String(a.date)));
+  document.getElementById("notes").innerHTML = list.map(n => `<div class="note" data-note="${esc(n.id)}"><small>${esc(n.date ? fmt(n.date, { weekday:"short", day:"numeric", month:"short" }) : "")}</small><strong>${esc(n.title)}</strong><p>${esc(n.notes || "")}</p></div>`).join("")
+    || `<div class="empty">Sin notas todavía. Usa “＋ Nueva nota” o guarda una cita.</div>`;
+  document.querySelectorAll("[data-note]").forEach(el => el.addEventListener("click", () => openNoteForm(notes.find(n => n.id === el.dataset.note))));
+}
+function openNoteForm(n = {}){
+  openModal(`<h2>${n.id ? "Editar nota" : "Nueva nota"}</h2><div class="sub">Se guarda en Notion (Calendario, proyecto Aristóteles).</div>
+    <form class="form" id="note-form" onsubmit="return false">
+      <label class="wide">Título<input name="title" value="${esc(n.title || "")}" required></label>
+      <label>Fecha<input name="date" type="date" value="${esc(n.date || TODAY)}"></label>
+      <label class="wide">Nota<textarea name="notes">${esc(n.notes || "")}</textarea></label>
+    </form>
+    <div class="modal-actions">${n.id ? `<button class="btn danger left" id="n-del">Eliminar</button>` : ""}<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold" id="n-save">Guardar</button></div>`);
+  document.getElementById("n-save").addEventListener("click", async () => {
+    const f = document.getElementById("note-form"), title = f.elements.title.value.trim();
+    if(!title){ f.elements.title.focus(); return; }
+    try{ await run("Guardando nota…", () => post("/api/task-api", { action:"calendar-item-save", pageId:n.id, kind:"note", title, date:f.elements.date.value || TODAY, notes:f.elements.notes.value, project:"Aristóteles" }), "Nota guardada"); closeModal(); await loadNotes(); render(); }catch(e){}
+  });
+  document.getElementById("n-del")?.addEventListener("click", async () => { if(!confirm("¿Eliminar esta nota?")) return; try{ await run("Eliminando…", () => post("/api/task-api", { action:"calendar-item-delete", pageId:n.id }), "Nota eliminada"); closeModal(); await loadNotes(); render(); }catch(e){} });
+  document.querySelector("#note-form [name=title]").focus();
+}
+function openQuoteSave(){
+  const text = QUOTES[quoteIdx];
+  openModal(`<h2>Guardar cita</h2><div class="sub">“${esc(text)}” — Aristóteles</div>
+    <form class="form" id="q-form" onsubmit="return false">
+      <div class="wide radio"><label><input type="radio" name="dest" value="note" checked> En mis notas</label><label><input type="radio" name="dest" value="section"> Como documento en una sección</label></div>
+      <label class="wide" id="q-sec" style="display:none">Sección<select name="seccion">${data.sections.map(s => `<option>${esc(s.name)}</option>`).join("")}</select></label>
+      <label class="wide">Reflexión (opcional)<textarea name="extra" placeholder="Por qué me importa esta cita…"></textarea></label>
+    </form>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold" id="q-save">Guardar</button></div>`);
+  const f = document.getElementById("q-form");
+  f.querySelectorAll("[name=dest]").forEach(r => r.addEventListener("change", () => { document.getElementById("q-sec").style.display = f.elements.dest.value === "section" ? "" : "none"; }));
+  document.getElementById("q-save").addEventListener("click", async () => {
+    const extra = f.elements.extra.value.trim(), body = `“${text}” — Aristóteles` + (extra ? "\n\n" + extra : "");
+    try{
+      if(f.elements.dest.value === "note"){ await run("Guardando cita…", () => post("/api/task-api", { action:"calendar-item-save", kind:"note", title:"Cita de Aristóteles", date:TODAY, notes:body, project:"Aristóteles" }), "Cita guardada en Notas"); await loadNotes(); }
+      else { await run("Guardando cita…", () => post("/api/capture", { action:"create-aristoteles-doc", documento:`Cita: ${text.length > 60 ? text.slice(0, 57) + "…" : text}`, seccion:f.elements.seccion.value, contenido:body, estado:"Escrito" }), "Cita guardada en " + f.elements.seccion.value); await load(); }
+      closeModal(); render();
+    }catch(e){}
+  });
+}
+
+/* ---------- documents ---------- */
+function openDocForm(pre = {}){
+  if(!data.sections.length){ window.jarvisToast?.error(null, "Primero crea una sección."); return; }
+  const sec = pre.seccion || openSec || data.sections[0].name;
+  openModal(`<h2>${pre.import ? "Importar contenido" : "Nuevo documento"}</h2><div class="sub">${pre.import ? "El texto del archivo se guardará como el contenido del documento en Notion." : "Se crea en Notion, en la base “Aristóteles — Documentos”. Puedes escribir el contenido aquí o después en Notion."}</div>
+    <form class="form" id="doc-form" onsubmit="return false">
+      <label class="wide">Título<input name="documento" value="${esc(pre.documento || "")}" required></label>
+      <label>Sección<select name="seccion">${data.sections.map(s => `<option ${s.name === sec ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label>
+      <label>Estado<select name="estado"><option value="">Automático</option><option>Escrito</option><option>Borrador</option><option>Vacío</option></select></label>
+      <label class="wide">Contenido <span class="hint">(opcional — cada párrafo separado por una línea en blanco)</span><textarea name="contenido" style="min-height:${pre.contenido ? 220 : 120}px">${esc(pre.contenido || "")}</textarea></label>
+      <label class="wide">Notas <span class="hint">(opcional)</span><input name="notas"></label>
+    </form>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold" id="d-save">Crear documento</button></div>`);
+  document.getElementById("d-save").addEventListener("click", async () => {
+    const f = document.getElementById("doc-form"), documento = f.elements.documento.value.trim();
+    if(!documento){ f.elements.documento.focus(); return; }
+    try{
+      await run("Creando documento…", () => post("/api/capture", { action:"create-aristoteles-doc", documento, seccion:f.elements.seccion.value, estado:f.elements.estado.value || undefined, contenido:f.elements.contenido.value, notas:f.elements.notas.value }), "Documento creado en Notion");
+      closeModal(); await load();
+    }catch(e){}
+  });
+  document.querySelector("#doc-form [name=documento]").focus();
+}
+function openDocEdit(d){
+  if(!d) return;
+  openModal(`<h2>Editar documento</h2><div class="sub">Cambia el título, la sección, el estado o las notas. El contenido se edita en Notion.</div>
+    <form class="form" id="de-form" onsubmit="return false">
+      <label class="wide">Título<input name="documento" value="${esc(d.name)}" required></label>
+      <label>Sección<select name="seccion">${data.sections.map(s => `<option ${s.name === d.seccion ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label>
+      <label>Estado<select name="estado">${["Escrito","Borrador","Vacío"].map(e => `<option ${e === d.estado ? "selected" : ""}>${e}</option>`).join("")}</select></label>
+      <label class="wide">Notas<input name="notas" value="${esc(d.notas || "")}"></label>
+    </form>
+    <div class="modal-actions"><button class="btn danger left" id="de-del">Eliminar</button><a class="btn" href="${esc(safeUrl(d.notionUrl))}" target="_blank" rel="noopener" style="text-decoration:none">Abrir en Notion ↗</a><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold" id="de-save">Guardar</button></div>`);
+  document.getElementById("de-save").addEventListener("click", async () => {
+    const f = document.getElementById("de-form"), documento = f.elements.documento.value.trim();
+    if(!documento){ f.elements.documento.focus(); return; }
+    try{ await run("Guardando…", () => post("/api/capture", { action:"update-aristoteles-doc", pageId:d.id, documento, seccion:f.elements.seccion.value, estado:f.elements.estado.value, notas:f.elements.notas.value }), "Documento guardado"); closeModal(); await load(); }catch(e){}
+  });
+  document.getElementById("de-del").addEventListener("click", async () => {
+    if(!confirm(`¿Eliminar “${d.name}”? Se mueve a la papelera de Notion (se puede recuperar desde ahí).`)) return;
+    try{ await run("Eliminando…", () => post("/api/capture", { action:"delete-aristoteles-doc", pageId:d.id }), "Documento eliminado"); closeModal(); await load(); }catch(e){}
+  });
+}
+document.getElementById("import-file").addEventListener("change", async e => {
+  const file = e.target.files[0]; e.target.value = "";
+  if(!file) return;
+  if(file.size > 400 * 1024){ window.jarvisToast?.error(null, "El archivo es demasiado grande (máximo 400 KB de texto)."); return; }
+  let text = await file.text();
+  if(text.length > 180000){ text = text.slice(0, 180000); window.jarvisToast?.error(null, "El texto se recortó a 180.000 caracteres (límite de Notion)."); }
+  openDocForm({ import:true, documento:file.name.replace(/\.[^.]+$/, ""), contenido:text, seccion:openSec || undefined });
 });
 
-function showHomeTab(btn){document.querySelectorAll('.mock-nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(btn.textContent==='Secciones')document.getElementById('sections-grid')?.scrollIntoView({behavior:'smooth',block:'start'});if(btn.textContent==='Estadísticas')document.getElementById('state-stats')?.scrollIntoView({behavior:'smooth',block:'center'});}
-document.getElementById('date-filter').addEventListener('change',e=>{document.getElementById('date-label').textContent=e.target.value?`Documentos desde ${e.target.value}`:'Vista actual';});
-
-async function loadData(){
-  const syncNote = document.getElementById("sync-note");
-  try{
-    const res = await fetch("/api/project-data?project=aristoteles");
-    const data = await res.json();
-    if(data.error && !data.isAristoteles) throw new Error(data.error);
-    allData = data;
-    renderSections(data.sections);
-    renderState(data.stats);
-    renderRecent(data.recent);
-    if(activeSection) renderSectionDocs();
-    syncNote.textContent = "";
-  }catch(err){
-    console.warn("Live data unavailable:", err.message);
-    document.getElementById("sections-grid").innerHTML = emptyNote("No se pudo conectar con Notion.");
-    syncNote.textContent = "Sin conexión a Notion — revisa NOTION_TOKEN en Vercel.";
-  }
+/* ---------- sections: create / edit / delete ---------- */
+async function resizeImage(file){
+  if(!/^image\//.test(file.type)) throw new Error("Elige una imagen (JPG, PNG o WebP).");
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file); });
+  const k = Math.min(1, 1400 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+  c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.85);
 }
-loadData();
+function openSectionForm(s = null, focusCover = false){
+  const i = s ? data.sections.indexOf(s) : data.sections.length;
+  openModal(`<h2>${s ? "Editar sección" : "Nueva sección"}</h2><div class="sub">${s ? "Renombrar la sección mueve todos sus documentos al nuevo nombre." : "Crea un espacio nuevo para organizar documentos."}</div>
+    <form class="form" id="s-form" onsubmit="return false">
+      <label class="wide">Nombre<input name="name" value="${esc(s?.name || "")}" required></label>
+      <label>Ícono <span class="hint">(un emoji)</span><input name="icon" value="${esc(s?.icon || "📁")}" maxlength="8"></label>
+      <label class="wide">Descripción<textarea name="description" style="min-height:70px">${esc(s?.desc || "")}</textarea></label>
+      <div class="wide"><label>Portada</label><div class="img-field" style="margin-top:5px"><div class="img-prev" id="s-prev" style="${s ? coverStyle(s, i) : "background-image:url('/assets/covers/aristoteles-cover-v2.jpg')"}"></div>
+        <div class="actions"><button class="btn sm" type="button" id="s-pick">Elegir imagen…</button>${s?.coverUrl ? `<button class="btn sm danger" type="button" id="s-rm">Quitar portada</button>` : ""}<input type="file" id="s-file" accept="image/*" hidden></div></div></div>
+    </form>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn gold" id="s-save">${s ? "Guardar cambios" : "Crear sección"}</button></div>`);
+  let cover = null, removeCover = false;
+  const pick = document.getElementById("s-pick"), file = document.getElementById("s-file");
+  pick.addEventListener("click", () => file.click());
+  file.addEventListener("change", async () => { try{ cover = await resizeImage(file.files[0]); removeCover = false; document.getElementById("s-prev").style.backgroundImage = `url(${cover})`; document.getElementById("s-prev").style.backgroundSize = "cover"; document.getElementById("s-prev").style.backgroundPosition = "center"; }catch(err){ window.jarvisToast?.error(null, err.message); } });
+  document.getElementById("s-rm")?.addEventListener("click", () => { removeCover = true; cover = null; document.getElementById("s-prev").style.backgroundImage = "url('/assets/covers/aristoteles-cover-v2.jpg')"; });
+  if(focusCover) pick.click();
+  document.getElementById("s-save").addEventListener("click", async () => {
+    const f = document.getElementById("s-form"), name = f.elements.name.value.trim();
+    if(!name){ f.elements.name.focus(); return; }
+    const body = { action:"section-save", name, oldName:s?.name, description:f.elements.description.value, icon:f.elements.icon.value.trim() || "📁", removeCover };
+    if(cover) Object.assign(body, { coverDataBase64:cover, coverFilename:"portada.jpg", coverContentType:"image/jpeg" });
+    try{
+      await run(s ? "Guardando sección…" : "Creando sección…", () => post("/api/capture", body), s ? "Sección guardada" : "Sección creada");
+      closeModal(); if(s && openSec === s.name){ openSec = name; location.hash = "seccion=" + encodeURIComponent(name); } await load();
+    }catch(e){}
+  });
+}
+function openSectionDelete(s){
+  const n = data.docs.filter(d => d.seccion === s.name).length, others = data.sections.filter(x => x.name !== s.name);
+  openModal(`<h2>Eliminar “${esc(s.name)}”</h2><div class="sub">${n ? `Esta sección tiene ${n} documento${n === 1 ? "" : "s"}. No se borran: elige a qué sección moverlos.` : "La sección está vacía. Se quitará de Aristóteles."}</div>
+    <form class="form" id="sd-form" onsubmit="return false">${n ? `<label class="wide">Mover sus documentos a<select name="moveTo">${others.map(o => `<option>${esc(o.name)}</option>`).join("")}</select></label>` : ""}</form>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn danger" id="sd-ok">Eliminar sección</button></div>`);
+  document.getElementById("sd-ok").addEventListener("click", async () => {
+    const moveTo = document.getElementById("sd-form").elements.moveTo?.value;
+    try{ await run("Eliminando sección…", () => post("/api/capture", { action:"section-delete", name:s.name, moveTo }), "Sección eliminada"); closeModal(); if(openSec === s.name) closeSection(); await load(); }catch(e){}
+  });
+}
+
+/* ---------- Penny (hidden until configured) ---------- */
+async function askPenny(){
+  const input = document.getElementById("pw-question"), out = document.getElementById("pw-response"), message = input.value.trim();
+  if(!message) return;
+  out.textContent = "Penny está pensando…";
+  try{
+    const context = { project:"Aristóteles", secciones:data.sections.map(s => ({ nombre:s.name, documentos:sectionStats(s.name).count })), documentos:data.docs.slice(0, 80).map(d => ({ nombre:d.name, seccion:d.seccion, estado:d.estado })) };
+    const d = await post("/api/penny-ai", { message, context });
+    out.textContent = d.answer; input.value = "";
+  }catch(e){ out.textContent = "Penny no pudo responder: " + e.message; }
+}
+document.getElementById("pw-question").addEventListener("keydown", e => { if(e.key === "Enter") askPenny(); });
+
+/* ---------- tabs + render ---------- */
+function setTab(t){ tab = t; openSec = null; location.hash = t; renderView(); scrollTo({ top: document.getElementById("tabs").offsetTop - 10, behavior:"smooth" }); }
+function renderView(){
+  const inSec = !!openSec;
+  document.getElementById("section-view").style.display = inSec ? "" : "none";
+  document.getElementById("tab-view").style.display = inSec ? "none" : "";
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", !inSec && b.dataset.tab === tab));
+  document.querySelectorAll("[data-tabs]").forEach(el => el.classList.toggle("tab-on", el.dataset.tabs.split(" ").includes(tab)));
+  document.getElementById("main-layout").classList.toggle("full", tab !== "inicio");
+  if(inSec) renderSectionView(); else document.getElementById("crumb").innerHTML = "<b>Aristóteles</b>";
+}
+document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+function readHash(){
+  const h = decodeURIComponent(location.hash.slice(1));
+  if(h.startsWith("seccion=")){ openSec = h.slice(8); }
+  else { openSec = null; if(["inicio","secciones","explorar","conexiones","estadisticas","notas"].includes(h)) tab = h; }
+}
+addEventListener("hashchange", () => { readHash(); if(loaded) render(); });
+function render(){
+  renderFilterNote(); renderSections(); renderState(); renderRecent(); renderQuote(); renderExplore(); renderConnections(); renderStats(); renderNotes(); renderView();
+}
+let searchTimer;
+document.getElementById("search").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(render, 150); });
+document.getElementById("search").addEventListener("keydown", e => { if(e.key === "Enter" && tab === "inicio" && !openSec && q()) setTab("explorar"); });
+document.getElementById("period").addEventListener("change", e => { document.getElementById("range").style.display = e.target.value === "range" ? "" : "none"; render(); });
+["from","to"].forEach(id => document.getElementById(id).addEventListener("change", render));
+
+async function load(){
+  const sync = document.getElementById("sync");
+  try{
+    const r = await fetch("/api/project-data?project=aristoteles&fresh=" + Date.now(), { cache:"no-store" });
+    const d = await r.json();
+    if(!r.ok || (d.error && !d.isAristoteles)) throw new Error(d.error || ("Error " + r.status));
+    data = { sections:d.sections || [], docs:d.docs || [] }; loaded = true;
+    sync.className = "sync"; sync.innerHTML = `<i></i><span>Sincronizado con Notion · ${new Date().toLocaleTimeString("es-MX", { hour:"2-digit", minute:"2-digit" })}</span>`;
+    document.getElementById("status").textContent = `${data.docs.length} documentos y ${data.sections.length} secciones sincronizados desde Notion`;
+  }catch(err){
+    loaded = true; sync.className = "sync err"; sync.innerHTML = `<i></i><span>Sin conexión con Notion</span>`;
+    document.getElementById("sections").innerHTML = `<div class="empty">No se pudo conectar con Notion: ${esc(err.message)}</div>`;
+  }
+  render();
+}
+async function loadNotes(){
+  try{ const r = await fetch("/api/task-api?action=calendar-items&project=" + encodeURIComponent("Aristóteles"), { cache:"no-store" }); const d = await r.json(); notes = (d.items || []).filter(i => i.kind === "note"); }catch(e){ notes = []; }
+}
+readHash(); renderView(); renderQuote();
+JarvisCover.attach({ workspace:"Aristóteles", banner:document.getElementById("hero"), title:document.getElementById("hero-title"), subtitle:document.getElementById("hero-sub"), button:document.getElementById("edit-cover") });
+Promise.all([load(), loadNotes()]).then(render);
 </script>
 <script src="/toast.js"></script>
 <script src="/sidebar.js"></script>
