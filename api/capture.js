@@ -13,14 +13,20 @@
 // Body: { action: "topic-columns", topic, op, column?, newName?, columns? }
 // Body: { action: "delete-topic", name }
 // Body: { action: "remove-file", pageId, index }
+// Aristóteles (see _sections.js):
+// Body: { action: "create-aristoteles-doc", documento, seccion, contenido?, estado?, notas? }
+// Body: { action: "update-aristoteles-doc", pageId, documento?, seccion?, estado?, notas? }
+// Body: { action: "delete-aristoteles-doc", pageId }
+// Body: { action: "section-save", name, oldName?, description?, icon?, cover upload, removeCover? }
+// Body: { action: "section-delete", name, moveTo? } / { action: "section-duplicate", name } / { action: "section-move", name, dir }
 
 const { richText } = require("./_notion");
 const topics = require("./_topics");
+const sections = require("./_sections");
 
 const NOTION_VERSION = "2025-09-03";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const DB_REFERENCIAS = process.env.NOTION_DB_REFERENCIAS || "7456b43c-50ef-4e15-bea4-ab2f824add71";
-const DB_ARISTOTELES_DOCS = process.env.NOTION_DB_ARISTOTELES_DOCS || "650f515d-4540-4a67-9066-f04b0944e394";
 
 function headers() {
   return { Authorization: `Bearer ${NOTION_TOKEN}`, "Notion-Version": NOTION_VERSION, "Content-Type": "application/json" };
@@ -115,51 +121,6 @@ async function handleComment(req, res) {
   res.status(200).json({ ok: true });
 }
 
-// ---- Aristóteles: new document / new section ----
-async function handleCreateAristotelesDoc(req, res) {
-  const { documento, seccion } = req.body || {};
-  if (!documento || !documento.trim()) { res.status(400).json({ ok: false, error: "documento is required" }); return; }
-  if (!seccion) { res.status(400).json({ ok: false, error: "seccion is required" }); return; }
-  const r = await fetch("https://api.notion.com/v1/pages", {
-    method: "POST", headers: headers(),
-    body: JSON.stringify({
-      parent: { type: "data_source_id", data_source_id: DB_ARISTOTELES_DOCS },
-      properties: {
-        Documento: { title: [{ text: { content: documento.trim() } }] },
-        Sección: { select: { name: seccion } },
-        Estado: { select: { name: "Vacío" } },
-      },
-    }),
-  });
-  if (!r.ok) throw new Error(`Notion create failed (${r.status}): ${await r.text()}`);
-  const page = await r.json();
-  res.status(200).json({ ok: true, pageId: page.id, notionUrl: page.url });
-}
-
-// Adds a real new Sección option — same full-option-resubmit pattern as
-// create-topic, since Notion requires the complete list on every update.
-async function handleCreateAristotelesSection(req, res) {
-  const { name } = req.body || {};
-  if (!name || !name.trim()) { res.status(400).json({ ok: false, error: "name is required" }); return; }
-  const schemaRes = await fetch(`https://api.notion.com/v1/data_sources/${DB_ARISTOTELES_DOCS}`, { headers: headers() });
-  if (!schemaRes.ok) throw new Error(`Notion schema fetch failed (${schemaRes.status}): ${await schemaRes.text()}`);
-  const schema = await schemaRes.json();
-  const seccionProp = schema.properties?.["Sección"];
-  if (!seccionProp || seccionProp.type !== "select") throw new Error("Sección property not found or not select");
-  const existingNames = (seccionProp.select.options || []).map((o) => o.name);
-  if (existingNames.some((n) => n.toLowerCase() === name.trim().toLowerCase())) {
-    res.status(200).json({ ok: true, alreadyExists: true });
-    return;
-  }
-  const newOptions = [...seccionProp.select.options.map((o) => ({ name: o.name, color: o.color })), { name: name.trim(), color: "default" }];
-  const patchRes = await fetch(`https://api.notion.com/v1/data_sources/${DB_ARISTOTELES_DOCS}`, {
-    method: "PATCH", headers: headers(),
-    body: JSON.stringify({ properties: { "Sección": { select: { options: newOptions } } } }),
-  });
-  if (!patchRes.ok) throw new Error(`Notion schema update failed (${patchRes.status}): ${await patchRes.text()}`);
-  res.status(200).json({ ok: true });
-}
-
 // Real file/image upload direct from Jarvis — same 2-step Notion File
 // Upload API used for Master Actions, applied here to Referencias so
 // "attach a screenshot/PDF to this reference" doesn't require Notion either.
@@ -228,8 +189,13 @@ module.exports = async (req, res) => {
     if (action === "comment") return await handleComment(req, res);
     if (action === "upload") return await handleUpload(req, res);
     if (action === "remove-file") return await handleRemoveFile(req, res);
-    if (action === "create-aristoteles-doc") return await handleCreateAristotelesDoc(req, res);
-    if (action === "create-aristoteles-section") return await handleCreateAristotelesSection(req, res);
+    if (action === "create-aristoteles-doc") { const doc = await sections.createDoc(req.body || {}); return res.status(200).json({ ok: true, pageId: doc.id, notionUrl: doc.notionUrl, doc }); }
+    if (action === "update-aristoteles-doc") return res.status(200).json({ ok: true, doc: await sections.updateDoc(req.body || {}) });
+    if (action === "delete-aristoteles-doc") { await sections.deleteDoc(req.body?.pageId); return res.status(200).json({ ok: true }); }
+    if (action === "create-aristoteles-section" || action === "section-save") return res.status(200).json({ ok: true, section: await sections.saveSection(req.body || {}) });
+    if (action === "section-delete") return res.status(200).json({ ok: true, ...(await sections.deleteSection(req.body || {})) });
+    if (action === "section-duplicate") return res.status(200).json({ ok: true, section: await sections.duplicateSection(req.body || {}) });
+    if (action === "section-move") return res.status(200).json({ ok: true, order: await sections.moveSection(req.body || {}) });
     res.status(400).json({ ok: false, error: "Unknown or missing action" });
   } catch (err) {
     console.error(err);

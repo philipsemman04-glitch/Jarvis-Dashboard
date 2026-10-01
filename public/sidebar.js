@@ -42,7 +42,8 @@
     .jarvis-sidebar .sb-item:hover{ background:rgba(255,255,255,0.04); color:#f3f0e8; }
     .jarvis-sidebar .sb-item.active{ background:rgba(201,169,97,0.14); color:#e0c584; font-weight:600; }
     .jarvis-sidebar .sb-item.coming-soon{ opacity:0.5; }
-    .jarvis-sidebar .sb-item .sb-icon{ width:18px; text-align:center; flex-shrink:0; font-size:13px; }
+    .jarvis-sidebar .sb-item .sb-icon{ width:18px; text-align:center; flex-shrink:0; font-size:13px; display:inline-grid; place-items:center; }
+    .jarvis-sidebar .sb-icon .ws-mono{ font:700 9px Inter,system-ui,sans-serif; letter-spacing:.02em; }
     .jarvis-sidebar .sb-divider{ height:1px; background:rgba(255,255,255,0.06); margin:10px 14px; }
     .jarvis-sidebar .sb-footer{ padding:14px 18px; border-top:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:10px; }
     .jarvis-sidebar .sb-avatar{ width:30px; height:30px; border-radius:50%; background:rgba(201,169,97,0.14); color:#c9a961;
@@ -71,10 +72,19 @@
     }
   }
 
-  function iconFor(name) {
-    // Falls back to the Notion-stored emoji already fetched per workspace —
-    // this is only used for the two hardcoded, non-Notion nav items.
-    return name === "Command Center" ? "🏛️" : "📁";
+  // Line icons from /ws-icons.js (loaded before the sidebar is built); the
+  // Notion emoji is only the last resort if that file fails to load.
+  function iconFor(name, emoji) {
+    if (window.JarvisIcons) return window.JarvisIcons.markup(name, { size: "16", color: "currentColor", stroke: 1.7 });
+    return esc(emoji || "◈");
+  }
+  function loadIcons() {
+    if (window.JarvisIcons) return Promise.resolve();
+    return new Promise((resolve) => {
+      const s = document.createElement("script");
+      s.src = "/ws-icons.js"; s.onload = resolve; s.onerror = resolve;
+      document.head.appendChild(s);
+    });
   }
 
   function buildSidebarHTML(workspaces, appLogoUrl) {
@@ -107,7 +117,7 @@
             ? `/project-command-center.html?project=${encodeURIComponent(canonical)}`
         : (w.route || `/coming-soon.html?${new URLSearchParams({ name: w.name, icon: w.icon || "" })}`);
       const icon = String(w.icon || "📁");
-      const iconMarkup = icon.startsWith("http") ? `<img src="${esc(safeUrl(icon))}" alt="" style="width:16px;height:16px;object-fit:contain;border-radius:4px">` : esc(icon);
+      const iconMarkup = icon.startsWith("http") ? `<img src="${esc(safeUrl(icon))}" alt="" style="width:16px;height:16px;object-fit:contain;border-radius:4px">` : iconFor(canonical, icon);
       return `<a class="sb-item ${isActive(href) ? "active" : ""} ${comingSoon ? "coming-soon" : ""}" href="${esc(safeUrl(href) || "#")}">
         <span class="sb-icon">${iconMarkup}</span><span>${esc(w.displayName || w.name)}</span>
       </a>`;
@@ -169,6 +179,7 @@
   ];
 
   async function init() {
+    await loadIcons();
     try {
       const res = await fetch("/api/workspaces-data");
       if (!res.ok) throw new Error("API error " + res.status);
