@@ -72,7 +72,7 @@ async function handleDetail(req, res) {
     const commentsData = await commentsRes.json();
     comments = (commentsData.results || []).map(c => ({
       id: c.id, text: (c.rich_text || []).map(t => t.plain_text).join(""),
-      author: c.created_by?.id || "unknown", createdTime: c.created_time,
+      author: c.created_by?.id || "unknown", authorName: c.created_by?.type === "bot" ? "Jarvis" : "Notion", createdTime: c.created_time,
     }));
   }
   res.status(200).json({
@@ -82,6 +82,10 @@ async function handleDetail(req, res) {
     collaborators: personText(props), owner: personText(props), targetDate: props["Target Date"]?.date?.start || null,
     areaIds: relationIds(props["Related Entity"]), tags: (props["Tags"]?.multi_select || []).map(t => t.name),
     attachments: fileList(props["Attachments"]),
+    type: select(props["Type"]), impact: select(props["Impact"]), urgency: select(props["Urgency"]), wave: select(props["Ola"]),
+    driveLink: props["Drive Link"]?.url || null, blocksLaunch: !!props["Blocks Launch"]?.checkbox,
+    project: select(props["Project"]), completionDate: props["Completion Date"]?.date?.start || null,
+    createdTime: page.created_time, lastEditedTime: page.last_edited_time,
     comments,
   });
 }
