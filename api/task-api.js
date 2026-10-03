@@ -57,12 +57,22 @@ async function completionDateChange(pageId, newStatus) {
   return {};
 }
 
+// Comments only carry the author's user id; the ones Jarvis posted are by the
+// integration's own bot user (cached per warm function instance).
+let cachedBotId = null;
+async function jarvisBotId() {
+  if (cachedBotId) return cachedBotId;
+  try { const r = await fetch("https://api.notion.com/v1/users/me", { headers: headers() }); if (r.ok) cachedBotId = (await r.json()).id || null; } catch (e) {}
+  return cachedBotId;
+}
+
 async function handleDetail(req, res) {
   const pageId = req.query?.pageId;
   if (!pageId) { res.status(400).json({ error: "pageId is required" }); return; }
-  const [pageRes, commentsRes] = await Promise.all([
+  const [pageRes, commentsRes, botId] = await Promise.all([
     fetch(`https://api.notion.com/v1/pages/${pageId}`, { headers: headers() }),
     fetch(`https://api.notion.com/v1/comments?block_id=${pageId}`, { headers: headers() }),
+    jarvisBotId(),
   ]);
   if (!pageRes.ok) throw new Error(`Notion page fetch failed (${pageRes.status}): ${await pageRes.text()}`);
   const page = await pageRes.json();
@@ -72,7 +82,7 @@ async function handleDetail(req, res) {
     const commentsData = await commentsRes.json();
     comments = (commentsData.results || []).map(c => ({
       id: c.id, text: (c.rich_text || []).map(t => t.plain_text).join(""),
-      author: c.created_by?.id || "unknown", authorName: c.created_by?.type === "bot" ? "Jarvis" : "Notion", createdTime: c.created_time,
+      author: c.created_by?.id || "unknown", authorName: c.created_by?.id && c.created_by.id === botId ? "Jarvis" : "Notion", createdTime: c.created_time,
     }));
   }
   res.status(200).json({
