@@ -499,167 +499,12 @@ function renderTaskList(allTasks){
   });
 }
 // ---- Task Detail modal ----
-async function openTaskDetail(pageId){
-  const backdrop = document.getElementById("task-modal-backdrop");
-  const modal = document.getElementById("task-modal");
-  backdrop.style.display = "flex";
-  modal.innerHTML = `<div class="empty-state">Cargando…</div>`;
-  try{
-    const res = await fetch(`/api/task-api?action=detail&pageId=${pageId}`);
-    const t = await res.json();
-    if(t.error) throw new Error(t.error);
-    const listed = allTasks.find(x => x.id === pageId) || {};
-    modal.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
-        <h2 style="font-family:var(--serif); font-size:19px; font-weight:600; flex:1;">${esc(t.taskName)}</h2>
-        <span style="cursor:pointer; color:var(--text-faint); font-size:18px; padding:0 4px;" onclick="closeTaskModal()">✕</span>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
-        <div>
-          <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Estado</label>
-          <select id="td-status" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
-            ${STATUS_OPTIONS.map(s => `<option value="${s}" ${s===t.status?"selected":""}>${s}</option>`).join("")}
-          </select>
-        </div>
-        <div>
-          <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Prioridad</label>
-          <select id="td-priority" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
-            <option value="">Sin prioridad</option>${JarvisTasks.PRIORITIES.map(p => `<option value="${p.key}" ${p.key===JarvisTasks.priorityOf(t)?"selected":""}>${p.key} · ${p.label}</option>`).join("")}
-          </select>
-        </div>
-        <div>
-          <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Área</label>
-          <select id="td-area" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
-            ${["Sin área", ...new Set(allTasks.filter(x => x.project === listed.project && x.area).map(x => x.area))].map(a => `<option value="${esc(a)}" ${a === (listed.area || "Sin área") ? "selected" : ""}>${esc(a)}</option>`).join("")}
-          </select>
-        </div>
-        <div>
-          <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Responsable</label>
-          <input id="td-collaborators" value="${esc(t.collaborators||'')}" placeholder="Nombre…" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
-        </div>
-        <div>
-          <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Fecha límite</label>
-          <input id="td-date" type="date" value="${esc(t.targetDate||'')}" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:8px; border-radius:8px; font-size:12.5px;">
-        </div>
-      </div>
-      <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:4px;">Descripción / Notas</label>
-      <textarea id="td-description" rows="4" style="width:100%; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:10px; border-radius:8px; font-size:12.5px; margin-bottom:16px; resize:vertical;">${esc(t.description||'')}</textarea>
-
-      <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:8px;">📎 Archivos y referencias</label>
-      <div id="td-attachments" style="margin-bottom:8px;">
-        ${t.attachments && t.attachments.length ? t.attachments.map(a => `
-          <div style="display:flex; align-items:center; gap:8px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border-soft);">
-            <span>📄</span><a href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener" style="color:var(--gold-bright); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(a.name)}</a>
-          </div>`).join("") : `<div style="font-size:11.5px; color:var(--text-faint);">Sin archivos todavía.</div>`}
-      </div>
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-        <input type="file" id="td-file-input" style="display:none;" onchange="uploadAttachment('${pageId}')">
-        <div onclick="document.getElementById('td-file-input').click()" style="background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text-dim); font-size:12px; padding:8px 14px; border-radius:8px; cursor:pointer;">+ Subir archivo</div>
-        <span id="td-upload-status" style="font-size:11px; color:var(--text-faint);"></span>
-      </div>
-
-      <label style="font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:8px;">Comentarios</label>
-      <div id="td-comments" style="margin-bottom:10px; max-height:160px; overflow-y:auto;">
-        ${t.comments.length ? t.comments.map(c => `<div style="font-size:12px; padding:8px 0; border-bottom:1px solid var(--border-soft);">${esc(c.text)}<div style="font-size:10px; color:var(--text-faint); margin-top:3px;">${new Date(c.createdTime).toLocaleString()}</div></div>`).join("") : `<div class="empty-state" style="padding:10px 0;">Sin comentarios todavía.</div>`}
-      </div>
-      <div style="display:flex; gap:8px; margin-bottom:16px;">
-        <input id="td-comment-input" placeholder="Escribe un comentario…" style="flex:1; background:var(--panel-alt); border:1px solid var(--border-soft); color:var(--text); padding:9px 10px; border-radius:8px; font-size:12.5px;">
-        <div class="save-btn" id="td-comment-btn" style="white-space:nowrap;">Comentar</div>
-      </div>
-
-      <div style="display:flex; gap:10px;">
-        <div class="save-btn" id="td-save-btn" style="flex:1; text-align:center;">Guardar Cambios</div>
-        <div class="cancel-btn" onclick="closeTaskModal()">Cerrar</div>
-      </div>`;
-
-    document.getElementById("td-save-btn").addEventListener("click", async () => {
-      const btn = document.getElementById("td-save-btn");
-      btn.textContent = "Guardando…";
-      const t = window.jarvisToast?.loading("Guardando cambios…");
-      try{
-        const r = await fetch("/api/task-api", {
-          method:"POST", headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({
-            action:"update-full",
-            pageId,
-            status: document.getElementById("td-status").value,
-            priority: document.getElementById("td-priority").value,
-            collaborators: document.getElementById("td-collaborators").value,
-            targetDate: document.getElementById("td-date").value || null,
-            description: document.getElementById("td-description").value,
-          })
-        });
-        if(!r.ok) throw new Error("Error " + r.status);
-        const area = document.getElementById("td-area").value;
-        if(area !== (listed.area || "Sin área")){
-          const ra = await fetch("/api/task-api", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ action:"update-area", pageId, area, project: listed.project }) });
-          if(!ra.ok) throw new Error((await ra.json().catch(() => ({}))).error || "No se pudo cambiar el área");
-        }
-        window.jarvisToast?.success(t, "Guardado");
-        closeTaskModal();
-        loadData();
-      }catch(e){
-        btn.textContent = "Error — reintentar";
-        window.jarvisToast?.error(t, "No se pudo guardar: " + e.message);
-      }
-    });
-    document.getElementById("td-comment-btn").addEventListener("click", async () => {
-      const input = document.getElementById("td-comment-input");
-      if(!input.value.trim()) return;
-      const t = window.jarvisToast?.loading("Comentando…");
-      try{
-        const r = await fetch("/api/task-api", {
-          method:"POST", headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ action:"comment", pageId, text: input.value })
-        });
-        if(!r.ok) throw new Error("Error " + r.status);
-        window.jarvisToast?.success(t, "Comentario agregado");
-        openTaskDetail(pageId);
-      }catch(e){ window.jarvisToast?.error(t, "No se pudo comentar: " + e.message); }
-    });
-  }catch(e){
-    modal.innerHTML = `<div class="empty-state">No se pudo cargar la tarea: ${esc(e.message)}</div>`;
-  }
-}
-function closeTaskModal(){ document.getElementById("task-modal-backdrop").style.display = "none"; }
-document.getElementById("task-modal-backdrop").addEventListener("click", (e) => {
-  if(e.target.id === "task-modal-backdrop") closeTaskModal();
-});
-
-async function uploadAttachment(pageId){
-  const input = document.getElementById("td-file-input");
-  const file = input.files[0];
-  if(!file) return;
-  const statusEl = document.getElementById("td-upload-status");
-  if(file.size > 3 * 1024 * 1024){
-    statusEl.textContent = "Archivo demasiado grande (máx. 3MB por ahora).";
-    statusEl.style.color = "var(--red)";
-    return;
-  }
-  const t = window.jarvisToast?.loading("Subiendo archivo…");
-  statusEl.textContent = "Subiendo…";
-  statusEl.style.color = "var(--text-faint)";
-  try{
-    const dataBase64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-    const res = await fetch("/api/task-api", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ action:"upload", pageId, filename: file.name, contentType: file.type, dataBase64 })
-    });
-    const result = await res.json();
-    if(!res.ok || result.error) throw new Error(result.error || "Error desconocido");
-    window.jarvisToast?.success(t, "Archivo subido");
-    input.value = "";
-    openTaskDetail(pageId);
-  }catch(e){
-    statusEl.textContent = "No se pudo subir: " + e.message;
-    statusEl.style.color = "var(--red)";
-    window.jarvisToast?.error(t, "No se pudo subir: " + e.message);
-  }
+// Opens the shared task editor (/task-editor.js). Areas offered are the ones
+// used by tasks of the same project (moving a task is matched by name + project).
+function openTaskDetail(pageId){
+  const listed = allTasks.find(x => x.id === pageId) || {};
+  const areas = [...new Set(allTasks.filter(t => t.project === listed.project).map(t => t.area).filter(a => a && a !== "Sin área"))].map(name => ({ id: "", name }));
+  JarvisTaskEditor.open(pageId, { task: listed, areas, project: listed.project, onSaved: () => loadData() });
 }
 
 document.querySelectorAll('[data-status]').forEach(chip => {
@@ -755,7 +600,7 @@ async function loadData(){
 
 loadData();
 </script>
-<script src="/toast.js"></script>
+<script src="/task-editor.js"></script><script src="/toast.js"></script>
 <script src="/sidebar.js"></script>
 </body>
 </html>
