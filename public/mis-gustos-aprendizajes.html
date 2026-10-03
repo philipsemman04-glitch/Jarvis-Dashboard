@@ -129,7 +129,7 @@ a{color:inherit}
 .dotc{width:10px;height:10px;border-radius:50%}
 .bar{height:5px;border-radius:5px;background:#16304a;overflow:hidden}.bar i{display:block;height:100%;border-radius:5px}
 .num{text-align:right;color:var(--muted)}
-.map svg{width:100%;height:auto;display:block}
+.map>svg{width:100%;height:auto;display:block}
 .authors{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
 .author{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--p);cursor:pointer;display:flex;gap:10px;align-items:center}
 .author:hover{border-color:#e5c06899}
@@ -191,6 +191,35 @@ a{color:inherit}
 @media(max-width:1180px){.grid-2,.cloud-wrap{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:760px){.shell{padding:12px 12px 110px}.hero-in{flex-wrap:wrap;padding:20px 16px;gap:12px}.hero-icon{width:54px;height:54px}.hero h1{font-size:26px}.hero-quote{display:none}.kpis{grid-template-columns:1fr 1fr}.topics{grid-template-columns:1fr 1fr}.form,.ref-top{grid-template-columns:1fr}.col{width:84vw}.quickbar{padding:8px 12px}.hero-edit{top:auto;bottom:10px}}
 @media(max-width:420px){.topics{grid-template-columns:1fr}}
+
+.tart{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 50% 55%,color-mix(in srgb,var(--tc) 32%,transparent),transparent 62%);opacity:.95}
+.tart svg{filter:drop-shadow(0 0 14px var(--tc));opacity:.85}
+.tcover{position:relative;overflow:hidden}
+.topic-hero{position:relative;overflow:hidden}
+.tart-hero{left:auto;width:46%;justify-items:center;background:radial-gradient(circle at 60% 50%,color-mix(in srgb,var(--tc) 30%,transparent),transparent 65%);pointer-events:none}
+.tart-hero svg{opacity:.55}
+.topic-hero>*:not(.tart):not(.hero-edit){position:relative;z-index:1}
+.topic-hero>.hero-edit{z-index:2}
+.ticon svg,.hero-icon svg{color:var(--gold)}
+.ticon,.hero-icon{display:grid;place-items:center}
+
+.map{transform-origin:center;transition:transform .2s}
+.map svg text{pointer-events:none}
+.map-panel{padding:0;overflow:hidden}
+.mp-cover{position:relative;height:120px;background:#10263b center/cover no-repeat}
+.mp-edit{position:absolute;right:10px;top:10px;background:#07121fcc}
+.mp-body{padding:14px 16px 16px}
+.mp-title{display:flex;gap:10px;align-items:center;margin-top:-34px;position:relative}
+.mp-title .ticon{width:46px;height:46px;border-radius:12px;background:#0b1726 center/cover no-repeat;border:1.5px solid var(--gold);flex-shrink:0}
+.mp-title h3{margin:18px 0 0;font-family:var(--serif);font-weight:600;font-size:18px}
+.mp-desc{color:var(--muted);font-size:12.5px;line-height:1.5;margin:10px 0}
+.mp-desc.placeholder{font-style:italic;color:var(--faint)}
+.mp-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.mp-actions{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px}
+.mp-ref{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid #8ec3ee18;cursor:pointer}
+.mp-ref:hover b{color:var(--gold2)}
+.mp-ref b{display:block;font-size:12.5px}.mp-ref small{color:var(--faint);font-size:11px}.mp-ref>span{margin-left:auto;color:var(--faint);font-size:10.5px;white-space:nowrap}
+.fext{position:absolute;inset:0 0 22px;display:grid;place-items:center;font-style:normal;font-weight:800;color:var(--gold);font-size:15px;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -284,7 +313,40 @@ const initials = s => String(s || "?").trim().split(/\s+/).slice(0,2).map(w => w
 const dateEs = iso => iso ? new Date(iso).toLocaleDateString("es-MX", { day:"numeric", month:"short", year:"numeric" }) : "";
 function relDate(iso){ const d = Math.floor((Date.now() - new Date(iso)) / 86400000); return d <= 0 ? "Hoy" : d === 1 ? "Ayer" : d < 7 ? `Hace ${d} días` : dateEs(iso); }
 function coverStyle(url, i){ return url ? `background-image:${cssUrl(url)}` : `background-image:linear-gradient(135deg,${GRADS[i % GRADS.length]})`; }
-function iconHTML(t){ return t.iconUrl ? "" : esc(initials(t.name).slice(0,1)); }
+// A line icon for each topic (mockup: no letter/emoji placeholders). Matched
+// by keywords in the topic name; an uploaded icon (t.iconUrl) always wins.
+const TOPIC_ICONS = [
+  [/intelig|\bia\b|\bai\b|machine|neuro/, '<path d="M9.5 4.5a3 3 0 0 0-3 3v.3A3 3 0 0 0 5 13a3 3 0 0 0 2 4.6 2.8 2.8 0 0 0 5 .9V5.6a2.6 2.6 0 0 0-2.5-1.1z"/><path d="M14.5 4.5a3 3 0 0 1 3 3v.3A3 3 0 0 1 19 13a3 3 0 0 1-2 4.6 2.8 2.8 0 0 1-5 .9"/><path d="M9 9.5h1.5M14.5 9.5H13M9 14h1.5M13 14h2"/>'],
+  [/chatgpt|gpt|openai|llm|bot/, '<path d="M12 3.5l1.9 4.6 4.6 1.9-4.6 1.9L12 16.5l-1.9-4.6-4.6-1.9 4.6-1.9z"/><path d="M18.5 15l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/>'],
+  [/arquitect|architect|construc/, '<path d="M4 20h16M6 20V9l6-4 6 4v11"/><path d="M10 20v-5h4v5M9 11h.01M15 11h.01"/>'],
+  [/diseñ|design|creativ|arte\b/, '<path d="M12 20l-7-7 8.5-8.5a2.1 2.1 0 0 1 3 0l4 4a2.1 2.1 0 0 1 0 3z"/><path d="M5 13l-1.5 5.5L9 17M14 7l3 3"/>'],
+  [/espiritu|concien|medita|mindful/, '<path d="M12 20c-4 0-7-2-8-5 3 0 5 1 8 4 3-3 5-4 8-4-1 3-4 5-8 5z"/><path d="M12 19c-2-2.5-2.5-5.5 0-10 2.5 4.5 2 7.5 0 10zM8 15.5C6.5 13 7 10 8.5 8.5M16 15.5c1.5-2.5 1-5.5-.5-7"/>'],
+  [/filosof|philos|estoic|ética/, '<path d="M4 9l8-4.5L20 9z"/><path d="M5 20h14M6 9.5v8M10 9.5v8M14 9.5v8M18 9.5v8"/>'],
+  [/marketing|market|ventas|growth|redes/, '<path d="M4 19V5M4 19h16"/><path d="M7 15l4-4 3 3 5-6"/><path d="M15 8h4v4"/>'],
+  [/músic|music|dj|audio/, '<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>'],
+  [/negoci|empren|business|startup|finanz|invers/, '<rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3.5 12.5h17"/>'],
+  [/persuas|comunica|negocia|ventas/, '<path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h7A2.5 2.5 0 0 1 16 6.5v4a2.5 2.5 0 0 1-2.5 2.5H9l-3.5 3v-3H6.5A2.5 2.5 0 0 1 4 10.5z"/><path d="M18 9.5h.5A1.5 1.5 0 0 1 20 11v4a1.5 1.5 0 0 1-1.5 1.5H18v2.5l-3-2.5h-3"/>'],
+  [/productiv|sistema|hábito|habito|organiz/, '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>'],
+  [/psicolog|mente|mindset|comport/, '<path d="M9 21v-3.5A6.5 6.5 0 1 1 18.5 12l1.5 3.5h-2V18a2 2 0 0 1-2 2H14"/><path d="M11 9.5a1.8 1.8 0 1 1 2.6 1.6c-.6.3-.9.8-.9 1.4"/>'],
+  [/tatuaj|tattoo/, '<path d="M14.5 4.5l5 5-9 9H5.5v-5z"/><path d="M12.5 6.5l5 5M5.5 18.5L3 21"/>'],
+  [/viaj|travel|destino|turism/, '<path d="M3 13l18-7-7 18-2.5-8.5z"/><path d="M11.5 15.5L21 6"/>'],
+  [/salud|health|fitness|deporte|gym/, '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M7.5 12h2.5l1.5-2.5 2 4 1.5-1.5h1.5"/>'],
+  [/tecnolog|tech|software|program|código|codigo/, '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9.5 9.5h5v5h-5zM9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/>'],
+  [/libro|lectur|book|literat/, '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/>'],
+  [/cine|película|pelicula|film|foto/, '<rect x="3.5" y="6" width="17" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/>'],
+  [/gastronom|comida|cocina|vino|food/, '<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2 1.5-3 4-3 7h3"/>'],
+];
+const TOPIC_ICON_DEFAULT = '<circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>';
+function topicIconPath(name){ const n = String(name || "").toLowerCase(); const hit = TOPIC_ICONS.find(([re]) => re.test(n)); return hit ? hit[1] : TOPIC_ICON_DEFAULT; }
+function topicSVG(name, size, color){ return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color || "currentColor"}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${topicIconPath(name)}</svg>`; }
+function iconHTML(t, size){ return t.iconUrl ? "" : topicSVG(t.name, size || "60%"); }
+// Topic cover without an uploaded image: the topic's colour, a soft glow and
+// its icon drawn large, so every card has real artwork.
+function topicArt(t, i){
+  if(t.coverUrl) return "";
+  const c = colorOf(t.name);
+  return `<div class="tart" style="--tc:${c}">${topicSVG(t.name, "62%", c)}</div>`;
+}
 function thumbHTML(r, cls = "thumb"){ return r.imageUrl ? `<div class="${cls}" style="background-image:${cssUrl(r.imageUrl)}"></div>` : `<div class="${cls}">${esc(TIPO_SHORT[r.tipo] || "Ref")}</div>`; }
 function parseQuote(r){ const m = String(r.referencia || "").match(/^["“](.+)["”]\s*[—-]\s*(.+)$/s); return m ? { text:m[1], author:m[2] } : { text:r.referencia, author:r.autor || "" }; }
 const quotes = () => data.referencias.filter(r => r.tipo === "Cita");
@@ -388,7 +450,7 @@ function kpisHTML(){
 }
 function topicCard(t, i){
   const cols = new Set([...(t.columns||[]), ...refsOf(t.name).map(r => r.columna).filter(c => c && c !== "Sin columna")]).size;
-  return `<div class="tcard" data-topic="${esc(t.name)}"><button class="tmenu" data-tmenu="${esc(t.name)}" title="Opciones">⋯</button><div class="tcover" style="${coverStyle(t.coverUrl, i)}"></div><div class="tbody"><div class="ticon" style="${t.iconUrl?`background-image:${cssUrl(t.iconUrl)}`:""}">${iconHTML(t)}</div><div class="tname">${esc(t.name)}</div><div class="tmeta">${t.count} referencias · ${cols} columnas</div><div class="tdesc ${t.description?"":"placeholder"}">${esc(t.description || "Sin descripción — ✎ edita el tema para añadir portada, ícono y descripción.")}</div></div></div>`;
+  return `<div class="tcard" data-topic="${esc(t.name)}"><button class="tmenu" data-tmenu="${esc(t.name)}" title="Opciones">⋯</button><div class="tcover" style="${coverStyle(t.coverUrl, i)}">${topicArt(t, i)}</div><div class="tbody"><div class="ticon" style="${t.iconUrl?`background-image:${cssUrl(t.iconUrl)}`:""}">${iconHTML(t)}</div><div class="tname">${esc(t.name)}</div><div class="tmeta">${t.count} referencias · ${cols} columnas</div><div class="tdesc ${t.description?"":"placeholder"}">${esc(t.description || "Sin descripción — ✎ edita el tema para añadir portada, ícono y descripción.")}</div></div></div>`;
 }
 const newTopicCard = () => `<div class="tcard new" data-newtopic><div class="plus">＋</div><b>Nuevo tema</b><span>Empieza a explorar un nuevo interés.</span></div>`;
 function resumenHTML(){
@@ -441,39 +503,71 @@ function nubeHTML(){
   const words = cloudItems(), max = Math.max(1, ...words.map(w => w.weight)), total = data.referencias.length;
   const sorted = [...data.topics].sort(topicSort === "az" ? (a,b) => a.name.localeCompare(b.name, "es") : (a,b) => b.count - a.count);
   const maxT = Math.max(1, ...data.topics.map(t => t.count));
-  const view = cloudView === "mapa" ? `<div class="map">${mapSVG()}</div>` : cloudView === "lista"
+  const view = cloudView === "mapa" ? `<div class="map" id="cloud" style="transform:scale(${cloudZoom})">${mapSVG()}</div><div class="zoom"><button class="btn sm" id="z-in" title="Acercar">＋</button><button class="btn sm" id="z-out" title="Alejar">－</button><button class="btn sm" id="z-reset">↺ Restablecer vista</button><button class="btn sm" data-newtopic>＋ Añadir tema</button></div>` : cloudView === "lista"
     ? `<div class="tlist" style="padding:14px">${sorted.map(t => topicRow(t, maxT, total)).join("")}</div>`
     : `<div class="cloud" id="cloud" style="transform:scale(${cloudZoom})">${words.map((w,i) => `<button data-${w.topic?"topic":"tag"}="${esc(w.word)}" title="${esc(w.word)} · ${w.weight} referencias" style="font-size:${13 + (w.weight/max)*34}px;color:${COLORS[i % COLORS.length]}">${esc(w.word)}</button>`).join("") || '<div class="empty">Crea un tema para verlo aquí.</div>'}</div>
        <div class="zoom"><button class="btn sm" id="z-in" title="Acercar">＋</button><button class="btn sm" id="z-out" title="Alejar">－</button><button class="btn sm" id="z-reset">↺ Restablecer vista</button></div>`;
   return `<div class="cloud-wrap"><section class="panel"><div class="panel-head"><div><h2>Nube de Temas</h2><div class="sub">El tamaño indica cuántas referencias tiene cada tema. Haz clic en un tema para abrirlo; en un tag, para ver sus referencias.</div></div>
       <div class="seg" id="cloud-seg"><button data-v="nube" class="${cloudView==="nube"?"active":""}">Nube</button><button data-v="mapa" class="${cloudView==="mapa"?"active":""}">Mapa</button><button data-v="lista" class="${cloudView==="lista"?"active":""}">Lista</button></div></div>
       <div class="cloud-box">${view}<div class="total-pill">${total} referencias en total</div></div></section>
-    <section class="panel"><div class="panel-head"><h3>Temas (${data.topics.length})</h3><select class="select" id="topic-sort"><option value="refs" ${topicSort==="refs"?"selected":""}>Por referencias</option><option value="az" ${topicSort==="az"?"selected":""}>Por nombre</option></select></div>
-      <div class="tlist">${sorted.map(t => topicRow(t, maxT, total)).join("")}</div>
-      <button class="link" style="margin-top:12px" onclick="openTopicForm()">＋ Agregar tema</button></section></div>
+    ${cloudView === "mapa" && topicOf(mapSel) ? mapPanelHTML() : `<section class="panel"><div class="panel-head"><h3>Temas (${data.topics.length})</h3><select class="select" id="topic-sort"><option value="refs" ${topicSort==="refs"?"selected":""}>Por referencias</option><option value="az" ${topicSort==="az"?"selected":""}>Por nombre</option></select></div>
+      <div class="tlist">${sorted.map(t => topicRow(t, maxT, total, cloudView === "mapa")).join("")}</div>
+      <button class="link" style="margin-top:12px" onclick="openTopicForm()">＋ Agregar tema</button></section>`}</div>
     <section class="panel"><div class="panel-head"><h3>Temas principales</h3><button class="link" onclick="go('temas')">Ver todos →</button></div>
       <div class="topics">${[...data.topics].sort((a,b) => b.count - a.count).slice(0, 6).map(t => topicCard(t, data.topics.indexOf(t))).join("")}</div></section>`;
 }
-function topicRow(t, max, total){
+function topicRow(t, max, total, selectOnly){
   const pct = total ? Math.round(t.count / total * 100) : 0, c = colorOf(t.name);
-  return `<div class="trow" data-topic="${esc(t.name)}"><span class="dotc" style="background:${c}"></span><span>${esc(t.name)}</span><span class="bar"><i style="width:${Math.max(4, t.count/max*100)}%;background:${c}"></i></span><span class="num">${t.count}</span><span class="num">${pct}%</span></div>`;
+  return `<div class="trow" ${selectOnly ? `data-mapnode` : `data-topic`}="${esc(t.name)}"><span class="dotc" style="background:${c}"></span><span>${esc(t.name)}</span><span class="bar"><i style="width:${Math.max(4, t.count/max*100)}%;background:${c}"></i></span><span class="num">${t.count}</span><span class="num">${pct}%</span></div>`;
 }
+// "Mapa" view: YO in the centre, each topic as a glowing node with its icon,
+// and around it its most used tags and latest references (mockup 521e98).
+// Clicking a topic selects it and shows its detail panel on the right.
+let mapSel = null;
 function mapSVG(){
-  const topics = [...data.topics].sort((a,b) => b.count - a.count).slice(0, 8);
-  if(!topics.length) return '<div class="empty" style="padding:30px">Crea temas para ver el mapa.</div>';
-  const W = 760, H = 420, cx = W/2, cy = H/2, R = 150;
-  let s = "";
+  const topics = [...data.topics].sort((a,b) => b.count - a.count || a.name.localeCompare(b.name, "es")).slice(0, 10);
+  if(!topics.length) return '<div class="empty" style="padding:30px">Crea temas para ver tu universo.</div>';
+  const W = 980, H = 600, cx = W/2, cy = H/2, R = topics.length > 6 ? 200 : 175;
+  let lines = "", nodes = "", leaves = "";
+  const pill = (x, y, label, c, attrs) => { const t = label.length > 18 ? label.slice(0,17) + "…" : label, w = 16 + t.length * 6.3; return `<g ${attrs} style="cursor:pointer"><rect x="${x - w/2}" y="${y - 12}" width="${w}" height="24" rx="12" fill="#0b1a2b" stroke="${c}" stroke-opacity=".7"/><text x="${x}" y="${y + 4}" text-anchor="middle" font-size="10.5" fill="#dbe6f0">${esc(t)}</text></g>`; };
   topics.forEach((t, i) => {
-    const a = i / topics.length * Math.PI * 2 - Math.PI/2, x = cx + R*Math.cos(a), y = cy + R*Math.sin(a), c = colorOf(t.name);
-    s += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${c}" stroke-opacity=".35"/>`;
+    const a = i / topics.length * Math.PI * 2 - Math.PI/2, x = cx + R*Math.cos(a), y = cy + R*Math.sin(a), c = colorOf(t.name), sel = mapSel === t.name;
+    const mx = (cx + x)/2 + 18*Math.cos(a + Math.PI/2), my = (cy + y)/2 + 18*Math.sin(a + Math.PI/2);
+    lines += `<path d="M${cx},${cy} Q${mx},${my} ${x},${y}" fill="none" stroke="${c}" stroke-opacity="${sel ? .9 : .45}" stroke-width="${sel ? 2.2 : 1.4}"/>`;
     const tags = {}; refsOf(t.name).forEach(r => (r.tags||[]).forEach(g => tags[g] = (tags[g]||0) + 1));
-    Object.entries(tags).sort((p,q) => q[1]-p[1]).slice(0,3).forEach(([g], j) => {
-      const b = a + (j-1)*.35, gx = x + 70*Math.cos(b), gy = y + 70*Math.sin(b);
-      s += `<line x1="${x}" y1="${y}" x2="${gx}" y2="${gy}" stroke="${c}" stroke-opacity=".25"/><circle cx="${gx}" cy="${gy}" r="3.5" fill="${c}"/><text x="${gx}" y="${gy-8}" text-anchor="middle" font-size="10" fill="#a5b5c4">${esc(g.slice(0,16))}</text>`;
+    const tagLeaves = Object.entries(tags).sort((p,q) => q[1]-p[1]).slice(0, 2).map(([g]) => ({ label:g, attrs:`data-tag="${esc(g)}"` }));
+    const refLeaves = sortRefs(refsOf(t.name), "recent").slice(0, 3 - tagLeaves.length).map(r => ({ label:r.referencia, attrs:`data-ref="${esc(r.id)}"` }));
+    const ls = [...tagLeaves, ...refLeaves], spread = ls.length > 1 ? .42 : 0;
+    ls.forEach((l, j) => {
+      const b = a + (j - (ls.length - 1)/2) * spread, d = 112, lx = x + d*Math.cos(b), ly = y + d*Math.sin(b);
+      leaves += `<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly}" stroke="${c}" stroke-opacity=".3"/>` + pill(lx, ly, l.label, c, l.attrs);
     });
-    s += `<g data-topic="${esc(t.name)}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="${24 + Math.min(18, t.count*2)}" fill="#0f2033" stroke="${c}" stroke-width="2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" font-weight="700" fill="#f3f1ea">${esc(t.name.length > 14 ? t.name.slice(0,13) + "…" : t.name)}</text></g>`;
+    const r0 = 40 + Math.min(10, t.count);
+    nodes += `<g data-mapnode="${esc(t.name)}" style="cursor:pointer"><title>${esc(t.name)} · ${t.count} referencias</title>
+      <circle cx="${x}" cy="${y}" r="${r0 + 6}" fill="${c}" opacity="${sel ? .28 : .12}" filter="url(#mglow)"/>
+      <circle cx="${x}" cy="${y}" r="${r0}" fill="url(#mfill)" stroke="${c}" stroke-width="${sel ? 3 : 2}"/>
+      <svg x="${x - 13}" y="${y - r0*.62}" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${topicIconPath(t.name)}</svg>
+      <text x="${x}" y="${y + 12}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f3f1ea">${esc(t.name.length > 15 ? t.name.slice(0,14) + "…" : t.name)}</text>
+      <text x="${x}" y="${y + 26}" text-anchor="middle" font-size="9.5" fill="#a5b5c4">${t.count} ref.</text></g>`;
   });
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mapa de temas"><circle cx="${cx}" cy="${cy}" r="34" fill="#e5c0681a" stroke="#e5c068" stroke-width="1.5"/><text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13" font-weight="800" fill="#f3d98f">YO</text>${s}</svg>`;
+  return `<svg viewBox="-70 -60 ${W + 140} ${H + 120}" role="img" aria-label="Mi universo de intereses"><defs><filter id="mglow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter><radialGradient id="mfill"><stop offset="0" stop-color="#14304a"/><stop offset="1" stop-color="#0a1626"/></radialGradient></defs>
+    ${lines}${leaves}${nodes}
+    <circle cx="${cx}" cy="${cy}" r="58" fill="#e5c068" opacity=".14" filter="url(#mglow)"/><circle cx="${cx}" cy="${cy}" r="46" fill="#0d1b2c" stroke="#e5c068" stroke-width="2.5"/><text x="${cx}" y="${cy + 8}" text-anchor="middle" font-size="22" font-weight="800" font-family="Fraunces,Georgia,serif" fill="#f3d98f">YO</text></svg>`;
+}
+// Right-hand panel of the map: the selected topic with its references.
+function mapPanelHTML(){
+  const t = topicOf(mapSel); if(!t) return "";
+  const i = data.topics.indexOf(t), refs = sortRefs(refsOf(t.name), "recent"), tags = {};
+  refs.forEach(r => (r.tags||[]).forEach(g => tags[g] = (tags[g]||0) + 1));
+  return `<section class="panel map-panel"><div class="mp-cover" style="${coverStyle(t.coverUrl, i)}">${topicArt(t, i)}<button class="btn sm mp-edit" data-mpedit>✎ Editar tema</button></div>
+    <div class="mp-body"><div class="mp-title"><div class="ticon" style="${t.iconUrl?`background-image:${cssUrl(t.iconUrl)}`:""}">${iconHTML(t)}</div><div><h3>${esc(t.name)}</h3><div class="sub">${t.count} referencias · ${(t.columns||[]).length} columnas</div></div></div>
+    ${t.description ? `<p class="mp-desc">${esc(t.description)}</p>` : `<p class="mp-desc placeholder">Sin descripción — usa “Editar tema” para añadirla.</p>`}
+    ${Object.keys(tags).length ? `<div class="mp-tags">${Object.entries(tags).sort((a,b) => b[1]-a[1]).slice(0, 8).map(([g]) => `<button class="chip" data-tag="${esc(g)}">#${esc(g)}</button>`).join("")}</div>` : ""}
+    <div class="mp-actions"><button class="btn gold" data-mpadd>＋ Agregar referencia</button><button class="btn" data-mpopen>Abrir tema →</button></div>
+    <div class="section-label">REFERENCIAS</div>
+    ${refs.slice(0, 6).map(r => `<div class="mp-ref" data-ref="${esc(r.id)}">${thumbHTML(r)}<div><b>${esc(r.referencia)}</b><small>${esc([r.tipo, r.autor].filter(Boolean).join(" · "))}</small></div><span>${esc(relDate(r.createdTime))}</span></div>`).join("") || '<div class="empty">Este tema aún no tiene referencias.</div>'}
+    ${refs.length > 6 ? `<button class="link" data-mpopen>Ver las ${refs.length} referencias →</button>` : ""}
+    <button class="link" style="display:block;margin-top:10px" data-mpclose>← Ver todos los temas</button></div></section>`;
 }
 function explorarHTML(){
   const queue = sortRefs(data.referencias.filter(r => r.estado === "Por consumir" || r.estado === "Consumiendo"), "importance").slice(0, 10);
@@ -510,6 +604,11 @@ function bindTab(el){
   el.querySelector("#topic-sort")?.addEventListener("change", e => { topicSort = e.target.value; render(); });
   el.querySelector("#topic-q")?.addEventListener("input", e => { const q = e.target.value.toLowerCase(); el.querySelectorAll("#topic-grid .tcard[data-topic]").forEach(c => c.style.display = c.dataset.topic.toLowerCase().includes(q) ? "" : "none"); });
   el.querySelectorAll("#cloud-seg button").forEach(b => b.addEventListener("click", () => { cloudView = b.dataset.v; render(); }));
+  el.querySelectorAll("[data-mapnode]").forEach(n => { n.addEventListener("click", () => { mapSel = n.dataset.mapnode; render(); }); n.addEventListener("dblclick", () => openTopic(n.dataset.mapnode)); });
+  el.querySelectorAll("[data-mpopen]").forEach(n => n.addEventListener("click", () => openTopic(mapSel)));
+  el.querySelector("[data-mpadd]")?.addEventListener("click", () => openRefForm({ temas:[mapSel] }));
+  el.querySelector("[data-mpedit]")?.addEventListener("click", () => openTopicForm(topicOf(mapSel)));
+  el.querySelector("[data-mpclose]")?.addEventListener("click", () => { mapSel = null; render(); });
   el.querySelector("#z-in")?.addEventListener("click", () => { cloudZoom = Math.min(1.8, cloudZoom + .15); document.getElementById("cloud").style.transform = `scale(${cloudZoom})`; });
   el.querySelector("#z-out")?.addEventListener("click", () => { cloudZoom = Math.max(.6, cloudZoom - .15); document.getElementById("cloud").style.transform = `scale(${cloudZoom})`; });
   el.querySelector("#z-reset")?.addEventListener("click", () => { cloudZoom = 1; document.getElementById("cloud").style.transform = "scale(1)"; });
@@ -539,8 +638,8 @@ function renderTopic(){
   const colOf = r => (r.columna || "").trim() && r.columna !== "Sin columna" ? r.columna.trim() : "Sin columna";
   const cols = boardColumns(t);
   const el = document.getElementById("topic-view");
-  el.innerHTML = `<section class="topic-hero" style="${coverStyle(t.coverUrl, i)}"><button class="btn hero-edit" onclick="openTopicForm(topicOf(activeTopic))">✎ Editar portada</button><div class="hero-in">
-      <div class="hero-icon" style="${t.iconUrl?`background-image:${cssUrl(t.iconUrl)}`:""};font-family:var(--serif);font-size:30px">${iconHTML(t)}</div>
+  el.innerHTML = `<section class="topic-hero" style="${coverStyle(t.coverUrl, i)}">${t.coverUrl ? "" : `<div class="tart tart-hero" style="--tc:${colorOf(t.name)}">${topicSVG(t.name, "150", colorOf(t.name))}</div>`}<button class="btn hero-edit" onclick="openTopicForm(topicOf(activeTopic))">✎ Editar portada</button><div class="hero-in">
+      <div class="hero-icon" style="${t.iconUrl?`background-image:${cssUrl(t.iconUrl)}`:""}">${iconHTML(t, "58%")}</div>
       <div><div class="hero-kicker">Mis Gustos · Tema</div><h1>${esc(t.name)}</h1><p>${esc(t.description || "Tablero por columnas — arrastra las referencias para organizarlas.")}</p></div></div></section>
     <div class="toolbar"><input class="input" id="b-q" value="${esc(boardFilters.q)}" placeholder="⌕ Buscar referencias…">
       <select class="select" id="b-tipo"><option value="all">Todos los tipos</option>${TIPOS.map(x => `<option ${x===boardFilters.tipo?"selected":""}>${esc(x)}</option>`).join("")}</select>
@@ -690,7 +789,7 @@ function openRefForm(r){
       <label>Fecha agregada<input value="${esc(dateEs(r.createdTime || new Date()))}" disabled></label>
       <label class="wide">Notas / por qué me importa<textarea name="porQueMeInteresa" placeholder="Lo que aprendiste, por qué importa, próximos pasos…">${esc(r.porQueMeInteresa || "")}</textarea></label>
     </div></form>
-    ${editing ? `<div class="section-label">ARCHIVOS E IMÁGENES</div><div class="files">${files.map((f, i) => `<a class="file" href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener" style="${/\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test((f.name||"") + " " + (f.url||"").split("?")[0]) ? `background-image:${cssUrl(f.url)}` : ""}"><button class="rm" data-rmfile="${i}" title="Quitar archivo">×</button><span>📎 ${esc(f.name)}</span></a>`).join("")}<label class="drop-zone" id="drop"><input type="file" id="ref-files" multiple style="display:none"><span><b>Subir archivos</b><br>Arrastra aquí o haz clic · máx. 3 MB</span></label></div>
+    ${editing ? `<div class="section-label">ARCHIVOS E IMÁGENES</div><div class="files">${files.map((f, i) => `<a class="file" href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener" style="${/\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test((f.name||"") + " " + (f.url||"").split("?")[0]) ? `background-image:${cssUrl(f.url)}` : ""}"><button class="rm" data-rmfile="${i}" title="Quitar archivo">×</button>${/\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test((f.name||"") + " " + (f.url||"").split("?")[0]) ? "" : `<em class="fext">${esc((String(f.name||"").split(".").pop() || "FILE").slice(0,4).toUpperCase())}</em>`}<span>📎 ${esc(f.name)}</span></a>`).join("")}<label class="drop-zone" id="drop"><input type="file" id="ref-files" multiple style="display:none"><span><b>Subir archivos</b><br>Arrastra aquí o haz clic · máx. 3 MB</span></label></div>
       <div class="section-label">COMENTARIOS (${(r.comments||[]).length})</div>
       <div style="display:flex;gap:8px"><input class="input" id="comment" style="flex:1" placeholder="Escribe un comentario…"><button class="btn gold" id="post-comment">Publicar</button></div>
       <div class="comments">${(r.comments||[]).map(c => `<div class="comment"><small>${esc(new Date(c.createdTime).toLocaleString("es-MX", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }))}</small>${esc(c.text)}</div>`).join("")}</div>` : ""}
